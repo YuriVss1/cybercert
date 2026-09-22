@@ -82,7 +82,7 @@ export type CommentItem = {
   profiles?: { full_name: string; avatar_url: string };
 };
 
-type AppMode = 'dashboard' | 'simulado' | 'treinamento' | 'historico' | 'metrics' | 'pbqs' | 'intelligence' | 'admin';
+type AppMode = 'dashboard' | 'simulado' | 'treinamento' | 'historico' | 'metrics' | 'pbqs' | 'intelligence' | 'admin' | 'cyber-core';
 type ExamType = 'official' | 'training';
 
 type ExamState = {

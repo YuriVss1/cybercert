@@ -10,7 +10,7 @@ import {
   Server, Lightbulb, Play, RotateCcw, Database, Crosshair, GraduationCap,
   ChevronLeftCircle, Flame, LogOut, MessageSquare, Send, Award, Trophy, Medal, Crown, Sparkles, Zap,
   Brain, Heart, Flag, Reply, Compass, TrendingUp, TrendingDown, HelpCircle, Printer,
-  Gauge
+  Gauge, Layers
 } from "lucide-react";
 import { 
   calculateReadiness, 
@@ -38,6 +38,8 @@ import {
   ResponsiveContainer, ReferenceLine
 } from 'recharts';
 import PbqOperationsBoard from "@/components/pbq/PbqOperationsBoard";
+import CyberCoreHome from "@/components/cybercore/CyberCoreHome";
+import { useCyberCoreStore } from "@/stores/cyberCoreStore";
 
 
 const securityPlusPbqs = [
@@ -1321,6 +1323,7 @@ export default function RootSecApp() {
           </button>
           <button onClick={() => setActiveTab('simulado')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'simulado' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><Terminal className="w-4 h-4" /> Operação Real</button>
           <button onClick={() => setActiveTab('treinamento')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'treinamento' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><BookOpen className="w-4 h-4" /> Estudo Tático</button>
+          <button onClick={() => setActiveTab('cyber-core')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase font-bold ${activeTab === 'cyber-core' ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500 shadow-[0_0_15px_rgba(8,145,178,0.2)]' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><Layers className="w-4 h-4 text-cyan-400" /> Treine seus conhecimentos</button>
           <button onClick={() => setActiveTab('pbqs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'pbqs' ? 'bg-purple-900/30 text-purple-400 border border-purple-800/50 shadow-[0_0_10px_rgba(168,85,247,0.1)]' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><Server className="w-4 h-4" /> Simuladores (PBQ)</button>
           <button onClick={() => setActiveTab('historico')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'historico' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent mt-4'}`}><History className="w-4 h-4" /> Histórico (Oficial)</button>
           <button onClick={() => setActiveTab('metrics')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'metrics' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><BarChart3 className="w-4 h-4" /> Métricas (Treino)</button>
@@ -2416,6 +2419,13 @@ export default function RootSecApp() {
           </div>
         )}
 
+        {/* ABA: TREINE SEUS CONHECIMENTOS (CYBER CORE) */}
+        {activeTab === 'cyber-core' && (
+          <div className="max-w-6xl animate-in fade-in duration-300">
+            <CyberCoreHome />
+          </div>
+        )}
+
         {/* ABA: PBQs (CENTRO TÁTICO DE OPERAÇÕES) */}
         {activeTab === 'pbqs' && (
           <div className="max-w-6xl">
@@ -2821,6 +2831,82 @@ export default function RootSecApp() {
                   <option value="12m">Último ano</option>
                 </select>
               </div>
+
+              {/* BLOCO CENTRAL: APRENDIZAGEM & CYBER CORE (TREINE SEUS CONHECIMENTOS) */}
+              {(() => {
+                const coreMetrics = useCyberCoreStore.getState().getGlobalMetrics();
+                return (
+                  <div className="rounded-2xl border border-cyan-800/40 bg-zinc-950 p-6 shadow-xl space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-cyan-950/80 border border-cyan-700/60 rounded-xl text-cyan-400">
+                          <Layers className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-white tracking-wide">
+                            Conhecimento & Cyber Core
+                          </h3>
+                          <p className="text-xs text-zinc-400">
+                            Métricas consolidadas de aprendizagem conceitual e retenção espaçada.
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('cyber-core')}
+                        className="px-4 py-2 bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-600/60 text-cyan-300 font-mono text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center gap-2 self-start sm:self-auto"
+                      >
+                        Treinar Conceitos <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                      <div className="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 block font-bold">
+                          Conceitos Dominados
+                        </span>
+                        <div className="text-2xl font-black font-mono text-white mt-1">
+                          {coreMetrics.conceptsMasteredCount}
+                        </div>
+                        <p className="text-[11px] text-zinc-500 font-mono mt-0.5">Retenção comprovada</p>
+                      </div>
+
+                      <div className="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 block font-bold">
+                          Em Desenvolvimento
+                        </span>
+                        <div className="text-2xl font-black font-mono text-white mt-1">
+                          {coreMetrics.conceptsDevelopingCount}
+                        </div>
+                        <p className="text-[11px] text-zinc-500 font-mono mt-0.5">Em prática ativa</p>
+                      </div>
+
+                      <div className="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 block font-bold">
+                          Fila de Revisão
+                        </span>
+                        <div className="text-2xl font-black font-mono text-white mt-1">
+                          {coreMetrics.conceptsToReviewCount}
+                        </div>
+                        <p className="text-[11px] text-zinc-500 font-mono mt-0.5">Pendentes de reforço</p>
+                      </div>
+
+                      <div className="bg-zinc-900/60 border border-zinc-800 p-4 rounded-xl">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 block font-bold">
+                          Exercícios Concluídos
+                        </span>
+                        <div className="text-2xl font-black font-mono text-white mt-1">
+                          {coreMetrics.totalExercisesCompleted}
+                        </div>
+                        <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
+                          {coreMetrics.overallRetentionPercentage > 0 ? `${coreMetrics.overallRetentionPercentage}% acurácia média` : 'Sem histórico'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* RADAR DE DOMÍNIOS POR TIERS (MAESTRIA, ESTABILIDADE, VULNERABILIDADE) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
