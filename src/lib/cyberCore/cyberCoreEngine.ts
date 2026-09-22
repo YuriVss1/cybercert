@@ -8,7 +8,7 @@ import type {
   RetentionState,
   UserConceptMastery,
   ReviewQueueItem,
-  ConceptCategory
+  UserConceptAttempt
 } from './cyberCoreTypes';
 
 // Limiares determinísticos para transição de estados de domínio
@@ -322,3 +322,62 @@ export function evaluateSubnetSubmission(
     message: `Excelente! Todos os ${expectedSubnets.length} blocos foram calculados com perfeição, respeitando os limites de rede, hosts úteis e broadcast.`
   };
 }
+
+// ============================================================================
+// 5. RESOLUÇÃO DINÂMICA DE "CONTINUE APRENDENDO" (5 NÍVEIS DE PRIORIDADE)
+// ============================================================================
+export function resolveContinueLearningSlug(params: {
+  attemptsHistory?: UserConceptAttempt[];
+  reviewQueue?: ReviewQueueItem[];
+  userMastery?: Record<string, UserConceptMastery>;
+  catalog?: { slug: string }[];
+}): string {
+  const { attemptsHistory = [], reviewQueue = [], userMastery = {}, catalog = [] } = params;
+  const catalogSlugs = new Set(catalog.map(c => c.slug));
+
+  // Prioridade 1: Conceito que o usuário estava praticando mais recentemente
+  if (attemptsHistory.length > 0) {
+    for (let i = attemptsHistory.length - 1; i >= 0; i--) {
+      const recentSlug = attemptsHistory[i]?.conceptId;
+      if (recentSlug && catalogSlugs.has(recentSlug)) {
+        return recentSlug;
+      }
+    }
+  }
+
+  // Prioridade 2: Conceito pendente na fila de revisão (mais prioritário primeiro)
+  if (reviewQueue.length > 0) {
+    for (const item of reviewQueue) {
+      if (item.conceptSlug && catalogSlugs.has(item.conceptSlug)) {
+        return item.conceptSlug;
+      }
+    }
+  }
+
+  // Prioridade 3: Conceito em desenvolvimento (em andamento)
+  const inDevSlugs = Object.keys(userMastery).filter(
+    slug => userMastery[slug]?.retentionState === 'IN_DEVELOPMENT'
+  );
+  if (inDevSlugs.length > 0) {
+    const sorted = [...inDevSlugs].sort((a, b) => {
+      const timeA = userMastery[a]?.lastAttemptAt ? new Date(userMastery[a].lastAttemptAt!).getTime() : 0;
+      const timeB = userMastery[b]?.lastAttemptAt ? new Date(userMastery[b].lastAttemptAt!).getTime() : 0;
+      return timeB - timeA;
+    });
+    const found = sorted.find(s => catalogSlugs.has(s));
+    if (found) return found;
+  }
+
+  // Prioridade 4: Conceito recomendado (primeiro que ainda não foi dominado)
+  const recommended = catalog.find(c => {
+    const m = userMastery[c.slug];
+    return !m || m.retentionState !== 'MASTERED';
+  });
+  if (recommended) {
+    return recommended.slug;
+  }
+
+  // Prioridade 5: Conceito inicial caso seja usuário novo ou todos dominados
+  return catalog[0]?.slug || 'subnetting-cidr';
+}
+

@@ -12,9 +12,9 @@ import type {
   UserConfidence,
   ChallengeType,
   RetentionState,
-  LearningEvent,
   CyberCoreGlobalMetrics,
-  ConceptCategory
+  ConceptCategory,
+  ConceptViewStage
 } from '@/lib/cyberCore/cyberCoreTypes';
 import {
   CYBER_CONCEPTS_CATALOG,
@@ -23,11 +23,8 @@ import {
 import {
   calculateNextReview,
   evaluateConceptMastery,
-  getReviewReasonLabel,
-  CORE_THRESHOLDS
+  getReviewReasonLabel
 } from '@/lib/cyberCore/cyberCoreEngine';
-
-export type ConceptViewStage = 'learn' | 'interact' | 'practice' | 'test' | 'mastery';
 
 interface CyberCoreState {
   concepts: CyberConcept[];
@@ -65,7 +62,7 @@ interface CyberCoreState {
     durationMs: number;
   }) => void;
 
-  completeStageProgress: (conceptSlug: string, stage: 'learn' | 'interact' | 'practice' | 'test') => void;
+  completeStageProgress: (conceptSlug: string, stage: 'learn' | 'interact' | 'practice' | 'test' | 'review') => void;
 
   resolveReviewItem: (conceptSlug: string) => void;
 
@@ -125,6 +122,7 @@ export const useCyberCoreStore = create<CyberCoreState>()(
         if (stage === 'interact') updatedProgress.interactCompleted = true;
         if (stage === 'practice') updatedProgress.practiceCompleted = true;
         if (stage === 'test') updatedProgress.testCompleted = true;
+        if (stage === 'review') updatedProgress.reviewCompleted = true;
 
         set({
           userMastery: {
@@ -244,7 +242,7 @@ export const useCyberCoreStore = create<CyberCoreState>()(
         };
 
         // Atualização da fila de revisão (Se errou, teve dúvida ou venceu o intervalo)
-        let updatedQueue = [...reviewQueue];
+        const updatedQueue = [...reviewQueue];
         const queueIndex = updatedQueue.findIndex(q => q.conceptSlug === conceptSlug);
 
         if (!isCorrect || confidence === 'HESITANT' || confidence === 'DID_NOT_KNOW') {

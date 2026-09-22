@@ -3,33 +3,77 @@
 import React, { useState, useId } from 'react';
 import { 
   Network, Sliders, CheckCircle2, AlertCircle, HelpCircle, 
-  ArrowRight, RefreshCw, Layers, ShieldCheck, Info, ChevronRight, Zap
+  ShieldCheck, Info, ChevronRight
 } from 'lucide-react';
 import { 
   calculateSubnetPartition, 
-  evaluateSubnetSubmission,
-  SubnetBlockDetails,
-  prefixToMask
+  evaluateSubnetSubmission
 } from '@/lib/cyberCore/cyberCoreEngine';
 import { useCyberCoreStore } from '@/stores/cyberCoreStore';
-import type { UserConfidence, ChallengeType } from '@/lib/cyberCore/cyberCoreTypes';
+import type { UserConfidence, ChallengeType, ConceptExperienceProps, ConceptAttemptPayload } from '@/lib/cyberCore/cyberCoreTypes';
 
-interface SubnettingLabProps {
+export interface SubnettingLabProps extends Partial<ConceptExperienceProps> {
   userId?: string;
   initialMode?: 'interact' | 'practice' | 'test';
   onCompleted?: () => void;
 }
 
 export default function SubnettingInteractiveLab({
+  concept,
+  activeStage = 'interact',
   userId = 'local-operator',
   initialMode = 'interact',
+  onCompleteStage,
+  onRecordAttempt,
+  onDidNotKnow,
   onCompleted
 }: SubnettingLabProps) {
-  const { recordAttempt, recordDidNotKnow, completeStageProgress, getConceptMastery } = useCyberCoreStore();
-  const mastery = getConceptMastery('subnetting-cidr');
+  const store = useCyberCoreStore();
+  const mastery = store.getConceptMastery('subnetting-cidr');
+
+  // Helper para chamar props ou fallback para a store diretamente
+  const recordAttemptAction = (payload: ConceptAttemptPayload) => {
+    if (onRecordAttempt) {
+      onRecordAttempt(payload);
+    } else {
+      store.recordAttempt({
+        userId,
+        conceptSlug: 'subnetting-cidr',
+        challengeId: payload.challengeId,
+        challengeType: payload.challengeType,
+        isCorrect: payload.isCorrect,
+        confidence: payload.confidence,
+        durationMs: payload.durationMs,
+        submittedAnswer: payload.submittedAnswer as Record<string, unknown> | string | number,
+        feedbackGiven: payload.feedbackGiven
+      });
+    }
+  };
+
+  const recordDidNotKnowAction = (challengeId: string, challengeType: ChallengeType) => {
+    if (onDidNotKnow) {
+      onDidNotKnow(challengeId, challengeType);
+    } else {
+      store.recordDidNotKnow({
+        userId,
+        conceptSlug: 'subnetting-cidr',
+        challengeId,
+        challengeType,
+        durationMs: 4000
+      });
+    }
+  };
+
+  const completeStageAction = (stage: 'interact' | 'practice' | 'test') => {
+    if (onCompleteStage) {
+      onCompleteStage(stage);
+    } else {
+      store.completeStageProgress('subnetting-cidr', stage);
+    }
+  };
 
   // Estados da Visualização Interativa
-  const [baseIp, setBaseIp] = useState('192.168.10.0');
+  const [baseIp] = useState('192.168.10.0');
   const [selectedPrefix, setSelectedPrefix] = useState<number>(26);
   const [inspectedBlockIndex, setInspectedBlockIndex] = useState<number>(0);
 
@@ -65,17 +109,11 @@ export default function SubnettingInteractiveLab({
   const handlePrefixChange = (newPrefix: number) => {
     setSelectedPrefix(newPrefix);
     setInspectedBlockIndex(0);
-    completeStageProgress('subnetting-cidr', 'interact');
+    completeStageAction('interact');
   };
 
   const handleDidNotKnow = (challengeId: string, challengeType: ChallengeType) => {
-    recordDidNotKnow({
-      userId,
-      conceptSlug: 'subnetting-cidr',
-      challengeId,
-      challengeType,
-      durationMs: 4000
-    });
+    recordDidNotKnowAction(challengeId, challengeType);
 
     setFeedback({
       type: 'did_not_know',
@@ -93,9 +131,7 @@ export default function SubnettingInteractiveLab({
       const isCorrect = cleanAnswer === '255.255.255.192';
       const duration = 5000;
 
-      recordAttempt({
-        userId,
-        conceptSlug: 'subnetting-cidr',
+      recordAttemptAction({
         challengeId: 'sub-lvl-1',
         challengeType: 'calculate',
         isCorrect,
@@ -111,7 +147,7 @@ export default function SubnettingInteractiveLab({
           message: 'Exato! Em /26, os dois primeiros bits do 4º octeto estão ligados (128 + 64 = 192), gerando a máscara 255.255.255.192.',
           hintLevel: 0
         });
-        completeStageProgress('subnetting-cidr', 'practice');
+        completeStageAction('practice');
       } else {
         const nextHint = feedback.hintLevel + 1;
         let hintMsg = 'Ajuste: Lembre-se de somar os bits de rede no último octeto: 128 (bit 1) + 64 (bit 2).';
@@ -127,9 +163,7 @@ export default function SubnettingInteractiveLab({
     } else if (currentLevel === 2) {
       // Pergunta: Network address de 192.168.10.77/26 -> 192.168.10.64
       const isCorrect = cleanAnswer === '192.168.10.64';
-      recordAttempt({
-        userId,
-        conceptSlug: 'subnetting-cidr',
+      recordAttemptAction({
         challengeId: 'sub-lvl-2',
         challengeType: 'identify',
         isCorrect,
@@ -155,9 +189,7 @@ export default function SubnettingInteractiveLab({
     } else if (currentLevel === 3) {
       // Pergunta: Broadcast de 192.168.10.77/26 -> 192.168.10.127
       const isCorrect = cleanAnswer === '192.168.10.127';
-      recordAttempt({
-        userId,
-        conceptSlug: 'subnetting-cidr',
+      recordAttemptAction({
         challengeId: 'sub-lvl-3',
         challengeType: 'identify',
         isCorrect,
@@ -191,9 +223,7 @@ export default function SubnettingInteractiveLab({
         lastUsableHost: ''
       })));
 
-      recordAttempt({
-        userId,
-        conceptSlug: 'subnetting-cidr',
+      recordAttemptAction({
         challengeId: 'sub-lvl-4',
         challengeType: 'build',
         isCorrect: evalRes.isCorrect,
@@ -209,7 +239,7 @@ export default function SubnettingInteractiveLab({
           message: evalRes.message,
           hintLevel: 0
         });
-        completeStageProgress('subnetting-cidr', 'test');
+        completeStageAction('test');
         if (onCompleted) onCompleted();
       } else {
         setFeedback({
@@ -221,9 +251,7 @@ export default function SubnettingInteractiveLab({
     } else if (currentLevel === 5) {
       // Pergunta: Menor prefixo para 25 hosts de SOC -> /27
       const isCorrect = cleanAnswer === '/27' || cleanAnswer === '27';
-      recordAttempt({
-        userId,
-        conceptSlug: 'subnetting-cidr',
+      recordAttemptAction({
         challengeId: 'sub-lvl-5',
         challengeType: 'calculate',
         isCorrect,

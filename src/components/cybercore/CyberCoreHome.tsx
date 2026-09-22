@@ -1,13 +1,10 @@
 "use client";
 
 import React, { useState } from 'react';
-import { 
-  Brain, CheckCircle2, Clock, RotateCcw, ArrowRight, Play, 
-  Layers, ShieldAlert, Sparkles, Filter, AlertTriangle, BookOpen,
-  Calendar, Check, ChevronRight, HelpCircle
-} from 'lucide-react';
+import { Brain, CheckCircle2, ArrowRight, ChevronRight } from 'lucide-react';
 import { useCyberCoreStore } from '@/stores/cyberCoreStore';
 import { CYBER_CONCEPTS_CATALOG, getConceptBySlug } from '@/lib/cyberCore/conceptsData';
+import { resolveContinueLearningSlug } from '@/lib/cyberCore/cyberCoreEngine';
 import type { ConceptCategory } from '@/lib/cyberCore/cyberCoreTypes';
 import ConceptView from './ConceptView';
 
@@ -30,7 +27,7 @@ export default function CyberCoreHome() {
     getGlobalMetrics, 
     reviewQueue, 
     userMastery,
-    resolveReviewItem 
+    attemptsHistory
   } = useCyberCoreStore();
 
   const [selectedCategory, setSelectedCategory] = useState<ConceptCategory | 'ALL'>('ALL');
@@ -56,8 +53,13 @@ export default function CyberCoreHome() {
     ? CYBER_CONCEPTS_CATALOG
     : CYBER_CONCEPTS_CATALOG.filter(c => c.category === selectedCategory);
 
-  // Conceito em destaque para "Continue Aprendendo" (Padrão: Subnetting / CIDR)
-  const highlightedSlug = 'subnetting-cidr';
+  // Conceito em destaque para "Continue Aprendendo" (Dinâmico: 5 níveis de prioridade)
+  const highlightedSlug = resolveContinueLearningSlug({
+    attemptsHistory,
+    reviewQueue,
+    userMastery,
+    catalog: CYBER_CONCEPTS_CATALOG
+  });
   const highlightedConcept = getConceptBySlug(highlightedSlug) || CYBER_CONCEPTS_CATALOG[0];
   const highlightedMastery = userMastery[highlightedSlug];
 
@@ -157,7 +159,7 @@ export default function CyberCoreHome() {
                 {highlightedConcept.category}
               </span>
               <span className="text-xs font-mono text-zinc-500">
-                Subnetting / CIDR
+                {highlightedConcept.level} • {highlightedConcept.interactionType || 'INTERACTIVE'}
               </span>
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-white tracking-wide">

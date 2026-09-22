@@ -12,13 +12,27 @@ export type ConceptCategory =
   | 'LINUX'
   | 'WINDOWS';
 
-export type ChallengeType = 
-  | 'calculate'     // ex: calcular máscara, hosts utilizáveis
-  | 'build'         // ex: dividir redes, configurar blocos
-  | 'identify'      // ex: identificar network address, broadcast
-  | 'match'         // ex: associar CIDR à máscara ou conceito
-  | 'recall'        // ex: recuperação ativa
-  | 'simulate';     // ex: simulação interativa de fluxo
+// Tipos de interação canônicos e extensíveis para qualquer conceito
+export type InteractionType = 
+  | 'BUILD'
+  | 'DRAG_DROP'
+  | 'SORT'
+  | 'CONNECT'
+  | 'CLASSIFY'
+  | 'SIMULATE'
+  | 'CALCULATE'
+  | 'IDENTIFY'
+  | 'TRACE'
+  | 'TROUBLESHOOT'
+  // Compatibilidade com definições prévias
+  | 'calculate'
+  | 'build'
+  | 'identify'
+  | 'match'
+  | 'recall'
+  | 'simulate';
+
+export type ChallengeType = InteractionType;
 
 export type DifficultyLevel = 'FOUNDATION' | 'PRACTICE' | 'APPLICATION' | 'MASTERY';
 
@@ -42,11 +56,20 @@ export type UserConfidence =
   | 'HESITANT'          // Teve dúvida
   | 'DID_NOT_KNOW';     // Não sabia o conceito ("Não sei")
 
+export type ConceptViewStage = 
+  | 'learn'       // APRENDER: Explicação curta, direta e visual
+  | 'interact'    // INTERAGIR: Manipulação direta do conceito
+  | 'practice'    // PRATICAR: Exercícios progressivos
+  | 'test'        // TESTAR: Avaliação sem pistas imediatas
+  | 'mastery'     // DOMINAR: Síntese de retenção e evidências
+  | 'review';     // REVISAR: Reforço espaçado no ciclo de vida
+
 export interface ConceptStageProgress {
   learnCompleted: boolean;
   interactCompleted: boolean;
   practiceCompleted: boolean;
   testCompleted: boolean;
+  reviewCompleted?: boolean;
 }
 
 export interface ConceptChallenge {
@@ -69,6 +92,7 @@ export interface CyberConcept {
   category: ConceptCategory;
   level: DifficultyLevel;
   shortDescription: string;
+  interactionType?: InteractionType;
   learningContent: {
     overview: string;
     keyPoints: string[];
@@ -110,7 +134,7 @@ export interface UserConceptAttempt {
   isCorrect: boolean;
   confidence: UserConfidence;
   durationMs: number;
-  submittedAnswer: Record<string, unknown> | string | number;
+  submittedAnswer: Record<string, unknown> | string | number | unknown[];
   feedbackGiven: string;
   createdAt: string;
 }
@@ -129,7 +153,27 @@ export interface ReviewQueueItem {
   isOverdue: boolean;
 }
 
-// Telemetria baseada em eventos (Event-Based Metrics)
+// Contrato Padronizado de Experiência Conceitual (Pluggable Experience Contract)
+export interface ConceptAttemptPayload {
+  challengeId: string;
+  challengeType: ChallengeType;
+  isCorrect: boolean;
+  confidence: UserConfidence;
+  durationMs: number;
+  submittedAnswer: Record<string, unknown> | string | number | unknown[];
+  feedbackGiven: string;
+}
+
+export interface ConceptExperienceProps {
+  concept: CyberConcept;
+  activeStage: ConceptViewStage;
+  userId?: string;
+  onCompleteStage: (stage: ConceptViewStage) => void;
+  onRecordAttempt: (payload: ConceptAttemptPayload) => { masteryUpdated: boolean; newState: RetentionState };
+  onDidNotKnow: (challengeId: string, challengeType: ChallengeType) => void;
+}
+
+// Telemetria baseada em eventos (Event-Based Metrics - Unificados & Idempotentes)
 export type LearningEventType = 
   | 'CONCEPT_STARTED'
   | 'CONCEPT_LEARNED'
@@ -141,8 +185,10 @@ export type LearningEventType =
   | 'CONCEPT_CONSOLIDATED'
   | 'CONCEPT_MASTERED'
   | 'REVIEW_QUEUE_COMPLETED'
-  | 'SUBNETTING_EXERCISE_COMPLETED'
-  | 'SUBNETTING_MASTERY_ACHIEVED';
+  | 'CONCEPT_EXERCISE_COMPLETED'
+  | 'CONCEPT_MASTERY_ACHIEVED'
+  | 'CONCEPT_REVIEW_COMPLETED'
+  | 'CONCEPT_STAGE_COMPLETED';
 
 export interface LearningEvent {
   id: string;

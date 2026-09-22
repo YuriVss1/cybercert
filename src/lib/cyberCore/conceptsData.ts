@@ -15,6 +15,7 @@ export const CYBER_CONCEPTS_CATALOG: CyberConcept[] = [
     category: 'NETWORKING',
     level: 'FOUNDATION',
     shortDescription: 'Compreenda a partição de blocos IPv4, cálculo de máscaras, hosts úteis e fronteiras de broadcast através de manipulação direta.',
+    interactionType: 'CALCULATE',
     prerequisiteSlugs: ['ipv4-fundamentals'],
     learningContent: {
       overview: 'Uma rede IPv4 /24 possui 256 endereços totais. Ao aumentar o comprimento do prefixo para /26, "emprestamos" 2 bits da porção de hosts para a porção de rede, particionando o bloco original em 4 sub-redes independentes de 64 endereços cada.',
@@ -223,7 +224,8 @@ export const CYBER_CONCEPTS_CATALOG: CyberConcept[] = [
     title: 'TCP 3-Way Handshake: Estabelecimento de Sessão',
     category: 'NETWORKING',
     level: 'PRACTICE',
-    shortDescription: 'Sequência de flags SYN, SYN-ACK e ACK, sincronização de números de sequência (ISN) e mitigação de SYN Flood.',
+    shortDescription: 'Sequência de flags SYN, SYN-ACK e ACK, sincronização de números de sequência (ISN) e estados de socket.',
+    interactionType: 'SORT',
     prerequisiteSlugs: ['tcp-vs-udp'],
     learningContent: {
       overview: 'Antes de transmitir dados, o TCP estabelece uma conexão bidirecional confiável através de uma troca de três mensagens entre cliente e servidor.',
@@ -231,14 +233,14 @@ export const CYBER_CONCEPTS_CATALOG: CyberConcept[] = [
         'Passo 1: Cliente envia flag SYN (Synchronize) com seu Initial Sequence Number (ISN_c).',
         'Passo 2: Servidor responde com SYN-ACK (SYN do servidor + ACK com ISN_c + 1).',
         'Passo 3: Cliente finaliza com ACK (com ISN_s + 1). Sessão ESTABLISHED.',
-        'Segurança: Ataques de SYN Flood tentam esgotar a tabela de conexões no Passo 2.'
+        'Segurança: Ataques de SYN Flood tentam esgotar a tabela de conexões no Passo 2 mantendo sockets em SYN_RECEIVED.'
       ]
     },
     challenges: [
       {
         id: 'handshake-lvl-1',
         conceptId: 'core-net-handshake',
-        type: 'identify',
+        type: 'SORT',
         level: 'FOUNDATION',
         prompt: 'Qual flag TCP é enviada pelo servidor na segunda etapa do Handshake de 3 vias?',
         hint: 'O servidor confirma o recebimento do cliente e ao mesmo tempo solicita sincronização de seus próprios números de sequência.',
@@ -246,6 +248,30 @@ export const CYBER_CONCEPTS_CATALOG: CyberConcept[] = [
         solution: { expectedAnswer: 'SYN-ACK' },
         pedagogicalExplanation: 'O pacote SYN-ACK sincroniza a comunicação no sentido servidor -> cliente e confirma o SYN original do cliente.',
         orderIndex: 1
+      },
+      {
+        id: 'handshake-lvl-2',
+        conceptId: 'core-net-handshake',
+        type: 'BUILD',
+        level: 'PRACTICE',
+        prompt: 'Se o cliente inicia com ISN = 1000, qual deve ser o valor do campo ACK retornado pelo servidor no pacote SYN-ACK?',
+        hint: 'O receptor incrementa em +1 o sequence number do remetente para indicar o próximo byte esperado.',
+        config: { inputLabel: 'Valor do ACK' },
+        solution: { expectedAnswer: '1001' },
+        pedagogicalExplanation: 'No handshake TCP, o flag SYN consome 1 número de sequência lógico. O servidor responde com ACK = ISN_c + 1 (1000 + 1 = 1001).',
+        orderIndex: 2
+      },
+      {
+        id: 'handshake-lvl-3',
+        conceptId: 'core-net-handshake',
+        type: 'IDENTIFY',
+        level: 'APPLICATION',
+        prompt: 'Qual é o estado do socket no servidor logo após enviar o pacote SYN-ACK e antes de receber o ACK final do cliente?',
+        hint: 'O servidor já recebeu a sincronização e aguarda a confirmação final.',
+        config: { inputLabel: 'Estado do Socket' },
+        solution: { expectedAnswer: 'SYN_RECEIVED' },
+        pedagogicalExplanation: 'Ao emitir SYN-ACK, o servidor aloca buffers e transiciona para SYN_RECEIVED (ou SYN_RCVD). Permanece assim até o timeout ou chegada do ACK (passando para ESTABLISHED).',
+        orderIndex: 3
       }
     ]
   },
@@ -260,6 +286,7 @@ export const CYBER_CONCEPTS_CATALOG: CyberConcept[] = [
     category: 'NETWORKING',
     level: 'FOUNDATION',
     shortDescription: 'Resolução hierárquica recursiva e iterativa: Root servers, TLD servers e Servidores Autoritativos.',
+    interactionType: 'TRACE',
     prerequisiteSlugs: ['ipv4-fundamentals', 'tcp-vs-udp'],
     learningContent: {
       overview: 'O DNS atua como o catálogo telefônico da internet, traduzindo nomes de domínio legíveis por humanos (ex: api.rootsec.io) para endereços IP operacionais.',
@@ -273,7 +300,7 @@ export const CYBER_CONCEPTS_CATALOG: CyberConcept[] = [
       {
         id: 'dns-lvl-1',
         conceptId: 'core-net-dns',
-        type: 'identify',
+        type: 'TRACE',
         level: 'FOUNDATION',
         prompt: 'Qual tipo de registro DNS é utilizado para apontar um nome de domínio para um endereço IPv4 de 32 bits?',
         hint: 'Registro simples de uma única letra.',
@@ -281,6 +308,30 @@ export const CYBER_CONCEPTS_CATALOG: CyberConcept[] = [
         solution: { expectedAnswer: 'A' },
         pedagogicalExplanation: 'O registro "A" (Address) mapeia um hostname para um endereço IPv4. Para IPv6, utiliza-se "AAAA" (quad-A).',
         orderIndex: 1
+      },
+      {
+        id: 'dns-lvl-2',
+        conceptId: 'core-net-dns',
+        type: 'IDENTIFY',
+        level: 'PRACTICE',
+        prompt: 'Na hierarquia DNS, qual entidade tem autoridade definitiva para fornecer o registro IP de um domínio específico como "rootsec.io"?',
+        hint: 'Não é o Root nem o TLD, mas o servidor que hospeda a zona final.',
+        config: { inputLabel: 'Servidor Responsável' },
+        solution: { expectedAnswer: 'Servidor Autoritativo' },
+        pedagogicalExplanation: 'O Servidor Autoritativo (Authoritative Name Server) contém os registros de zona reais e configurados pelo administrador do domínio.',
+        orderIndex: 2
+      },
+      {
+        id: 'dns-lvl-3',
+        conceptId: 'core-net-dns',
+        type: 'SIMULATE',
+        level: 'APPLICATION',
+        prompt: 'Se um registro DNS possui TTL de 300 segundos, o que acontece com a consulta do cliente realizada 60 segundos após o primeiro acesso?',
+        hint: 'Considere o cache do Recursive Resolver.',
+        config: { inputLabel: 'Origem da Resposta' },
+        solution: { expectedAnswer: 'Cache do Resolver' },
+        pedagogicalExplanation: 'Como 60s < 300s, o TTL ainda está ativo. O resolvedor recursivo retorna a resposta imediatamente a partir de sua memória cache sem contatar os servidores de zona.',
+        orderIndex: 3
       }
     ]
   }
