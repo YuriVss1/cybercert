@@ -34,7 +34,15 @@ export type InteractionType =
 
 export type ChallengeType = InteractionType;
 
-export type DifficultyLevel = 'FOUNDATION' | 'PRACTICE' | 'APPLICATION' | 'MASTERY';
+export type DifficultyLevel = 
+  | 'BEGINNER' 
+  | 'INTERMEDIATE' 
+  | 'ADVANCED'
+  // Compatibilidade com níveis prévios
+  | 'FOUNDATION' 
+  | 'PRACTICE' 
+  | 'APPLICATION' 
+  | 'MASTERY';
 
 export type RetentionState = 
   | 'NOT_STARTED'       // Ainda não iniciado

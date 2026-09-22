@@ -259,13 +259,82 @@ export default function CyberCoreHome() {
       </section>
 
       {/* -------------------------------------------------------------------- */}
-      {/* SEÇÃO 4: EXPLORAR CONCEITOS                                          */}
+      {/* SEÇÃO 4: DOMÍNIOS MULTIDISCIPLINARES (8 CATEGORIAS - DADOS REAIS)    */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-bold text-white tracking-wide">
+            Domínios de Fundamentos
+          </h2>
+          <p className="text-xs text-zinc-400">
+            Métricas de retenção consolidadas por categoria técnica em tempo real.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          {CATEGORIES.filter(c => c.id !== 'ALL').map(cat => {
+            const catId = cat.id as ConceptCategory;
+            const categoryConcepts = CYBER_CONCEPTS_CATALOG.filter(c => c.category === catId);
+            const total = categoryConcepts.length;
+            const mastered = categoryConcepts.filter(c => userMastery[c.slug]?.retentionState === 'MASTERED').length;
+            const developing = categoryConcepts.filter(c => 
+              userMastery[c.slug]?.retentionState === 'IN_DEVELOPMENT' || 
+              userMastery[c.slug]?.retentionState === 'CONSOLIDATED'
+            ).length;
+            const toReview = reviewQueue.filter(q => q.category === catId).length;
+            const notStarted = Math.max(0, total - (mastered + developing));
+            const isSelected = selectedCategory === cat.id;
+
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(isSelected ? 'ALL' : cat.id)}
+                className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between space-y-2 group ${
+                  isSelected 
+                    ? 'bg-cyan-950/40 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.25)]' 
+                    : 'bg-zinc-950 border-zinc-800/90 hover:border-zinc-700'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-cyan-400">
+                      {cat.label}
+                    </span>
+                    <span className="text-xs font-mono text-zinc-500 font-bold">
+                      {total} {total === 1 ? 'conceito' : 'conceitos'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-zinc-800/80 grid grid-cols-2 gap-y-1 text-[10px] font-mono">
+                  <div className="text-zinc-400">
+                    Dominados: <strong className="text-emerald-400">{mastered}</strong>
+                  </div>
+                  <div className="text-zinc-400">
+                    Em curso: <strong className="text-cyan-400">{developing}</strong>
+                  </div>
+                  <div className="text-zinc-400">
+                    Revisar: <strong className={toReview > 0 ? "text-amber-400 font-bold" : "text-zinc-500"}>{toReview}</strong>
+                  </div>
+                  <div className="text-zinc-400">
+                    Não inic.: <strong className="text-zinc-500">{notStarted}</strong>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* -------------------------------------------------------------------- */}
+      {/* SEÇÃO 5: EXPLORAR CONCEITOS                                          */}
       {/* -------------------------------------------------------------------- */}
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold text-white tracking-wide">
-              Explorar Conceitos
+              Explorar Conceitos {selectedCategory !== 'ALL' && `• ${selectedCategory}`}
             </h2>
             <p className="text-xs text-zinc-400">
               Navegue pelos fundamentos essenciais de cada domínio técnico.

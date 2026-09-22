@@ -8,12 +8,36 @@ import SubnettingInteractiveLab from '@/components/cybercore/labs/SubnettingInte
 import TcpHandshakeLab from '@/components/cybercore/labs/TcpHandshakeLab';
 import DnsResolutionLab from '@/components/cybercore/labs/DnsResolutionLab';
 import GenericConceptExperience from '@/components/cybercore/labs/GenericConceptExperience';
+import FirewallAclLab from '@/components/cybercore/labs/FirewallAclLab';
+import IncidentResponseLab from '@/components/cybercore/labs/IncidentResponseLab';
+import PkiChainLab from '@/components/cybercore/labs/PkiChainLab';
+import KerberosFlowLab from '@/components/cybercore/labs/KerberosFlowLab';
+import SiemCorrelationLab from '@/components/cybercore/labs/SiemCorrelationLab';
+import WindowsEventLab from '@/components/cybercore/labs/WindowsEventLab';
+import LinuxPermissionsLab from '@/components/cybercore/labs/LinuxPermissionsLab';
+import CloudIamLab from '@/components/cybercore/labs/CloudIamLab';
 
-// Registro desacoplado de componentes de experiência prática
+// Registro desacoplado de componentes de experiência prática multidisciplinar
 export const CONCEPT_EXPERIENCE_REGISTRY: Record<string, React.ComponentType<ConceptExperienceProps>> = {
+  // NETWORKING
   'subnetting-cidr': SubnettingInteractiveLab as unknown as React.ComponentType<ConceptExperienceProps>,
   'tcp-3way-handshake': TcpHandshakeLab,
   'dns-resolution': DnsResolutionLab,
+  // CYBERSECURITY
+  'firewall-acl': FirewallAclLab,
+  'incident-response-lifecycle': IncidentResponseLab,
+  // CRYPTOGRAPHY
+  'pki-certificate-chain': PkiChainLab,
+  // IDENTITY
+  'kerberos-auth-flow': KerberosFlowLab,
+  // SOC
+  'siem-log-correlation': SiemCorrelationLab,
+  // WINDOWS
+  'windows-event-analysis': WindowsEventLab,
+  // LINUX
+  'linux-file-permissions': LinuxPermissionsLab,
+  // CLOUD
+  'cloud-iam-permissions': CloudIamLab,
 };
 
 /**

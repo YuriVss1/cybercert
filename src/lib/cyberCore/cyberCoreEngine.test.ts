@@ -12,10 +12,15 @@ import {
   registerConceptExperience,
   hasCustomExperience
 } from './experienceRegistry.ts';
+import {
+  CYBER_CONCEPTS_CATALOG
+} from './conceptsData.ts';
 import type {
   UserConceptMastery,
   LearningEvent,
   InteractionType,
+  ConceptCategory,
+  DifficultyLevel,
   ConceptExperienceProps
 } from './cyberCoreTypes.ts';
 
@@ -491,7 +496,134 @@ console.log('--- INICIANDO TESTES DO CYBER CORE ENGINE ---');
   console.log('✓ Teste 15: Extensibilidade Zero-Touch comprovada (novos conceitos adicionados sem alterar core engine).');
 }
 
+// ============================================================================
+// TESTE 16: Cobertura Multidisciplinar — Todas as 8 Categorias Possuem Conceitos
+// ============================================================================
+{
+  const requiredCategories: ConceptCategory[] = [
+    'NETWORKING',
+    'CYBERSECURITY',
+    'CRYPTOGRAPHY',
+    'IDENTITY',
+    'CLOUD',
+    'SOC',
+    'LINUX',
+    'WINDOWS'
+  ];
+
+  for (const cat of requiredCategories) {
+    const count = CYBER_CONCEPTS_CATALOG.filter(c => c.category === cat).length;
+    assert.ok(count > 0, `Categoria ${cat} deve possuir ao menos 1 conceito (encontrados: ${count})`);
+  }
+  console.log('✓ Teste 16: Todas as 8 categorias do Cyber Core possuem conceitos ativos no catálogo.');
+}
+
+// ============================================================================
+// TESTE 17: Integridade do Catálogo — Slugs Únicos (Zero Duplicatas)
+// ============================================================================
+{
+  const seenSlugs = new Set<string>();
+  const duplicateSlugs: string[] = [];
+
+  for (const c of CYBER_CONCEPTS_CATALOG) {
+    if (seenSlugs.has(c.slug)) {
+      duplicateSlugs.push(c.slug);
+    }
+    seenSlugs.add(c.slug);
+  }
+
+  assert.strictEqual(duplicateSlugs.length, 0, `Nenhum slug pode ser duplicado. Duplicatas: ${duplicateSlugs.join(', ')}`);
+  console.log(`✓ Teste 17: ${seenSlugs.size} conceitos validados com slugs estritamente únicos.`);
+}
+
+// ============================================================================
+// TESTE 18: Validação Estrita de Dificuldades e Tipos de Interação
+// ============================================================================
+{
+  const validDifficulties = new Set<DifficultyLevel>([
+    'BEGINNER', 'INTERMEDIATE', 'ADVANCED',
+    'FOUNDATION', 'PRACTICE', 'APPLICATION', 'MASTERY'
+  ]);
+
+  const validInteractionTypes = new Set<InteractionType>([
+    'BUILD', 'DRAG_DROP', 'SORT', 'CONNECT', 'CLASSIFY',
+    'SIMULATE', 'CALCULATE', 'IDENTIFY', 'TRACE', 'TROUBLESHOOT',
+    'calculate', 'build', 'identify', 'match', 'recall', 'simulate'
+  ]);
+
+  for (const c of CYBER_CONCEPTS_CATALOG) {
+    assert.ok(validDifficulties.has(c.level), `Conceito ${c.slug} possui nível inválido: ${c.level}`);
+    if (c.interactionType) {
+      assert.ok(validInteractionTypes.has(c.interactionType), `Conceito ${c.slug} possui interactionType inválido: ${c.interactionType}`);
+    }
+  }
+  console.log('✓ Teste 18: Todos os conceitos possuem níveis de dificuldade e tipos de interação válidos.');
+}
+
+// ============================================================================
+// TESTE 19: Integridade Referencial do Grafo de Pré-Requisitos
+// ============================================================================
+{
+  const allSlugs = new Set(CYBER_CONCEPTS_CATALOG.map(c => c.slug));
+  const brokenPrereqs: { concept: string; missingPrereq: string }[] = [];
+
+  for (const c of CYBER_CONCEPTS_CATALOG) {
+    for (const prereq of c.prerequisiteSlugs) {
+      if (!allSlugs.has(prereq)) {
+        brokenPrereqs.push({ concept: c.slug, missingPrereq: prereq });
+      }
+    }
+  }
+
+  assert.strictEqual(brokenPrereqs.length, 0, `Pré-requisitos quebrados encontrados: ${JSON.stringify(brokenPrereqs)}`);
+  console.log('✓ Teste 19: Grafo de dependências e pré-requisitos possui 100% de integridade referencial.');
+}
+
+// ============================================================================
+// TESTE 20: Registro e Resolução dos 11 Laboratórios Especializados
+// ============================================================================
+{
+  const specializedSlugs = [
+    'subnetting-cidr',
+    'tcp-3way-handshake',
+    'dns-resolution',
+    'firewall-acl',
+    'incident-response-lifecycle',
+    'pki-certificate-chain',
+    'kerberos-auth-flow',
+    'siem-log-correlation',
+    'windows-event-analysis',
+    'linux-file-permissions',
+    'cloud-iam-permissions'
+  ];
+
+  for (const slug of specializedSlugs) {
+    assert.ok(hasCustomExperience(slug), `Laboratório especializado ${slug} deve estar no registry`);
+    const comp = getConceptExperience(slug);
+    assert.ok(typeof comp === 'function', `Laboratório ${slug} deve resolver um componente React funcional`);
+  }
+  console.log(`✓ Teste 20: Todos os ${specializedSlugs.length} laboratórios especializados estão registrados e funcionais no registry.`);
+}
+
+// ============================================================================
+// TESTE 21: Preservação de Conceitos Originais de Networking
+// ============================================================================
+{
+  const subnetting = CYBER_CONCEPTS_CATALOG.find(c => c.slug === 'subnetting-cidr');
+  assert.ok(subnetting, 'Subnetting/CIDR deve continuar no catálogo');
+  assert.strictEqual(subnetting?.challenges.length, 5, 'Subnetting deve manter exatamente seus 5 desafios');
+
+  const tcp = CYBER_CONCEPTS_CATALOG.find(c => c.slug === 'tcp-3way-handshake');
+  assert.ok(tcp, 'TCP 3-Way Handshake deve continuar no catálogo');
+
+  const dns = CYBER_CONCEPTS_CATALOG.find(c => c.slug === 'dns-resolution');
+  assert.ok(dns, 'DNS Resolution deve continuar no catálogo');
+
+  console.log('✓ Teste 21: Conceitos de referência de Networking e desafios prévios 100% preservados.');
+}
+
 console.log('======================================================');
-console.log('TODOS OS 15 TESTES DE ARQUITETURA E COERÊNCIA DO CYBER CORE PASSARAM COM SUCESSO!');
+console.log('TODOS OS 21 TESTES DE ARQUITETURA, MULTIDISCIPLINARIDADE E COERÊNCIA PASSARAM COM SUCESSO!');
 console.log('======================================================');
+
 

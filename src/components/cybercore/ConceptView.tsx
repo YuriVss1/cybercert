@@ -3,7 +3,7 @@
 import React from 'react';
 import { 
   ArrowLeft, BookOpen, Eye, Target, CheckCircle2, ShieldCheck, 
-  Calendar, RotateCcw, Award, Layers, ChevronRight, Clock, RefreshCw
+  RotateCcw, Award, ChevronRight
 } from 'lucide-react';
 import type { CyberConcept, ConceptViewStage } from '@/lib/cyberCore/cyberCoreTypes';
 import { useCyberCoreStore } from '@/stores/cyberCoreStore';
@@ -38,8 +38,37 @@ export default function ConceptView({ concept, onBack }: ConceptViewProps) {
     { id: 'review', label: '6. Revisar', icon: <RotateCcw className="w-3.5 h-3.5" /> },
   ];
 
-  // Resolve dinamicamente o componente de experiência registrado no Registry (sem hardcoded if-else)
-  const ExperienceComponent = getConceptExperience(concept.slug);
+  // Função auxiliar de renderização desacoplada do Registry
+  const renderExperienceForStage = (stage: ConceptViewStage) => {
+    const ExpComponent = getConceptExperience(concept.slug);
+    return React.createElement(ExpComponent, {
+      concept,
+      activeStage: stage,
+      userId: 'local-operator',
+      onCompleteStage: (stg) => {
+        completeStageProgress(concept.slug, stg as 'learn' | 'interact' | 'practice' | 'test' | 'review');
+        if (stage === 'test') setActiveStage('mastery');
+      },
+      onRecordAttempt: (payload) => recordAttempt({
+        userId: 'local-operator',
+        conceptSlug: concept.slug,
+        challengeId: payload.challengeId,
+        challengeType: payload.challengeType,
+        isCorrect: payload.isCorrect,
+        confidence: payload.confidence,
+        durationMs: payload.durationMs,
+        submittedAnswer: payload.submittedAnswer as Record<string, unknown> | string | number,
+        feedbackGiven: payload.feedbackGiven
+      }),
+      onDidNotKnow: (challengeId, challengeType) => recordDidNotKnow({
+        userId: 'local-operator',
+        conceptSlug: concept.slug,
+        challengeId,
+        challengeType,
+        durationMs: 4000
+      })
+    });
+  };
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto font-sans">
@@ -183,30 +212,7 @@ export default function ConceptView({ concept, onBack }: ConceptViewProps) {
         {/* FASE 2: INTERAGIR / VER */}
         {activeStage === 'interact' && (
           <div className="space-y-6">
-            <ExperienceComponent
-              concept={concept}
-              activeStage="interact"
-              userId="local-operator"
-              onCompleteStage={(stg) => completeStageProgress(concept.slug, stg as 'learn' | 'interact' | 'practice' | 'test')}
-              onRecordAttempt={(payload) => recordAttempt({
-                userId: 'local-operator',
-                conceptSlug: concept.slug,
-                challengeId: payload.challengeId,
-                challengeType: payload.challengeType,
-                isCorrect: payload.isCorrect,
-                confidence: payload.confidence,
-                durationMs: payload.durationMs,
-                submittedAnswer: payload.submittedAnswer as Record<string, unknown> | string | number,
-                feedbackGiven: payload.feedbackGiven
-              })}
-              onDidNotKnow={(challengeId, challengeType) => recordDidNotKnow({
-                userId: 'local-operator',
-                conceptSlug: concept.slug,
-                challengeId,
-                challengeType,
-                durationMs: 4000
-              })}
-            />
+            {renderExperienceForStage('interact')}
 
             <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 p-4 rounded-xl">
               <button
@@ -233,30 +239,7 @@ export default function ConceptView({ concept, onBack }: ConceptViewProps) {
         {/* FASE 3: PRATICAR */}
         {activeStage === 'practice' && (
           <div className="space-y-6">
-            <ExperienceComponent
-              concept={concept}
-              activeStage="practice"
-              userId="local-operator"
-              onCompleteStage={(stg) => completeStageProgress(concept.slug, stg as 'learn' | 'interact' | 'practice' | 'test')}
-              onRecordAttempt={(payload) => recordAttempt({
-                userId: 'local-operator',
-                conceptSlug: concept.slug,
-                challengeId: payload.challengeId,
-                challengeType: payload.challengeType,
-                isCorrect: payload.isCorrect,
-                confidence: payload.confidence,
-                durationMs: payload.durationMs,
-                submittedAnswer: payload.submittedAnswer as Record<string, unknown> | string | number,
-                feedbackGiven: payload.feedbackGiven
-              })}
-              onDidNotKnow={(challengeId, challengeType) => recordDidNotKnow({
-                userId: 'local-operator',
-                conceptSlug: concept.slug,
-                challengeId,
-                challengeType,
-                durationMs: 4000
-              })}
-            />
+            {renderExperienceForStage('practice')}
 
             <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 p-4 rounded-xl">
               <button
@@ -283,33 +266,7 @@ export default function ConceptView({ concept, onBack }: ConceptViewProps) {
         {/* FASE 4: TESTAR */}
         {activeStage === 'test' && (
           <div className="space-y-6">
-            <ExperienceComponent
-              concept={concept}
-              activeStage="test"
-              userId="local-operator"
-              onCompleteStage={(stg) => {
-                completeStageProgress(concept.slug, stg as 'learn' | 'interact' | 'practice' | 'test');
-                setActiveStage('mastery');
-              }}
-              onRecordAttempt={(payload) => recordAttempt({
-                userId: 'local-operator',
-                conceptSlug: concept.slug,
-                challengeId: payload.challengeId,
-                challengeType: payload.challengeType,
-                isCorrect: payload.isCorrect,
-                confidence: payload.confidence,
-                durationMs: payload.durationMs,
-                submittedAnswer: payload.submittedAnswer as Record<string, unknown> | string | number,
-                feedbackGiven: payload.feedbackGiven
-              })}
-              onDidNotKnow={(challengeId, challengeType) => recordDidNotKnow({
-                userId: 'local-operator',
-                conceptSlug: concept.slug,
-                challengeId,
-                challengeType,
-                durationMs: 4000
-              })}
-            />
+            {renderExperienceForStage('test')}
           </div>
         )}
 
@@ -388,7 +345,7 @@ export default function ConceptView({ concept, onBack }: ConceptViewProps) {
                   {mastery?.reviewIntervalDays || 1} dia(s)
                 </div>
                 <p className="text-zinc-400 font-sans text-xs">
-                  Cada acerto com confiança expande o intervalo (1d → 3d → 7d → 14d → 30d). Erros ou "Não sei" retornam para reforço diário.
+                  Cada acerto com confiança expande o intervalo (1d → 3d → 7d → 14d → 30d). Erros ou &quot;Não sei&quot; retornam para reforço diário.
                 </p>
               </div>
 
