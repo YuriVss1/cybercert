@@ -58,3 +58,22 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 }
+
+@media print {
+  body {
+    background-color: #09090b !important;
+    color: #f4f4f5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  @page {
+    margin: 1cm;
+    size: A4 portrait;
+  }
+}
