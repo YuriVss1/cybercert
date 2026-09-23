@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { 
-  Compass, CheckCircle2, AlertCircle, 
-  Server, ChevronRight
+  CheckCircle2, AlertCircle, 
+  Server, ChevronRight, Eye, Target, ShieldAlert, Lightbulb
 } from 'lucide-react';
-import type { ConceptExperienceProps, UserConfidence } from '@/lib/cyberCore/cyberCoreTypes';
+import type { ConceptExperienceProps, UserConfidence, StageMode } from '@/lib/cyberCore/cyberCoreTypes';
 
 interface DnsHop {
   id: string;
@@ -72,19 +72,25 @@ const DNS_HIERARCHY_HOPS: DnsHop[] = [
 ];
 
 export default function DnsResolutionLab({
-  concept,
   activeStage,
-  userId = 'local-user',
+  stageMode,
   onCompleteStage,
   onRecordAttempt,
   onDidNotKnow
 }: ConceptExperienceProps) {
+  const mode: StageMode = stageMode || (
+    activeStage === 'interact' ? 'guided' :
+    activeStage === 'test' ? 'exam' : 'practice'
+  );
+
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [activeTabMode, setActiveTabMode] = useState<'trace' | 'test'>('trace');
+  const [activeTabMode, setActiveTabMode] = useState<'trace' | 'test'>(mode === 'exam' ? 'test' : 'trace');
   const [testAnswer, setTestAnswer] = useState<string>('');
   const [confidence, setConfidence] = useState<UserConfidence>('CONFIDENT');
+  const [showHintRevealed, setShowHintRevealed] = useState(false);
+  const [isFinalized, setIsFinalized] = useState(false);
   const [feedback, setFeedback] = useState<{
-    type: 'success' | 'pedagogical_error' | 'did_not_know' | null;
+    type: 'success' | 'pedagogical_error' | 'did_not_know' | 'registered' | null;
     message: string;
   }>({ type: null, message: '' });
 
@@ -94,13 +100,13 @@ export default function DnsResolutionLab({
     if (currentStep < DNS_HIERARCHY_HOPS.length) {
       setCurrentStep(prev => prev + 1);
     } else {
-      onCompleteStage('interact');
+      setIsFinalized(true);
+      onCompleteStage(activeStage);
     }
   };
 
   const handleValidateTest = (e: React.FormEvent) => {
     e.preventDefault();
-    // Pergunta: Qual servidor é o único que possui a resposta autoritativa final sobre o IP de api.rootsec.io? -> Authoritative
     const clean = testAnswer.toLowerCase().trim();
     const isCorrect = clean.includes('autoritativo') || clean.includes('authoritative') || clean === '5' || clean.includes('servidor autoritativo');
 
@@ -119,7 +125,14 @@ export default function DnsResolutionLab({
         type: 'success',
         message: 'Excelente! Apenas o Servidor Autoritativo do domínio (Authoritative NS) possui a resposta oficial definitiva (flag AA). Root e TLD apenas fornecem referências (delegation).'
       });
-      onCompleteStage('test');
+      setIsFinalized(true);
+      onCompleteStage(activeStage);
+    } else if (mode === 'exam') {
+      setFeedback({
+        type: 'registered',
+        message: 'Resposta registrada para avaliação.'
+      });
+      setIsFinalized(true);
     } else {
       setFeedback({
         type: 'pedagogical_error',
@@ -129,12 +142,42 @@ export default function DnsResolutionLab({
   };
 
   const handleDontKnow = () => {
-    onDidNotKnow('dns-trace-test-1', 'TRACE');
+    if (onDidNotKnow) {
+      onDidNotKnow('dns-trace-test-1', 'TRACE');
+    }
     setFeedback({
       type: 'did_not_know',
       message: 'Marcado como "Não sei". O conceito de resolução hierárquica DNS foi adicionado com prioridade máxima à sua Fila de Revisão. Ordem: Cliente -> Resolver -> Root -> TLD -> Autoritativo.'
     });
+    setIsFinalized(true);
   };
+
+  const modeBadge = {
+    guided: {
+      label: 'Trace Guiado (Interagir)',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-950/60 border-emerald-800',
+      icon: Eye,
+      hint: 'Dica: Acompanhe a descida pela árvore DNS. Observe que Root e TLD apenas delegam; somente o servidor autoritativo retorna a flag AA.'
+    },
+    practice: {
+      label: 'Aplicação com Apoio (Praticar)',
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-950/60 border-cyan-800',
+      icon: Target,
+      hint: 'Dica técnica: Lembre-se da diferença crucial entre consulta recursiva (feita pelo cliente) e consultas iterativas (feitas pelo resolver).'
+    },
+    exam: {
+      label: 'Comprovação Autônoma (Testar)',
+      color: 'text-amber-400',
+      bg: 'bg-amber-950/60 border-amber-800',
+      icon: ShieldAlert,
+      hint: ''
+    }
+  }[mode];
+
+  const ModeIcon = modeBadge.icon;
+  const canRevealHint = mode === 'practice' && feedback.type === 'pedagogical_error' && !showHintRevealed;
 
   return (
     <div className="space-y-8 font-sans text-zinc-200">
@@ -143,14 +186,18 @@ export default function DnsResolutionLab({
       <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
           <div>
-            <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs uppercase tracking-widest mb-1">
-              <Compass className="w-4 h-4" /> Laboratório Interativo de Resolução DNS
+            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest mb-1">
+              <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-bold ${modeBadge.bg} ${modeBadge.color}`}>
+                <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
+              </span>
             </div>
-            <h2 className="text-xl font-bold text-white tracking-wide">
+            <h2 className="text-xl font-bold text-white tracking-wide mt-2">
               Rastreador de Caminho: Resolução Iterativa & Hierárquica
             </h2>
             <p className="text-xs md:text-sm text-zinc-400 mt-1">
-              Acompanhe cada salto de rede de uma consulta DNS para entender quem responde, por que existem servidores raiz e quem é a autoridade final.
+              {mode === 'guided' && 'Acompanhe passo a passo cada salto de rede de uma consulta DNS com explicações conceituais completas.'}
+              {mode === 'practice' && 'Pratique a identificação do papel de cada servidor no fluxo de resolução. Dica disponível após erro.'}
+              {mode === 'exam' && 'Avaliação autônoma sobre a hierarquia DNS e flags autoritativas, sem dicas durante a resolução.'}
             </p>
           </div>
 
@@ -175,6 +222,30 @@ export default function DnsResolutionLab({
             </button>
           </div>
         </div>
+
+        {/* Dica visível no modo guided */}
+        {mode === 'guided' && (
+          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+            <p className="text-xs text-emerald-300 flex items-start gap-2">
+              <Eye className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>
+                <strong>Orientação Pedagógica:</strong> {modeBadge.hint}
+              </span>
+            </p>
+          </div>
+        )}
+
+        {/* Dica revelada no modo practice */}
+        {mode === 'practice' && showHintRevealed && (
+          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+            <p className="text-xs text-cyan-300 flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>
+                <strong>Dica Revelada:</strong> {modeBadge.hint}
+              </span>
+            </p>
+          </div>
+        )}
 
         {/* NAVEGADOR DE HOPS INTERATIVO */}
         {activeTabMode === 'trace' ? (
@@ -234,9 +305,11 @@ export default function DnsResolutionLab({
                 </div>
               </div>
 
-              <div className="p-3.5 bg-black/40 border border-zinc-800/60 rounded-lg text-zinc-400 leading-relaxed font-sans text-xs">
-                💡 <strong className="text-zinc-200">Explicação Técnica:</strong> {activeHop.explanation}
-              </div>
+              {(mode === 'guided' || currentStep <= 2) && (
+                <div className="p-3.5 bg-black/40 border border-zinc-800/60 rounded-lg text-zinc-400 leading-relaxed font-sans text-xs">
+                  💡 <strong className="text-zinc-200">Explicação Técnica:</strong> {activeHop.explanation}
+                </div>
+              )}
 
               <div className="flex justify-end pt-2">
                 <button
@@ -251,79 +324,123 @@ export default function DnsResolutionLab({
           </div>
         ) : (
           /* MODO TESTE DE RETENÇÃO */
-          <section className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 md:p-8 space-y-6">
+          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 space-y-6">
             <div className="space-y-2">
-              <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">
-                Desafio de Retenção de Conceito
+              <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
+                {mode === 'exam' ? 'Avaliação Autônoma: Resolução DNS' : 'Desafio de Identificação Autoritativa'}
               </span>
-              <h3 className="text-base font-bold text-white">
-                Autoridade de Zona DNS
+              <h3 className="text-base font-bold text-white leading-relaxed">
+                Durante a consulta por &quot;api.rootsec.io&quot;, qual dos servidores da hierarquia DNS é o <strong className="text-emerald-400">único</strong> detentor oficial do arquivo de zona capaz de emitir uma resposta com a flag <strong className="text-cyan-400">Authoritative Answer (AA)</strong>?
               </h3>
-              <p className="text-xs md:text-sm text-zinc-400 leading-relaxed font-sans">
-                Durante a consulta para <strong>&quot;api.rootsec.io&quot;</strong>, o cliente e o resolver passam por Root Servers e TLD Servers.
-                Qual tipo de servidor é o <strong>único</strong> detentor do arquivo oficial da zona, retornando o registro A com a flag de <em>Authoritative Answer</em>?
-              </p>
             </div>
 
             <form onSubmit={handleValidateTest} className="space-y-4">
-              <div>
-                <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-2">
-                  Nome do tipo de servidor:
+              <div className="max-w-md">
+                <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">
+                  Nome ou papel do servidor:
                 </label>
                 <input
                   type="text"
                   value={testAnswer}
                   onChange={(e) => setTestAnswer(e.target.value)}
-                  placeholder="ex: Servidor Autoritativo"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500"
+                  disabled={isFinalized}
+                  placeholder="Ex: Servidor Autoritativo"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleDontKnow}
-                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-lg text-xs font-mono uppercase"
-                >
-                  Não sei
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-black font-bold rounded-lg text-xs font-mono uppercase"
-                >
-                  Validar Resposta
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
+              {!isFinalized && (
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+                    <button
+                      type="button"
+                      onClick={() => setConfidence('CONFIDENT')}
+                      className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                        confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+                      }`}
+                    >
+                      Certeza
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfidence('HESITANT')}
+                      className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
+                        confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+                      }`}
+                    >
+                      Dúvida
+                    </button>
+                  </div>
 
-        {/* FEEDBACK */}
-        {feedback.type && (
-          <div
-            className={`p-4 rounded-xl border flex items-start gap-3 transition-all ${
-              feedback.type === 'success'
-                ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200'
-                : feedback.type === 'did_not_know'
-                ? 'bg-cyan-950/40 border-cyan-500/60 text-cyan-200'
-                : 'bg-amber-950/30 border-amber-500/50 text-amber-200'
-            }`}
-          >
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            )}
-            <div className="space-y-1">
-              <span className="text-xs font-mono uppercase font-bold tracking-wider block">
-                {feedback.type === 'success' ? 'Correto!' : feedback.type === 'did_not_know' ? 'Reforço Agendado' : 'Orientação Pedagógica'}
-              </span>
-              <p className="text-sm leading-relaxed">{feedback.message}</p>
-            </div>
+                  <div className="flex items-center gap-2">
+                    {canRevealHint && (
+                      <button
+                        type="button"
+                        onClick={() => setShowHintRevealed(true)}
+                        className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                      >
+                        <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleDontKnow}
+                      className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase tracking-wider"
+                    >
+                      Não sei
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={!testAnswer.trim()}
+                      className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider"
+                    >
+                      Validar Resposta
+                    </button>
+                  </div>
+                </div>
+              )}
+            </form>
           </div>
         )}
       </section>
 
+      {/* FEEDBACK */}
+      {feedback.type && (
+        <div className={`p-4 rounded-xl border flex items-start gap-3 ${
+          feedback.type === 'success' 
+            ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200' 
+            : feedback.type === 'registered'
+            ? 'bg-zinc-900 border-zinc-700 text-zinc-300'
+            : 'bg-amber-950/40 border-amber-500/60 text-amber-200'
+        }`}>
+          {feedback.type === 'success' ? (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+          ) : feedback.type === 'registered' ? (
+            <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          )}
+          <div className="space-y-2">
+            <span className="text-xs font-mono uppercase font-bold tracking-wider block">
+              {feedback.type === 'success' ? 'Correto!' : feedback.type === 'registered' ? 'Avaliação Registrada' : 'Análise Técnica'}
+            </span>
+            <p className="text-xs md:text-sm leading-relaxed">{feedback.message}</p>
+
+            {/* Debrief do modo exam */}
+            {mode === 'exam' && isFinalized && (
+              <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1">
+                <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
+                <p className="text-zinc-300">
+                  Na arquitetura DNS, Root (. ) e TLD (.io) apenas realizam delegações iterativas (referrals). Somente o Servidor Autoritativo (Authoritative Name Server) tem a autoridade legal sobre a zona e emite respostas autoritativas definitivas.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

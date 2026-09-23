@@ -5,13 +5,23 @@ import {
   ArrowLeft, BookOpen, Eye, Target, CheckCircle2, ShieldCheck, 
   RotateCcw, Award, ChevronRight
 } from 'lucide-react';
-import type { CyberConcept, ConceptViewStage } from '@/lib/cyberCore/cyberCoreTypes';
+import type { CyberConcept, ConceptViewStage, StageMode } from '@/lib/cyberCore/cyberCoreTypes';
 import { useCyberCoreStore } from '@/stores/cyberCoreStore';
 import { getConceptExperience } from '@/lib/cyberCore/experienceRegistry';
 
 interface ConceptViewProps {
   concept: CyberConcept;
   onBack: () => void;
+}
+
+// Mapeia cada estágio de conceito para o modo pedagógico do lab
+function stageToMode(stage: ConceptViewStage): StageMode {
+  switch (stage) {
+    case 'interact': return 'guided';   // Exploração com dicas visíveis
+    case 'practice': return 'practice'; // Dicas ocultas, reveladas ao errar
+    case 'test':     return 'exam';     // Sem dicas, modo prova
+    default:         return 'practice';
+  }
 }
 
 export default function ConceptView({ concept, onBack }: ConceptViewProps) {
@@ -44,6 +54,7 @@ export default function ConceptView({ concept, onBack }: ConceptViewProps) {
     return React.createElement(ExpComponent, {
       concept,
       activeStage: stage,
+      stageMode: stageToMode(stage),
       userId: 'local-operator',
       onCompleteStage: (stg) => {
         completeStageProgress(concept.slug, stg as 'learn' | 'interact' | 'practice' | 'test' | 'review');

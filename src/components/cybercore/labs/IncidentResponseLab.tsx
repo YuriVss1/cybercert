@@ -5,7 +5,8 @@ import {
   AlertTriangle, CheckCircle2, AlertCircle, HelpCircle, 
   RotateCcw, ArrowRight, ArrowUp, ArrowDown
 } from 'lucide-react';
-import type { ConceptExperienceProps, UserConfidence } from '@/lib/cyberCore/cyberCoreTypes';
+import type { ConceptExperienceProps, UserConfidence, StageMode } from '@/lib/cyberCore/cyberCoreTypes';
+import { Eye, Target, ShieldAlert, Lightbulb } from 'lucide-react';
 
 interface IncidentPhase {
   id: string;
@@ -73,12 +74,20 @@ const INITIAL_SHUFFLED: IncidentPhase[] = [
 export default function IncidentResponseLab({
   concept,
   activeStage,
+  stageMode,
   onCompleteStage,
   onRecordAttempt,
   onDidNotKnow
 }: ConceptExperienceProps) {
+  const mode: StageMode = stageMode || (
+    activeStage === 'interact' ? 'guided' :
+    activeStage === 'test' ? 'exam' : 'practice'
+  );
+
   const [orderedPhases, setOrderedPhases] = useState<IncidentPhase[]>(INITIAL_SHUFFLED);
   const [confidence, setConfidence] = useState<UserConfidence>('CONFIDENT');
+  const [showHintRevealed, setShowHintRevealed] = useState(false);
+  const [isFinalized, setIsFinalized] = useState(false);
   const [validation, setValidation] = useState<{
     tested: boolean;
     isCorrect: boolean;
@@ -87,6 +96,7 @@ export default function IncidentResponseLab({
   } | null>(null);
 
   const handleMove = (index: number, direction: 'UP' | 'DOWN') => {
+    if (isFinalized) return;
     const target = direction === 'UP' ? index - 1 : index + 1;
     if (target < 0 || target >= orderedPhases.length) return;
     const updated = [...orderedPhases];
@@ -99,12 +109,13 @@ export default function IncidentResponseLab({
   const handleReset = () => {
     setOrderedPhases(INITIAL_SHUFFLED);
     setValidation(null);
+    setShowHintRevealed(false);
+    setIsFinalized(false);
   };
 
   const handleValidate = () => {
     const isCorrect = orderedPhases.every((phase, idx) => phase.correctOrder === idx + 1);
 
-    // Identifica consequências conceituais de inversões clássicas
     let consequence: string | undefined;
     const containIdx = orderedPhases.findIndex(p => p.id === 'p-contain');
     const eradIdx = orderedPhases.findIndex(p => p.id === 'p-erad');
@@ -128,36 +139,71 @@ export default function IncidentResponseLab({
         : (consequence || 'A ordem das fases do ciclo de incidentes está divergente.')
     });
 
+    if (isCorrect) {
+      setIsFinalized(true);
+      onCompleteStage(activeStage);
+    } else if (mode === 'exam') {
+      setIsFinalized(true);
+    }
+
     setValidation({
       tested: true,
       isCorrect,
       message: isCorrect
         ? 'Parabéns! Você ordenou perfeitamente as 6 fases oficiais de Resposta a Incidentes (Preparação → Identificação → Contenção → Erradicação → Recuperação → Lições Aprendidas).'
-        : 'A sequência possui fases fora da ordem canônica. Observe a relação de causa e efeito entre conter o dano antes de limpar os sistemas.',
-      consequenceExplanation: consequence
+        : (mode === 'exam'
+          ? 'Avaliação de ordenação registrada para análise.'
+          : 'A sequência possui fases fora da ordem canônica. Observe a relação de causa e efeito entre conter o dano antes de limpar os sistemas.'),
+      consequenceExplanation: mode === 'exam' ? undefined : consequence
     });
-
-    if (isCorrect) {
-      onCompleteStage(activeStage);
-    }
   };
 
   const handleDontKnow = () => {
-    onDidNotKnow('ir-lifecycle-sort-1', 'SORT');
+    if (onDidNotKnow) {
+      onDidNotKnow('ir-lifecycle-sort-1', 'SORT');
+    }
     setValidation({
       tested: true,
       isCorrect: false,
       message: 'Marcado como "Não sei". O ciclo de vida do NIST SP 800-61 estabelece: 1) Preparação -> 2) Detecção/Identificação -> 3) Contenção -> 4) Erradicação -> 5) Recuperação -> 6) Pós-incidente (Lições Aprendidas).'
     });
+    setIsFinalized(true);
   };
+
+  const modeBadge = {
+    guided: {
+      label: 'Exploração Guiada (Interagir)',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-950/60 border-emerald-800',
+      icon: Eye,
+      hint: 'Dica mnemônica: PICERL — Preparação → Identificação/Detecção → Contenção → Erradicação → Recuperação → Lições Aprendidas.'
+    },
+    practice: {
+      label: 'Aplicação com Apoio (Praticar)',
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-950/60 border-cyan-800',
+      icon: Target,
+      hint: 'Dica técnica: Lembre-se que você NUNCA deve erradicar antes de conter, nem conter antes de identificar o escopo.'
+    },
+    exam: {
+      label: 'Comprovação Autônoma (Testar)',
+      color: 'text-amber-400',
+      bg: 'bg-amber-950/60 border-amber-800',
+      icon: ShieldAlert,
+      hint: ''
+    }
+  }[mode];
+
+  const ModeIcon = modeBadge.icon;
+  const canRevealHint = mode === 'practice' && validation && !validation.isCorrect && !showHintRevealed;
 
   return (
     <div className="space-y-8 font-sans text-zinc-200">
       {/* Header */}
       <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded bg-red-950/80 text-red-400 font-mono text-[10px] uppercase tracking-wider font-bold border border-red-800/60">
-            Laboratório Interativo • SORT
+          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
+            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
           </span>
           <span className="text-xs font-mono text-zinc-500">
             {concept.title}
@@ -170,6 +216,24 @@ export default function IncidentResponseLab({
         <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
           Organize cronologicamente as etapas fundamentais da resposta a incidentes. A ordem não é apenas burocrática: erradicar sem antes conter permite que atacantes alterem suas táticas ou detonem payloads destrutivos.
         </p>
+
+        {mode === 'guided' && (
+          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+            <p className="text-xs text-emerald-300 flex items-start gap-2">
+              <Eye className="w-4 h-4 mt-0.5 shrink-0" />
+              <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
+            </p>
+          </div>
+        )}
+
+        {mode === 'practice' && showHintRevealed && (
+          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+            <p className="text-xs text-cyan-300 flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
+              <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Sorter */}
@@ -259,6 +323,16 @@ export default function IncidentResponseLab({
           </div>
 
           <div className="flex items-center gap-3">
+            {canRevealHint && (
+              <button
+                type="button"
+                onClick={() => setShowHintRevealed(true)}
+                className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+              >
+                <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleDontKnow}
@@ -291,7 +365,7 @@ export default function IncidentResponseLab({
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             )}
             <h4 className="font-bold text-sm text-white">
-              {validation.isCorrect ? 'Sequência Correta de Incident Response' : 'Ordem Incorreta de Resposta'}
+              {validation.isCorrect ? 'Sequência Correta de Incident Response' : (mode === 'exam' ? 'Avaliação Registrada' : 'Ordem Incorreta de Resposta')}
             </h4>
           </div>
           <p className="text-zinc-300 font-sans leading-relaxed">
@@ -300,6 +374,14 @@ export default function IncidentResponseLab({
           {validation.consequenceExplanation && (
             <div className="p-3 rounded bg-red-950/60 border border-red-800/60 text-red-200 text-xs font-sans mt-2">
               <strong>Análise Técnica de Consequência:</strong> {validation.consequenceExplanation}
+            </div>
+          )}
+          {mode === 'exam' && isFinalized && (
+            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1 mt-2">
+              <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
+              <p className="text-zinc-300 font-sans">
+                O modelo NIST SP 800-61 estabelece que a contenção precede estritamente a erradicação. Se um analista erradicar artefatos antes de isolar a rede, o atacante reage ativando canais de C2 secundários ou disparando exfiltração em massa.
+              </p>
             </div>
           )}
         </section>

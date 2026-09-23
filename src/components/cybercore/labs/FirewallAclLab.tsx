@@ -5,7 +5,8 @@ import {
   Shield, CheckCircle2, AlertCircle, HelpCircle, 
   RotateCcw, ArrowRight, Plus, Trash2, ArrowUp, ArrowDown
 } from 'lucide-react';
-import type { ConceptExperienceProps, UserConfidence } from '@/lib/cyberCore/cyberCoreTypes';
+import type { ConceptExperienceProps, UserConfidence, StageMode } from '@/lib/cyberCore/cyberCoreTypes';
+import { Eye, Target, ShieldAlert, Lightbulb } from 'lucide-react';
 
 interface AclRule {
   id: string;
@@ -62,10 +63,16 @@ const TEST_SCENARIOS: TestScenario[] = [
 export default function FirewallAclLab({
   concept,
   activeStage,
+  stageMode,
   onCompleteStage,
   onRecordAttempt,
   onDidNotKnow
 }: ConceptExperienceProps) {
+  const mode: StageMode = stageMode || (
+    activeStage === 'interact' ? 'guided' :
+    activeStage === 'test' ? 'exam' : 'practice'
+  );
+
   const [rules, setRules] = useState<AclRule[]>(INITIAL_RULES);
   const [newSource, setNewSource] = useState('ANY');
   const [newDest, setNewDest] = useState('WEB_SRV (10.0.1.10)');
@@ -73,6 +80,8 @@ export default function FirewallAclLab({
   const [newProto, setNewProto] = useState<'TCP' | 'UDP' | 'ANY'>('TCP');
   const [newAction, setNewAction] = useState<'ALLOW' | 'DENY'>('ALLOW');
   const [confidence, setConfidence] = useState<UserConfidence>('CONFIDENT');
+  const [showHintRevealed, setShowHintRevealed] = useState(false);
+  const [isFinalized, setIsFinalized] = useState(false);
   const [evaluationResult, setEvaluationResult] = useState<{
     tested: boolean;
     allPassed: boolean;
@@ -164,39 +173,74 @@ export default function FirewallAclLab({
         : (isOverlyPermissive ? 'Regra ALLOW ANY/ANY no topo anula todas as restrições seguintes.' : 'A ordem ou configuração das regras permitiu tráfego indevido.')
     });
 
+    if (finalSuccess) {
+      setIsFinalized(true);
+      onCompleteStage(activeStage);
+    } else if (mode === 'exam') {
+      setIsFinalized(true);
+    }
+
     setEvaluationResult({
       tested: true,
       allPassed: finalSuccess,
-      scenarioResults,
+      scenarioResults: mode === 'exam' && !finalSuccess ? [] : scenarioResults,
       summary: finalSuccess
         ? 'Excelente! Sua lista de controle de acesso protege os recursos internos e libera apenas os serviços autorizados seguindo a ordem correta.'
-        : (isOverlyPermissive 
+        : (mode === 'exam' 
+          ? 'Avaliação registrada para análise.'
+          : isOverlyPermissive 
           ? 'ALERTA DE SEGURANÇA: Uma regra ALLOW ANY ANY colocada no topo aceita todo e qualquer tráfego antes de avaliar as restrições posteriores (First Match Wins).' 
           : 'Ajuste necessário: Algumas requisições não obtiveram a ação esperada. Verifique a ordem das regras ou parâmetros.')
     });
-
-    if (finalSuccess) {
-      onCompleteStage(activeStage);
-    }
   };
 
   const handleDontKnow = () => {
-    onDidNotKnow('firewall-acl-build-1', 'BUILD');
+    if (onDidNotKnow) {
+      onDidNotKnow('firewall-acl-build-1', 'BUILD');
+    }
     setEvaluationResult({
       tested: true,
       allPassed: false,
       scenarioResults: [],
       summary: 'Marcado como "Não sei". Regra fundamental de Firewalls: As regras são avaliadas de cima para baixo (Top-Down). A PRIMEIRA regra que der match decide a ação. No final de toda ACL existe um DENY ALL implícito.'
     });
+    setIsFinalized(true);
   };
+
+  const modeBadge = {
+    guided: {
+      label: 'Exploração Guiada (Interagir)',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-950/60 border-emerald-800',
+      icon: Eye,
+      hint: 'Dica: Regras de Firewall funcionam por "First Match Wins". Regras específicas (Web 443, SSH de gerência) devem vir ANTES do DENY ALL final.'
+    },
+    practice: {
+      label: 'Aplicação com Apoio (Praticar)',
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-950/60 border-cyan-800',
+      icon: Target,
+      hint: 'Dica técnica: Nunca coloque ALLOW ANY ANY no topo da tabela, pois isso tornará inócuas todas as regras seguintes.'
+    },
+    exam: {
+      label: 'Comprovação Autônoma (Testar)',
+      color: 'text-amber-400',
+      bg: 'bg-amber-950/60 border-amber-800',
+      icon: ShieldAlert,
+      hint: ''
+    }
+  }[mode];
+
+  const ModeIcon = modeBadge.icon;
+  const canRevealHint = mode === 'practice' && evaluationResult && !evaluationResult.allPassed && !showHintRevealed;
 
   return (
     <div className="space-y-8 font-sans text-zinc-200">
       {/* Header */}
       <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded bg-amber-950/80 text-amber-400 font-mono text-[10px] uppercase tracking-wider font-bold border border-amber-800/60">
-            Laboratório Interativo • BUILD
+          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
+            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
           </span>
           <span className="text-xs font-mono text-zinc-500">
             {concept.title}
@@ -209,6 +253,24 @@ export default function FirewallAclLab({
         <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
           Firewalls operam com a semântica <strong>First Match Wins (Primeiro Match Vence)</strong>. Construa e ordene as regras para permitir tráfego legítimo sem abrir brechas excessivas.
         </p>
+
+        {mode === 'guided' && (
+          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+            <p className="text-xs text-emerald-300 flex items-start gap-2">
+              <Eye className="w-4 h-4 mt-0.5 shrink-0" />
+              <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
+            </p>
+          </div>
+        )}
+
+        {mode === 'practice' && showHintRevealed && (
+          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+            <p className="text-xs text-cyan-300 flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
+              <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Builder de Regras */}
@@ -386,6 +448,16 @@ export default function FirewallAclLab({
           </div>
 
           <div className="flex items-center gap-3">
+            {canRevealHint && (
+              <button
+                type="button"
+                onClick={() => setShowHintRevealed(true)}
+                className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+              >
+                <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleDontKnow}
@@ -418,13 +490,22 @@ export default function FirewallAclLab({
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             )}
             <h4 className="font-bold text-sm text-white">
-              {evaluationResult.allPassed ? 'Validação de Política Aprovada' : 'Falha na Validação de Tráfego'}
+              {evaluationResult.allPassed ? 'Validação de Política Aprovada' : 'Resultado da Avaliação'}
             </h4>
           </div>
 
           <p className="text-zinc-300 leading-relaxed font-sans">
             {evaluationResult.summary}
           </p>
+
+          {mode === 'exam' && isFinalized && (
+            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1">
+              <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
+              <p className="text-zinc-300 font-sans">
+                Em firewalls com filtragem baseada em regras com estado, as regras são avaliadas sequencialmente de cima para baixo. Regras específicas devem preceder regras genéricas, e a política deve terminar com uma negação padrão (Default Deny).
+              </p>
+            </div>
+          )}
 
           {evaluationResult.scenarioResults.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-zinc-800/60">

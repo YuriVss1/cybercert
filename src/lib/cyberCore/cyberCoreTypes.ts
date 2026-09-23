@@ -72,6 +72,12 @@ export type ConceptViewStage =
   | 'mastery'     // DOMINAR: Síntese de retenção e evidências
   | 'review';     // REVISAR: Reforço espaçado no ciclo de vida
 
+// Modo pedagógico que controla o nível de apoio nos labs
+export type StageMode = 
+  | 'guided'      // EXPLORAÇÃO GUIADA (Interagir): Dicas visíveis, explicações imediatas, sem pressão
+  | 'practice'    // PRÁTICA COM APOIO (Praticar): Dicas ocultas (reveladas ao errar), feedback incremental
+  | 'exam';       // AVALIAÇÃO SEM AUXÍLIO (Testar): Sem dicas, sem explicação imediata, modo prova
+
 export interface ConceptStageProgress {
   learnCompleted: boolean;
   interactCompleted: boolean;
@@ -175,6 +181,7 @@ export interface ConceptAttemptPayload {
 export interface ConceptExperienceProps {
   concept: CyberConcept;
   activeStage: ConceptViewStage;
+  stageMode?: StageMode;
   userId?: string;
   onCompleteStage: (stage: ConceptViewStage) => void;
   onRecordAttempt: (payload: ConceptAttemptPayload) => { masteryUpdated: boolean; newState: RetentionState };

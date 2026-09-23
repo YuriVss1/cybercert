@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { 
   Terminal, CheckCircle2, AlertCircle, HelpCircle, 
-  ArrowRight, FileText
+  ArrowRight, FileText, Eye, Target, ShieldAlert, Lightbulb
 } from 'lucide-react';
-import type { ConceptExperienceProps, UserConfidence } from '@/lib/cyberCore/cyberCoreTypes';
+import type { ConceptExperienceProps, UserConfidence, StageMode } from '@/lib/cyberCore/cyberCoreTypes';
 
 interface WindowsEventCase {
   id: string;
@@ -95,19 +95,29 @@ Service Account: LocalSystem`,
 export default function WindowsEventLab({
   concept,
   activeStage,
+  stageMode,
   onCompleteStage,
   onRecordAttempt,
   onDidNotKnow
 }: ConceptExperienceProps) {
+  const mode: StageMode = stageMode || (
+    activeStage === 'interact' ? 'guided' :
+    activeStage === 'test' ? 'exam' : 'practice'
+  );
+
   const [activeCaseIdx, setActiveCaseIdx] = useState<number>(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [confidence, setConfidence] = useState<UserConfidence>('CONFIDENT');
+  const [showHintRevealed, setShowHintRevealed] = useState(false);
+  const [isFinalized, setIsFinalized] = useState(false);
   const [caseFeedback, setCaseFeedback] = useState<Record<string, { isCorrect: boolean; message: string }>>({});
 
   const currentCase = WINDOWS_EVENT_CASES[activeCaseIdx];
   const currentSelection = selectedAnswers[currentCase.id];
+  const currentFb = caseFeedback[currentCase.id];
 
   const handleSelectOption = (optionId: string) => {
+    if (isFinalized) return;
     setSelectedAnswers(prev => ({ ...prev, [currentCase.id]: optionId }));
   };
 
@@ -131,114 +141,174 @@ export default function WindowsEventLab({
         isCorrect,
         message: isCorrect
           ? `Correto! ${currentCase.explanation}`
-          : `Ajuste necessário: ${currentCase.explanation}`
+          : (mode === 'exam'
+            ? 'Avaliação registrada para análise.'
+            : `Ajuste necessário: ${currentCase.explanation}`)
       }
     }));
 
-    // Se completou todos com acerto
-    const allAnswered = WINDOWS_EVENT_CASES.every(c => {
-      if (c.id === currentCase.id) return isCorrect;
-      return caseFeedback[c.id]?.isCorrect;
-    });
+    if (mode === 'exam') {
+      setIsFinalized(true);
+    } else {
+      const allAnswered = WINDOWS_EVENT_CASES.every(c => {
+        if (c.id === currentCase.id) return isCorrect;
+        return caseFeedback[c.id]?.isCorrect;
+      });
 
-    if (allAnswered) {
-      onCompleteStage(activeStage);
+      if (allAnswered) {
+        setIsFinalized(true);
+        onCompleteStage(activeStage);
+      }
     }
   };
 
   const handleDontKnow = () => {
-    onDidNotKnow(`win-event-${currentCase.id}`, 'IDENTIFY');
+    if (onDidNotKnow) {
+      onDidNotKnow(`win-event-${currentCase.id}`, 'IDENTIFY');
+    }
     setCaseFeedback(prev => ({
       ...prev,
       [currentCase.id]: {
         isCorrect: false,
-        message: `Marcado como "Não sei". Explicação: ${currentCase.explanation}`
+        message: `Marcado como "Não sei". Explicação forense: ${currentCase.explanation}`
       }
     }));
+    setIsFinalized(true);
   };
+
+  const modeBadge = {
+    guided: {
+      label: 'Exploração Guiada (Interagir)',
+      color: 'text-emerald-400',
+      bg: 'bg-emerald-950/60 border-emerald-800',
+      icon: Eye,
+      hint: 'Dica: Preste atenção no Logon Type (10 = RDP, 2 = Local, 3 = Rede) e nos processos pai (Creator Process) vs filhos.'
+    },
+    practice: {
+      label: 'Aplicação com Apoio (Praticar)',
+      color: 'text-cyan-400',
+      bg: 'bg-cyan-950/60 border-cyan-800',
+      icon: Target,
+      hint: 'Dica técnica: Avalie os campos Subject e Process CommandLine para identificar anomalias de execução.'
+    },
+    exam: {
+      label: 'Comprovação Autônoma (Testar)',
+      color: 'text-amber-400',
+      bg: 'bg-amber-950/60 border-amber-800',
+      icon: ShieldAlert,
+      hint: ''
+    }
+  }[mode];
+
+  const ModeIcon = modeBadge.icon;
+  const canRevealHint = mode === 'practice' && currentFb && !currentFb.isCorrect && !showHintRevealed;
 
   return (
     <div className="space-y-8 font-sans text-zinc-200">
       {/* Header */}
       <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded bg-sky-950/80 text-sky-400 font-mono text-[10px] uppercase tracking-wider font-bold border border-sky-800/60">
-            Laboratório Interativo • IDENTIFY
+          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
+            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
           </span>
           <span className="text-xs font-mono text-zinc-500">
             {concept.title}
           </span>
         </div>
         <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-sky-400" />
-          Análise Forense de Logs de Eventos do Windows
+          <Terminal className="w-5 h-5 text-cyan-400" />
+          Análise Forense de Windows Security Event Logs
         </h2>
         <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
-          Event IDs do Windows Security e System Logs revelam exatamente o que aconteceu em um host: autenticações remotas (RDP vs Console), criação de processos maliciosos e serviços de persistência.
+          Eventos de segurança do Windows (Event IDs 4624, 4688, 7045) registram evidências críticas de intrusão. Identifique técnicas adversárias (MITRE ATT&CK) a partir dos campos estruturados de telemetria.
         </p>
+
+        {mode === 'guided' && (
+          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+            <p className="text-xs text-emerald-300 flex items-start gap-2">
+              <Eye className="w-4 h-4 mt-0.5 shrink-0" />
+              <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
+            </p>
+          </div>
+        )}
+
+        {mode === 'practice' && showHintRevealed && (
+          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+            <p className="text-xs text-cyan-300 flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
+              <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
+            </p>
+          </div>
+        )}
       </section>
 
-      {/* Seletor de Casos */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6">
-        <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
-          {WINDOWS_EVENT_CASES.map((c, idx) => (
+      {/* Navegação de Casos */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {WINDOWS_EVENT_CASES.map((c, idx) => {
+          const isSolved = caseFeedback[c.id]?.isCorrect;
+          const isCurrent = activeCaseIdx === idx;
+
+          return (
             <button
               key={c.id}
               type="button"
-              onClick={() => setActiveCaseIdx(idx)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-                activeCaseIdx === idx 
-                  ? 'bg-sky-500 text-black shadow' 
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+              onClick={() => { setActiveCaseIdx(idx); setShowHintRevealed(false); }}
+              className={`px-3 py-1.5 rounded-lg border font-mono text-xs flex items-center gap-2 whitespace-nowrap transition-all ${
+                isCurrent 
+                  ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-[0_0_10px_rgba(6,182,212,0.2)]' 
+                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
               }`}
             >
-              Caso {idx + 1} {caseFeedback[c.id]?.isCorrect && '✓'}
+              <FileText className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Caso {idx + 1}</span>
+              {isSolved && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Snippet do Log Bruto */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-sky-400" /> Registro Bruto do Event Viewer:
-            </span>
-            <span className="text-[11px] font-mono text-zinc-500">{currentCase.title}</span>
-          </div>
-
-          <pre className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-cyan-300 font-mono text-xs overflow-x-auto leading-relaxed">
+      {/* Visualizador de Log & Pergunta */}
+      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6">
+        <div>
+          <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">
+            {currentCase.title}
+          </span>
+          <pre className="mt-3 p-4 rounded-xl bg-black border border-zinc-800 text-emerald-400 font-mono text-xs overflow-x-auto leading-relaxed shadow-inner">
             {currentCase.eventSnippet}
           </pre>
         </div>
 
-        {/* Pergunta e Opções */}
         <div className="space-y-4 pt-2">
-          <h4 className="text-sm font-bold text-white font-mono">
+          <h3 className="text-sm font-bold text-white font-mono leading-relaxed">
             {currentCase.question}
-          </h4>
+          </h3>
 
-          <div className="grid grid-cols-1 gap-2.5">
-            {currentCase.options.map(opt => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => handleSelectOption(opt.id)}
-                className={`p-3.5 rounded-xl border text-left font-mono text-xs transition-all flex items-center justify-between gap-3 ${
-                  currentSelection === opt.id 
-                    ? 'bg-sky-950/70 border-sky-500 text-white' 
-                    : 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:border-zinc-700'
-                }`}
-              >
-                <span>{opt.text}</span>
-                {currentSelection === opt.id && (
-                  <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0" />
-                )}
-              </button>
-            ))}
+          <div className="space-y-2">
+            {currentCase.options.map(opt => {
+              const isSelected = currentSelection === opt.id;
+              return (
+                <div
+                  key={opt.id}
+                  onClick={() => handleSelectOption(opt.id)}
+                  className={`p-3.5 rounded-xl border cursor-pointer font-mono text-xs flex items-center gap-3 transition-all ${
+                    isSelected 
+                      ? 'bg-cyan-950/60 border-cyan-500 text-white ring-1 ring-cyan-500/50' 
+                      : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 text-zinc-300'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                    isSelected ? 'border-cyan-400 bg-cyan-500' : 'border-zinc-600'
+                  }`}>
+                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
+                  </div>
+                  <span className="leading-relaxed">{opt.text}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Rodapé */}
+        {/* Rodapé de Ações */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono text-zinc-500">Confiança:</span>
@@ -263,6 +333,16 @@ export default function WindowsEventLab({
           </div>
 
           <div className="flex items-center gap-3">
+            {canRevealHint && (
+              <button
+                type="button"
+                onClick={() => setShowHintRevealed(true)}
+                className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+              >
+                <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleDontKnow}
@@ -274,34 +354,43 @@ export default function WindowsEventLab({
               type="button"
               disabled={!currentSelection}
               onClick={handleValidateCurrentCase}
-              className="px-5 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(14,165,233,0.3)]"
+              className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
             >
-              Confirmar Análise <ArrowRight className="w-4 h-4" />
+              Validar Hipótese <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </section>
 
-      {/* Feedback do Caso */}
-      {caseFeedback[currentCase.id] && (
+      {/* Feedback do Caso Atual */}
+      {currentFb && (
         <section className={`p-6 rounded-xl border space-y-3 font-mono text-xs ${
-          caseFeedback[currentCase.id].isCorrect 
+          currentFb.isCorrect 
             ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200' 
             : 'bg-red-950/40 border-red-800/80 text-red-200'
         }`}>
           <div className="flex items-center gap-2">
-            {caseFeedback[currentCase.id].isCorrect ? (
+            {currentFb.isCorrect ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
             ) : (
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             )}
             <h4 className="font-bold text-sm text-white">
-              {caseFeedback[currentCase.id].isCorrect ? 'Identificação Precisa do Evento' : 'Análise Divergente'}
+              {currentFb.isCorrect ? 'Identificação Forense Precisa' : (mode === 'exam' ? 'Avaliação Registrada' : 'Conclusão Requer Revisão')}
             </h4>
           </div>
           <p className="text-zinc-300 font-sans leading-relaxed">
-            {caseFeedback[currentCase.id].message}
+            {currentFb.message}
           </p>
+
+          {mode === 'exam' && isFinalized && (
+            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1 mt-2">
+              <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
+              <p className="text-zinc-300 font-sans">
+                Em perícia forense do Windows: Logon Type 10 corresponde a Remote Desktop (RDP). No Event 4688, processos como WINWORD gerando PowerShell com flags ocultas indicam vetor de macro maliciosa. A instalação de PSEXESVC (Event 7045) sinaliza execução remota lateral.
+              </p>
+            </div>
+          )}
         </section>
       )}
     </div>
