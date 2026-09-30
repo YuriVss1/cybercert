@@ -1,6 +1,30 @@
 @import "tailwindcss";
 
 @theme {
+  /* Tipografia Dual-Engine: Geist Sans para leitura geral/headings, Geist Mono para termos técnicos */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* Hierarquia Sutil de Superfícies (Defense-Grade) */
+  --color-surface-0: hsl(var(--surface-0));
+  --color-surface-1: hsl(var(--surface-1));
+  --color-surface-2: hsl(var(--surface-2));
+  --color-surface-3: hsl(var(--surface-3));
+
+  /* Bordas de Precisão */
+  --color-border-subtle: hsl(var(--border-subtle));
+  --color-border-strong: hsl(var(--border-strong));
+
+  /* Tokens Semânticos de Estado (Paleta Oficial) */
+  --color-status-cyan: #06b6d4;
+  --color-status-emerald: #10b981;
+  --color-status-violet: #8b5cf6;
+  --color-status-amber: #f59e0b;
+  --color-status-red: #ef4444;
+  --color-status-orange: #f97316;
+
+  /* Tokens Shadcn / Base */
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -27,8 +51,22 @@
 
 @layer base {
   :root {
+    /* Base / Ambiente - Preservada a aparência atual */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
+
+    /* Hierarquia Sutil de Superfícies */
+    --surface-0: 240 10% 3.9%;    /* Ambiente / Base */
+    --surface-1: 240 7% 7.2%;     /* Cards / Painéis comuns */
+    --surface-2: 240 6% 10.5%;    /* Painéis elevados / prioritários */
+    --surface-3: 240 5% 14.5%;    /* Elementos de foco / seleção ativa */
+
+    /* Bordas */
+    --border-subtle: 240 4% 11.5%;
+    --border: 240 3.7% 15.9%;
+    --border-strong: 240 5% 24%;
+
+    /* Componentes Básicos */
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
@@ -43,10 +81,18 @@
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
     --radius: 0.5rem;
+
+    /* Glows Sutis e Controlados (Não excessivos, sem aspecto videogame) */
+    --glow-cyan: 0 0 16px -4px rgba(6, 182, 212, 0.25);
+    --glow-emerald: 0 0 16px -4px rgba(16, 185, 129, 0.25);
+    --glow-violet: 0 0 16px -4px rgba(139, 92, 246, 0.25);
+    --glow-amber: 0 0 16px -4px rgba(245, 158, 11, 0.25);
+    --glow-red: 0 0 16px -4px rgba(239, 68, 68, 0.25);
+    --glow-orange: 0 0 16px -4px rgba(249, 115, 22, 0.25);
+    --glow-subtle: 0 0 20px -5px rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -56,6 +102,40 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  /* Utilitários de Superfície */
+  .surface-0 { background-color: var(--color-surface-0); }
+  .surface-1 { background-color: var(--color-surface-1); }
+  .surface-2 { background-color: var(--color-surface-2); }
+  .surface-3 { background-color: var(--color-surface-3); }
+
+  /* Utilitários de Bordas Sutis */
+  .border-subtle { border-color: var(--color-border-subtle); }
+  .border-strong { border-color: var(--color-border-strong); }
+
+  /* Utilitários Tipográficos Semânticos */
+  .font-heading { font-family: var(--font-heading); }
+
+  /* Utilitários de Glow Semântico Controlado */
+  .glow-cyan { box-shadow: var(--glow-cyan); }
+  .glow-emerald { box-shadow: var(--glow-emerald); }
+  .glow-violet { box-shadow: var(--glow-violet); }
+  .glow-amber { box-shadow: var(--glow-amber); }
+  .glow-red { box-shadow: var(--glow-red); }
+  .glow-orange { box-shadow: var(--glow-orange); }
+
+  /* Efeitos de Fundo & Atmosfera Preservados */
+  .technical-grid {
+    background-size: 24px 24px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  }
+  .radial-glow {
+    background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.08) 0%, transparent 60%);
   }
 }
 
