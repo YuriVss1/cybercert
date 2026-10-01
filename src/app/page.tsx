@@ -1291,62 +1291,114 @@ export default function RootSecApp() {
   // TELA BASE DO SaaS (DASHBOARD + SIDEBAR)
   // ==========================================
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex font-mono text-zinc-300 overflow-hidden">
+    <div className="min-h-screen bg-transparent flex font-mono text-zinc-300 overflow-hidden relative">
       
-      <aside className="w-72 bg-zinc-950 border-r border-zinc-800/80 flex flex-col relative z-10 no-print">
-        <div className="p-6 border-b border-zinc-800 pb-6 mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <ShieldAlert className="w-8 h-8 text-cyan-500 drop-shadow-[0_0_10px_rgba(8,145,178,0.5)]" />
+      <aside className="w-72 bg-[#06080d]/90 backdrop-blur-2xl border-r border-white/[0.08] flex flex-col relative z-10 no-print shadow-[8px_0_32px_rgba(0,0,0,0.7)]">
+        <div className="p-6 border-b border-white/[0.08] pb-5 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="relative p-2 rounded-xl bg-white/[0.03] border border-white/[0.1] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+              <ShieldAlert className="w-5 h-5 text-sky-400" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" />
+            </div>
             <div>
-              <h2 className="font-bold text-white tracking-widest leading-tight">ROOT SEC</h2>
-              <p className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold">Academy</p>
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-white tracking-widest text-sm font-heading">ROOT SEC</h2>
+                <span className="telemetry-chip">OPS // v2.0</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 font-mono tracking-wider">DEFENSE ACADEMY</p>
             </div>
           </div>
         </div>
 
-        <div className="px-6 mb-6 space-y-2">
-          <button onClick={() => setSelectedCert(null)} className="w-full flex items-center justify-between px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-xl hover:bg-zinc-800 transition-all text-left group">
+        <div className="px-5 mb-5 space-y-2">
+          <button onClick={() => setSelectedCert(null)} className="w-full flex items-center justify-between px-3.5 py-2.5 cockpit-subcard rounded-xl hover:border-white/[0.15] transition-all text-left group">
             <div>
-              <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Módulo Ativo</p>
-              <p className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">{selectedCert.code}</p>
+              <p className="text-[9px] text-zinc-500 uppercase font-mono tracking-widest">Active Certification</p>
+              <p className="text-xs font-bold text-white font-mono group-hover:text-sky-400 transition-colors flex items-center gap-1.5 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                {selectedCert.code}
+              </p>
             </div>
-            <ChevronLeftCircle className="w-5 h-5 text-zinc-600 group-hover:text-cyan-400" />
+            <ChevronLeftCircle className="w-4 h-4 text-zinc-500 group-hover:text-sky-400 transition-colors" />
           </button>
-          <button onClick={signOut} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-950/20 hover:bg-red-950/40 border border-red-900/40 text-red-400 rounded-xl transition-all text-xs font-bold uppercase tracking-widest">
+          <button onClick={signOut} className="w-full flex items-center justify-center gap-2 px-3.5 py-2 bg-red-950/15 hover:bg-red-950/30 border border-red-500/20 text-red-400 rounded-xl transition-all text-[11px] font-bold font-mono uppercase tracking-widest">
             <LogOut className="w-3.5 h-3.5" /> Encerrar Sessão
           </button>
         </div>
 
-        <nav className="space-y-2 flex-1 px-6">
-          <button onClick={() => setActiveTab('intelligence')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase font-bold ${activeTab === 'intelligence' ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500 shadow-[0_0_15px_rgba(8,145,178,0.2)]' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}>
-            <Brain className="w-4 h-4 text-cyan-400" /> Learning Intelligence
+        <nav className="space-y-1.5 flex-1 px-4">
+          <button onClick={() => setActiveTab('intelligence')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase font-semibold ${activeTab === 'intelligence' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent'}`}>
+            <span className="flex items-center gap-2.5">
+              <Brain className={`w-4 h-4 ${activeTab === 'intelligence' ? 'text-sky-400' : 'text-zinc-500'}`} /> 
+              Learning Intelligence
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono">[01]</span>
           </button>
-          <button onClick={() => setActiveTab('simulado')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'simulado' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><Terminal className="w-4 h-4" /> Operação Real</button>
-          <button onClick={() => setActiveTab('treinamento')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'treinamento' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><BookOpen className="w-4 h-4" /> Estudo Tático</button>
-          <button onClick={() => setActiveTab('cyber-core')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase font-bold ${activeTab === 'cyber-core' ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500 shadow-[0_0_15px_rgba(8,145,178,0.2)]' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><Layers className="w-4 h-4 text-cyan-400" /> Treine seus conhecimentos</button>
-          <button onClick={() => setActiveTab('pbqs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'pbqs' ? 'bg-purple-900/30 text-purple-400 border border-purple-800/50 shadow-[0_0_10px_rgba(168,85,247,0.1)]' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><Server className="w-4 h-4" /> Simuladores (PBQ)</button>
-          <button onClick={() => setActiveTab('historico')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'historico' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent mt-4'}`}><History className="w-4 h-4" /> Histórico (Oficial)</button>
-          <button onClick={() => setActiveTab('metrics')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase ${activeTab === 'metrics' ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-800/50' : 'text-zinc-400 hover:bg-zinc-900 hover:text-white border border-transparent'}`}><BarChart3 className="w-4 h-4" /> Métricas (Treino)</button>
+          <button onClick={() => setActiveTab('simulado')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase ${activeTab === 'simulado' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent'}`}>
+            <span className="flex items-center gap-2.5">
+              <Terminal className={`w-4 h-4 ${activeTab === 'simulado' ? 'text-sky-400' : 'text-zinc-500'}`} /> 
+              Operação Real
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono">[02]</span>
+          </button>
+          <button onClick={() => setActiveTab('treinamento')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase ${activeTab === 'treinamento' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent'}`}>
+            <span className="flex items-center gap-2.5">
+              <BookOpen className={`w-4 h-4 ${activeTab === 'treinamento' ? 'text-sky-400' : 'text-zinc-500'}`} /> 
+              Estudo Tático
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono">[03]</span>
+          </button>
+          <button onClick={() => setActiveTab('cyber-core')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase font-semibold ${activeTab === 'cyber-core' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent'}`}>
+            <span className="flex items-center gap-2.5">
+              <Layers className={`w-4 h-4 ${activeTab === 'cyber-core' ? 'text-sky-400' : 'text-zinc-500'}`} /> 
+              Cyber Core
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono">[04]</span>
+          </button>
+          <button onClick={() => setActiveTab('pbqs')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase ${activeTab === 'pbqs' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent'}`}>
+            <span className="flex items-center gap-2.5">
+              <Server className={`w-4 h-4 ${activeTab === 'pbqs' ? 'text-sky-400' : 'text-zinc-500'}`} /> 
+              Simuladores (PBQ)
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono">[05]</span>
+          </button>
+          <button onClick={() => setActiveTab('historico')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase ${activeTab === 'historico' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent mt-4'}`}>
+            <span className="flex items-center gap-2.5">
+              <History className={`w-4 h-4 ${activeTab === 'historico' ? 'text-sky-400' : 'text-zinc-500'}`} /> 
+              Histórico Oficial
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono">[06]</span>
+          </button>
+          <button onClick={() => setActiveTab('metrics')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase ${activeTab === 'metrics' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent'}`}>
+            <span className="flex items-center gap-2.5">
+              <BarChart3 className={`w-4 h-4 ${activeTab === 'metrics' ? 'text-sky-400' : 'text-zinc-500'}`} /> 
+              Métricas Telemetria
+            </span>
+            <span className="text-[9px] text-zinc-600 font-mono">[07]</span>
+          </button>
           
           {isSuperAdmin && (
-            <button onClick={() => setActiveTab('admin')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all tracking-widest uppercase mt-8 border-t border-zinc-800 pt-4 ${activeTab === 'admin' ? 'bg-zinc-800 text-white' : 'text-zinc-600 hover:text-zinc-300'}`}>
-              <Database className="w-4 h-4" /> Admin (Inserir Q.)
+            <button onClick={() => setActiveTab('admin')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-widest uppercase mt-6 border-t border-white/[0.08] pt-4 ${activeTab === 'admin' ? 'bg-white/[0.08] text-white border border-white/[0.15]' : 'text-zinc-600 hover:text-zinc-300'}`}>
+              <span className="flex items-center gap-2.5">
+                <Database className="w-4 h-4" /> Admin Console
+              </span>
+              <span className="text-[9px] text-zinc-600">[ADM]</span>
             </button>
           )}
         </nav>
       </aside>
 
-      <main className="flex-1 p-8 md:p-12 overflow-y-auto bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(8,145,178,0.05),rgba(255,255,255,0))] relative">
+      <main className="flex-1 p-8 md:p-12 overflow-y-auto relative">
 
         {/* ABA: LEARNING INTELLIGENCE (MOTOR ADAPTATIVO) */}
         {activeTab === 'intelligence' && (
-          <div className="max-w-5xl space-y-8 animate-in fade-in duration-300">
+          <div className="max-w-5xl space-y-7 animate-in fade-in duration-300">
             {/* Cabeçalho Formal para Impressão / Exportação PDF */}
-            <div className="hidden print:block mb-8 border-b-2 border-cyan-500 pb-6">
+            <div className="hidden print:block mb-8 border-b-2 border-sky-500 pb-6">
               <div className="flex justify-between items-start">
                 <div>
                   <h1 className="text-2xl font-black text-white">ROOT SEC ACADEMY</h1>
-                  <p className="text-xs text-cyan-400 uppercase tracking-widest font-mono">
+                  <p className="text-xs text-sky-400 uppercase tracking-widest font-mono">
                     Relatório Corporativo de Prontidão Técnica & Aprendizagem Adaptativa
                   </p>
                 </div>
@@ -1358,36 +1410,38 @@ export default function RootSecApp() {
               </div>
             </div>
 
-            {/* Header Hero */}
-            <div className="relative overflow-hidden rounded-3xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-zinc-950 to-zinc-950 p-6 md:p-8 shadow-[0_0_50px_rgba(8,145,178,0.15)]">
-              <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+            {/* Header Hero Cockpit */}
+            <div className="cockpit-panel hud-bracket p-6 md:p-8 rounded-2xl relative overflow-hidden">
               <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">
-                    <Brain className="h-4 w-4 animate-pulse" />
-                    Adaptive Learning Engine // {selectedCert.code}
+                  <div className="mb-2 flex items-center gap-2">
+                    <span className="telemetry-chip text-sky-300 border-sky-500/30 bg-sky-950/30">
+                      <Brain className="h-3 w-3 text-sky-400 animate-pulse" />
+                      ADAPTIVE RECON // {selectedCert.code}
+                    </span>
+                    <span className="telemetry-chip">TELEMETRY: ONLINE</span>
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
-                    LEARNING <span className="text-cyan-400">INTELLIGENCE</span>
+                  <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white font-heading">
+                    LEARNING <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-sky-100 to-white">INTELLIGENCE</span>
                   </h1>
-                  <p className="mt-2 text-sm text-zinc-400 max-w-2xl font-sans leading-relaxed">
+                  <p className="mt-1.5 text-xs text-zinc-400 max-w-2xl font-sans leading-relaxed">
                     Diagnóstico cognitivo contínuo, prontidão para o exame oficial, mapeamento de lacunas e recomendação preditiva de estudo.
                   </p>
                 </div>
-                <div className="flex flex-col items-start md:items-end gap-2">
+                <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-zinc-500">Módulo Analítico</span>
-                    <span className="px-3 py-1 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold rounded-full">
+                    <span className="text-[9px] uppercase font-mono tracking-widest text-zinc-500">Módulo</span>
+                    <span className="telemetry-chip font-bold text-white border-white/[0.15]">
                       {selectedCert.name}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="no-print px-3 py-1.5 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 hover:border-cyan-500 text-zinc-300 hover:text-white rounded-xl text-xs font-mono flex items-center gap-2 transition-all shadow-md"
+                    className="no-print avionics-button px-3.5 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2 text-zinc-300 hover:text-white"
                     title="Exportar Relatório em PDF"
                   >
-                    <Printer className="w-3.5 h-3.5 text-cyan-400" />
+                    <Printer className="w-3.5 h-3.5 text-sky-400" />
                     Exportar Relatório (PDF)
                   </button>
                 </div>
@@ -1397,14 +1451,14 @@ export default function RootSecApp() {
             {/* Linha 1: Readiness Score & Próximo Alvo Recomendado */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Card 1: Certification Readiness (2 colunas) */}
-              <div className="lg:col-span-2 bg-zinc-950 border border-zinc-800/80 p-6 md:p-8 rounded-2xl relative overflow-hidden shadow-xl">
-                <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4 mb-6">
+              <div className="lg:col-span-2 cockpit-card hud-bracket p-6 md:p-8 rounded-2xl relative overflow-hidden">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-6">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500 mb-1">
-                      Nível de Prontidão
+                    <p className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] text-zinc-500 mb-1">
+                      Nível de Prontidão // Telemetria
                     </p>
-                    <h2 className="text-lg font-black uppercase tracking-wider text-white flex items-center gap-2">
-                      <Target className="w-5 h-5 text-cyan-400" />
+                    <h2 className="text-base font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                      <Target className="w-4 h-4 text-sky-400" />
                       Certification Readiness
                     </h2>
                   </div>
@@ -1582,58 +1636,56 @@ export default function RootSecApp() {
               </div>
 
               {/* Card 2: Próximo Alvo Recomendado (1 coluna) */}
-              <div className="bg-zinc-950 border border-cyan-900/40 p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden shadow-xl">
-                <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
+              <div className="cockpit-card hud-bracket p-6 rounded-2xl flex flex-col justify-between relative overflow-hidden">
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-400 flex items-center gap-1.5">
-                      <Compass className="w-3.5 h-3.5" />
-                      Próximo Alvo
+                    <span className="telemetry-chip text-sky-300 border-sky-500/30 bg-sky-950/20">
+                      <Compass className="w-3 h-3 text-sky-400" />
+                      PRÓXIMO ALVO
                     </span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                      studyRecommendation.priority === 'high' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
-                      studyRecommendation.priority === 'medium' ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' :
-                      'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                    <span className={`telemetry-chip font-bold ${
+                      studyRecommendation.priority === 'high' ? 'border-amber-500/30 text-amber-400 bg-amber-950/20' :
+                      studyRecommendation.priority === 'medium' ? 'border-sky-500/30 text-sky-400 bg-sky-950/20' :
+                      'border-emerald-500/30 text-emerald-400 bg-emerald-950/20'
                     }`}>
-                      {studyRecommendation.priority === 'high' ? 'Prioridade Alta' :
-                       studyRecommendation.priority === 'medium' ? 'Recomendado' : 'Manutenção'}
+                      {studyRecommendation.priority === 'high' ? 'PRIORIDADE ALTA' :
+                       studyRecommendation.priority === 'medium' ? 'RECOMENDADO' : 'MANUTENÇÃO'}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-black text-white tracking-tight mb-2">
+                  <h3 className="text-lg font-bold text-white tracking-tight mb-2 font-heading">
                     {studyRecommendation.targetDomain}
                   </h3>
 
-                  <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800/80 mb-4">
+                  <div className="p-3.5 cockpit-subcard rounded-xl mb-4">
                     <p className="text-xs text-zinc-300 font-sans leading-relaxed">
-                      <strong className="text-cyan-400">Diagnóstico:</strong> {studyRecommendation.reason}
+                      <strong className="text-sky-400 font-mono text-[11px] uppercase tracking-wider">Diagnóstico:</strong> {studyRecommendation.reason}
                     </p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleStudyRecommendedTarget(studyRecommendation.targetDomain)}
-                  className="w-full py-3.5 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-600/50 text-cyan-300 font-bold rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest text-xs transition-all shadow-[0_0_15px_rgba(8,145,178,0.2)]"
+                  className="w-full py-3.5 avionics-primary text-white font-mono font-bold rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                 >
                   <Rocket className="w-4 h-4" />
-                  Estudar Agora (15 Q.)
+                  Estudar Alvo (15 Q.)
                 </button>
               </div>
             </div>
 
             {/* Linha 2: Modo Retaliação 2.0 & Erros Recorrentes */}
-            <div className="bg-red-950/20 border border-red-900/40 p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-red-600" />
+            <div className="cockpit-card p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border-red-500/20">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-red-950/60 border border-red-800/50 rounded-xl shrink-0">
-                  <Flame className="w-7 h-7 text-red-500 animate-pulse" />
+                <div className="p-3 rounded-xl cockpit-subcard border-red-500/20 text-red-400 shrink-0">
+                  <Flame className="w-6 h-6 text-red-400 animate-pulse" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base font-black text-white uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider font-heading">
                       Modo Retaliação 2.0 // Anti-Vício
                     </h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-red-950 text-red-400 border border-red-800">
+                    <span className="telemetry-chip border-red-500/30 text-red-400 bg-red-950/20 font-bold">
                       {recurringErrorsAnalysis.recurringErrorCount} Falhas Recorrentes
                     </span>
                   </div>
@@ -1647,33 +1699,32 @@ export default function RootSecApp() {
               <button
                 onClick={() => generateRetaliacao(30)}
                 disabled={isLoading || totalErrosHistorico === 0}
-                className="w-full md:w-auto px-6 py-3.5 bg-red-950/60 hover:bg-red-900/70 border border-red-700/60 text-red-300 font-bold rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest text-xs transition-all disabled:opacity-40 shrink-0"
+                className="w-full md:w-auto px-6 py-3 avionics-button border-red-500/30 hover:border-red-500/60 text-red-200 font-mono font-bold rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest text-xs transition-all disabled:opacity-40 shrink-0"
               >
-                <Crosshair className="w-4 h-4" />
+                <Crosshair className="w-4 h-4 text-red-400" />
                 Iniciar Retaliação ({totalErrosHistorico})
               </button>
             </div>
 
             {/* Linha 2.5: Repetição Espaçada & Retenção Ativa */}
-            <div className="bg-purple-950/20 border border-purple-900/40 p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-500" />
+            <div className="cockpit-card p-6 rounded-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border-violet-500/20">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-purple-950/60 border border-purple-800/50 rounded-xl shrink-0">
-                  <RotateCcw className="w-7 h-7 text-purple-400" />
+                <div className="p-3 rounded-xl cockpit-subcard border-violet-500/20 text-violet-400 shrink-0">
+                  <RotateCcw className="w-6 h-6 text-violet-400" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-base font-black text-white uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider font-heading">
                       Repetição Espaçada // Curva de Esquecimento
                     </h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-purple-950 text-purple-300 border border-purple-800">
+                    <span className="telemetry-chip border-violet-500/30 text-violet-300 bg-violet-950/20 font-bold">
                       {dueForReviewQuestionIds.length} Itens em Fila
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 font-sans leading-relaxed max-w-2xl mb-2">
                     Algoritmo de intervalos graduais (24h / 3d / 7d) para retenção de longo prazo. Questões com erros anteriores ou chutes são automaticamente priorizadas para consolidação de memória.
                   </p>
-                  <div className="flex items-center gap-3 text-[11px] font-mono">
+                  <div className="flex items-center gap-3 text-[10px] font-mono">
                     <span className="text-red-400">● {hardReviewItems.length} Reforço 24h</span>
                     <span className="text-amber-400">● {scheduledReviewItems.length} Revisão 3d</span>
                     <span className="text-emerald-400">● {masteredReviewItems.length} Dominadas (7d+)</span>
@@ -1683,9 +1734,9 @@ export default function RootSecApp() {
               <button
                 onClick={() => generateSpacedRepetitionSession(dueForReviewQuestionIds, 20)}
                 disabled={isLoading || dueForReviewQuestionIds.length === 0}
-                className="w-full md:w-auto px-6 py-3.5 bg-purple-950/60 hover:bg-purple-900/70 border border-purple-700/60 text-purple-200 font-bold rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest text-xs transition-all disabled:opacity-40 shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                className="w-full md:w-auto px-6 py-3 avionics-button border-violet-500/30 hover:border-violet-500/60 text-violet-200 font-mono font-bold rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest text-xs transition-all disabled:opacity-40 shrink-0"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 text-violet-400" />
                 Iniciar Revisão ({dueForReviewQuestionIds.length})
               </button>
             </div>
