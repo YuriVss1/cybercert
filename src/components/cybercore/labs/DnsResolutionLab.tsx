@@ -183,30 +183,30 @@ export default function DnsResolutionLab({
     <div className="space-y-8 font-sans text-zinc-200">
       
       {/* CABEÇALHO */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
+      <section className="cockpit-card rounded-xl p-6 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
           <div>
             <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest mb-1">
-              <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-bold ${modeBadge.bg} ${modeBadge.color}`}>
+              <span className={`telemetry-chip font-bold ${modeBadge.color} border-current/30 bg-white/[0.02]`}>
                 <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
               </span>
             </div>
-            <h2 className="text-xl font-bold text-white tracking-wide mt-2">
+            <h2 className="text-xl font-bold text-white tracking-wide mt-2 font-heading">
               Rastreador de Caminho: Resolução Iterativa & Hierárquica
             </h2>
-            <p className="text-xs md:text-sm text-zinc-400 mt-1">
+            <p className="text-xs md:text-sm text-zinc-400 mt-1 leading-relaxed">
               {mode === 'guided' && 'Acompanhe passo a passo cada salto de rede de uma consulta DNS com explicações conceituais completas.'}
               {mode === 'practice' && 'Pratique a identificação do papel de cada servidor no fluxo de resolução. Dica disponível após erro.'}
               {mode === 'exam' && 'Avaliação autônoma sobre a hierarquia DNS e flags autoritativas, sem dicas durante a resolução.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 p-1 rounded-lg">
+          <div className="flex items-center gap-1.5 cockpit-subcard border border-white/[0.08] p-1.5 rounded-xl">
             <button
               type="button"
               onClick={() => { setActiveTabMode('trace'); setFeedback({ type: null, message: '' }); }}
-              className={`px-3 py-1 rounded text-xs font-mono font-bold transition-all ${
-                activeTabMode === 'trace' ? 'bg-cyan-500 text-black shadow' : 'text-zinc-500 hover:text-white'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                activeTabMode === 'trace' ? 'avionics-primary text-white shadow' : 'avionics-button text-zinc-400 hover:text-white'
               }`}
             >
               1. Rastrear Fluxo (TRACE)
@@ -214,8 +214,8 @@ export default function DnsResolutionLab({
             <button
               type="button"
               onClick={() => { setActiveTabMode('test'); setFeedback({ type: null, message: '' }); }}
-              className={`px-3 py-1 rounded text-xs font-mono font-bold transition-all ${
-                activeTabMode === 'test' ? 'bg-cyan-500 text-black shadow' : 'text-zinc-500 hover:text-white'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                activeTabMode === 'test' ? 'avionics-primary text-white shadow' : 'avionics-button text-zinc-400 hover:text-white'
               }`}
             >
               2. Teste de Retenção
@@ -225,7 +225,7 @@ export default function DnsResolutionLab({
 
         {/* Dica visível no modo guided */}
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+          <div className="p-3 cockpit-subcard border-emerald-500/30 rounded-xl bg-emerald-950/15">
             <p className="text-xs text-emerald-300 flex items-start gap-2">
               <Eye className="w-4 h-4 mt-0.5 shrink-0" />
               <span>
@@ -237,7 +237,7 @@ export default function DnsResolutionLab({
 
         {/* Dica revelada no modo practice */}
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+          <div className="p-3 cockpit-subcard border-cyan-500/30 rounded-xl bg-cyan-950/15 animate-in fade-in">
             <p className="text-xs text-cyan-300 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
               <span>
@@ -250,7 +250,7 @@ export default function DnsResolutionLab({
         {/* NAVEGADOR DE HOPS INTERATIVO */}
         {activeTabMode === 'trace' ? (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-2">
               {DNS_HIERARCHY_HOPS.map((hop) => {
                 const isActive = hop.stepNumber === currentStep;
                 const isPassed = hop.stepNumber < currentStep;
@@ -261,53 +261,54 @@ export default function DnsResolutionLab({
                     onClick={() => setCurrentStep(hop.stepNumber)}
                     className={`p-3 rounded-xl border text-left font-mono transition-all relative ${
                       isActive
-                        ? 'bg-cyan-950/70 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] ring-1 ring-cyan-500'
+                        ? 'cockpit-subcard border-cyan-500/70 shadow-[0_0_15px_rgba(6,182,212,0.2)] bg-cyan-950/20 text-white ring-1 ring-cyan-500/40'
                         : isPassed
-                        ? 'bg-zinc-900/90 border-emerald-800/60 text-zinc-300'
-                        : 'bg-zinc-950 border-zinc-800 text-zinc-600'
+                        ? 'cockpit-subcard border-emerald-500/40 bg-emerald-950/10 text-zinc-300'
+                        : 'cockpit-subcard border-white/[0.06] text-zinc-500 hover:border-white/[0.14] hover:text-zinc-300'
                     }`}
                   >
-                    <div className="flex justify-between items-center mb-1 text-[10px]">
-                      <span>Salto #{hop.stepNumber}</span>
-                      {isPassed && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
+                    <div className="flex justify-between items-center mb-1.5 text-[10px]">
+                      <span className="telemetry-chip text-[9px] border-white/10 text-zinc-400">Salto #{hop.stepNumber}</span>
+                      {isPassed && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
                     </div>
-                    <div className="font-bold text-xs truncate text-cyan-300">{hop.name.split(' ')[0]}</div>
-                    <div className="text-[10px] text-zinc-500 truncate mt-0.5">{hop.role}</div>
+                    <div className="font-bold text-xs truncate text-cyan-300 font-mono">{hop.name.split(' ')[0]}</div>
+                    <div className="text-[10px] text-zinc-400 truncate mt-0.5 font-sans">{hop.role}</div>
                   </button>
                 );
               })}
             </div>
 
             {/* CARD DETALHADO DO SALTO ATUAL */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 space-y-4 font-mono text-xs">
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+            <div className="cockpit-card hud-bracket rounded-xl p-6 space-y-5 font-mono text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
                 <div className="flex items-center gap-2">
-                  <Server className="w-4 h-4 text-cyan-400" />
-                  <span className="font-bold text-sm text-white">{activeHop.name}</span>
+                  <Server className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <span className="font-bold text-sm text-white tracking-wide">{activeHop.name}</span>
+                  <span className="telemetry-chip border-white/10 text-zinc-400 bg-white/[0.02] hidden sm:inline-flex">{activeHop.role}</span>
                 </div>
-                <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${
+                <span className={`telemetry-chip font-bold uppercase ${
                   activeHop.isAuthoritative 
-                    ? 'bg-emerald-950 text-emerald-300 border-emerald-700' 
-                    : 'bg-zinc-950 text-zinc-400 border-zinc-800'
+                    ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/40' 
+                    : 'bg-white/[0.02] text-zinc-400 border-white/10'
                 }`}>
                   {activeHop.isAuthoritative ? 'Resposta Autoritativa (AA)' : 'Não-Autoritativo (Referral)'}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800/80 space-y-1">
-                  <span className="text-zinc-500 uppercase text-[10px] block">Mensagem Recebida</span>
-                  <p className="text-zinc-200">{activeHop.queryReceived}</p>
+                <div className="cockpit-subcard p-4 rounded-xl border border-white/[0.08] space-y-1.5">
+                  <span className="text-zinc-500 uppercase text-[10px] tracking-wider block font-bold font-mono">Mensagem Recebida</span>
+                  <p className="text-zinc-200 font-mono leading-relaxed">{activeHop.queryReceived}</p>
                 </div>
-                <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800/80 space-y-1">
-                  <span className="text-cyan-400 uppercase text-[10px] block font-bold">Ação / Resposta</span>
-                  <p className="text-cyan-200">{activeHop.answerReturned}</p>
+                <div className="cockpit-subcard p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10 space-y-1.5">
+                  <span className="text-cyan-400 uppercase text-[10px] tracking-wider block font-bold font-mono">Ação / Resposta</span>
+                  <p className="text-cyan-200 font-mono leading-relaxed">{activeHop.answerReturned}</p>
                 </div>
               </div>
 
               {(mode === 'guided' || currentStep <= 2) && (
-                <div className="p-3.5 bg-black/40 border border-zinc-800/60 rounded-lg text-zinc-400 leading-relaxed font-sans text-xs">
-                  💡 <strong className="text-zinc-200">Explicação Técnica:</strong> {activeHop.explanation}
+                <div className="p-3.5 cockpit-subcard border-white/[0.08] rounded-xl text-zinc-300 leading-relaxed font-sans text-xs">
+                  💡 <strong className="text-white">Explicação Técnica:</strong> {activeHop.explanation}
                 </div>
               )}
 
@@ -315,7 +316,7 @@ export default function DnsResolutionLab({
                 <button
                   type="button"
                   onClick={handleAdvanceStep}
-                  className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-black font-bold font-mono text-xs uppercase tracking-wider rounded-lg flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                  className="avionics-primary px-5 py-2.5 text-white font-bold font-mono text-xs uppercase tracking-wider rounded-lg flex items-center gap-2"
                 >
                   {currentStep < 5 ? 'Avançar para Próximo Salto' : 'Concluir Rastreamento'} <ChevronRight className="w-4 h-4" />
                 </button>
@@ -324,19 +325,19 @@ export default function DnsResolutionLab({
           </div>
         ) : (
           /* MODO TESTE DE RETENÇÃO */
-          <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-6 space-y-6">
+          <div className="cockpit-card hud-bracket rounded-xl p-6 space-y-6">
             <div className="space-y-2">
-              <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
+              <span className="telemetry-chip border-cyan-500/30 text-cyan-300 bg-cyan-950/20 font-bold block w-fit">
                 {mode === 'exam' ? 'Avaliação Autônoma: Resolução DNS' : 'Desafio de Identificação Autoritativa'}
               </span>
-              <h3 className="text-base font-bold text-white leading-relaxed">
-                Durante a consulta por &quot;api.rootsec.io&quot;, qual dos servidores da hierarquia DNS é o <strong className="text-emerald-400">único</strong> detentor oficial do arquivo de zona capaz de emitir uma resposta com a flag <strong className="text-cyan-400">Authoritative Answer (AA)</strong>?
+              <h3 className="text-base font-bold text-white leading-relaxed font-heading">
+                Durante a consulta por &quot;api.rootsec.io&quot;, qual dos servidores da hierarquia DNS é o <strong className="text-emerald-400">único</strong> detentor oficial do arquivo de zona capaz de emitir uma resposta com a flag <strong className="text-cyan-400 font-mono">Authoritative Answer (AA)</strong>?
               </h3>
             </div>
 
             <form onSubmit={handleValidateTest} className="space-y-4">
               <div className="max-w-md">
-                <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">
+                <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1 font-bold">
                   Nome ou papel do servidor:
                 </label>
                 <input
@@ -345,19 +346,19 @@ export default function DnsResolutionLab({
                   onChange={(e) => setTestAnswer(e.target.value)}
                   disabled={isFinalized}
                   placeholder="Ex: Servidor Autoritativo"
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-[#05070a]/90 border border-white/[0.12] rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]"
                 />
               </div>
 
               {!isFinalized && (
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+                    <span className="text-xs font-mono text-zinc-400">Confiança:</span>
                     <button
                       type="button"
                       onClick={() => setConfidence('CONFIDENT')}
-                      className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
-                        confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+                      className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                        confidence === 'CONFIDENT' ? 'avionics-primary text-white font-bold' : 'avionics-button text-zinc-400'
                       }`}
                     >
                       Certeza
@@ -365,20 +366,20 @@ export default function DnsResolutionLab({
                     <button
                       type="button"
                       onClick={() => setConfidence('HESITANT')}
-                      className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
-                        confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+                      className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                        confidence === 'HESITANT' ? 'avionics-button border-amber-500/50 text-amber-300 bg-amber-950/30' : 'avionics-button text-zinc-400'
                       }`}
                     >
                       Dúvida
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     {canRevealHint && (
                       <button
                         type="button"
                         onClick={() => setShowHintRevealed(true)}
-                        className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                        className="avionics-button px-3 py-2 border-amber-500/40 text-amber-300 bg-amber-950/20 rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
                       >
                         <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
                       </button>
@@ -387,7 +388,7 @@ export default function DnsResolutionLab({
                     <button
                       type="button"
                       onClick={handleDontKnow}
-                      className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase tracking-wider"
+                      className="avionics-button px-4 py-2 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase tracking-wider"
                     >
                       Não sei
                     </button>
@@ -395,7 +396,7 @@ export default function DnsResolutionLab({
                     <button
                       type="submit"
                       disabled={!testAnswer.trim()}
-                      className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider"
+                      className="avionics-primary px-5 py-2 disabled:opacity-40 text-white font-bold rounded-lg text-xs font-mono uppercase tracking-wider"
                     >
                       Validar Resposta
                     </button>
@@ -409,12 +410,12 @@ export default function DnsResolutionLab({
 
       {/* FEEDBACK */}
       {feedback.type && (
-        <div className={`p-4 rounded-xl border flex items-start gap-3 ${
+        <div className={`cockpit-card rounded-xl p-5 border flex items-start gap-3.5 ${
           feedback.type === 'success' 
-            ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200' 
+            ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' 
             : feedback.type === 'registered'
-            ? 'bg-zinc-900 border-zinc-700 text-zinc-300'
-            : 'bg-amber-950/40 border-amber-500/60 text-amber-200'
+            ? 'border-white/10 bg-white/[0.02] text-zinc-300' 
+            : 'border-amber-500/40 bg-amber-950/20 text-amber-200'
         }`}>
           {feedback.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
@@ -423,17 +424,17 @@ export default function DnsResolutionLab({
           ) : (
             <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           )}
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1 font-mono text-xs">
             <span className="text-xs font-mono uppercase font-bold tracking-wider block">
               {feedback.type === 'success' ? 'Correto!' : feedback.type === 'registered' ? 'Avaliação Registrada' : 'Análise Técnica'}
             </span>
-            <p className="text-xs md:text-sm leading-relaxed">{feedback.message}</p>
+            <p className="text-xs md:text-sm leading-relaxed font-sans">{feedback.message}</p>
 
             {/* Debrief do modo exam */}
             {mode === 'exam' && isFinalized && (
-              <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1">
+              <div className="p-3 cockpit-subcard border-white/10 rounded-lg text-xs space-y-1 mt-2">
                 <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
-                <p className="text-zinc-300">
+                <p className="text-zinc-300 font-sans leading-relaxed">
                   Na arquitetura DNS, Root (. ) e TLD (.io) apenas realizam delegações iterativas (referrals). Somente o Servidor Autoritativo (Authoritative Name Server) tem a autoridade legal sobre a zona e emite respostas autoritativas definitivas.
                 </p>
               </div>

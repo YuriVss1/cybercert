@@ -2,6 +2,10 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { EXAM_PBQS } from '@/data/examPbqsData';
+import type { PbqExamItem } from '@/data/examPbqsData';
+export type { PbqExamItem };
+import type { PbqAssessmentResult } from '@/components/pbq/PbqAssessmentAdapter';
 
 function shuffleArray<T>(array: T[]): T[] {
   const result = [...array];
@@ -25,7 +29,14 @@ export type Question = {
   source?: string;
   author?: string;
   review_status?: string;
+  type?: 'question';
 };
+
+export type QuestionExamItem = Question & {
+  type: 'question';
+};
+
+export type ExamItem = QuestionExamItem | PbqExamItem;
 
 export type ConfidenceFeedback = 
   | 'knew_concept' 
@@ -106,9 +117,11 @@ type ExamState = {
   pbqsList: PbqItem[];
   fetchPbqs: () => Promise<void>;
 
-  questions: Question[];
+  questions: ExamItem[];
   currentIndex: number;
   answers: Record<string, string>;
+  pbqAnswers: Record<string, PbqAssessmentResult>;
+  recordPbqAnswer: (pbqId: string, result: PbqAssessmentResult) => void;
   markedForReview: string[];
   revealedExplanations: Record<string, boolean>;
   userFeedback: Record<string, ConfidenceFeedback>;
@@ -340,6 +353,10 @@ export const useExamStore = create<ExamState>()(
   questions: [],
   currentIndex: 0,
   answers: {},
+  pbqAnswers: {},
+  recordPbqAnswer: (pbqId, result) => set((state) => ({
+    pbqAnswers: { ...state.pbqAnswers, [pbqId]: result }
+  })),
   markedForReview: [],
   revealedExplanations: {},
   userFeedback: {},
@@ -423,9 +440,33 @@ export const useExamStore = create<ExamState>()(
     
     const { data, error } = await query;
     if (error || !data) { set({ isLoading: false }); return; }
-    const formattedQuestions = data.map(q => ({ ...q, options: Array.isArray(q.options) ? q.options : JSON.parse(q.options) }));
-    const selectedQuestions = shuffleArray(formattedQuestions).slice(0, limit);
-    set({ questions: selectedQuestions, currentIndex: 0, answers: {}, markedForReview: [], revealedExplanations: {}, timeLeft: 90 * 60, isStarted: true, isFinished: false, isReviewing: false, isLoading: false, domainResults: {}, activeTab: 'simulado' });
+    const formattedQuestions: QuestionExamItem[] = data.map(q => ({
+      ...q,
+      type: 'question' as const,
+      options: Array.isArray(q.options) ? q.options : JSON.parse(q.options)
+    }));
+    
+    // Alocação exata da Onda 1: 3 PBQs + 87 MCQs = 90 itens totais
+    const pbqCount = Math.min(EXAM_PBQS.length, 3);
+    const mcqLimit = Math.max(0, limit - pbqCount);
+    const selectedQuestions = shuffleArray(formattedQuestions).slice(0, mcqLimit);
+    const sessionItems: ExamItem[] = [...EXAM_PBQS.slice(0, pbqCount), ...selectedQuestions];
+
+    set({
+      questions: sessionItems,
+      currentIndex: 0,
+      answers: {},
+      pbqAnswers: {},
+      markedForReview: [],
+      revealedExplanations: {},
+      timeLeft: 90 * 60,
+      isStarted: true,
+      isFinished: false,
+      isReviewing: false,
+      isLoading: false,
+      domainResults: {},
+      activeTab: 'simulado'
+    });
   },
 
   generateTreinamento: async (domains: string[], limit = 30) => {
@@ -437,9 +478,27 @@ export const useExamStore = create<ExamState>()(
     
     const { data, error } = await query;
     if (error || !data) { set({ isLoading: false }); return; }
-    const formattedQuestions = data.map(q => ({ ...q, options: Array.isArray(q.options) ? q.options : JSON.parse(q.options) }));
+    const formattedQuestions: QuestionExamItem[] = data.map(q => ({
+      ...q,
+      type: 'question' as const,
+      options: Array.isArray(q.options) ? q.options : JSON.parse(q.options)
+    }));
     const selectedQuestions = shuffleArray(formattedQuestions).slice(0, limit);
-    set({ questions: selectedQuestions, currentIndex: 0, answers: {}, markedForReview: [], revealedExplanations: {}, timeLeft: 999 * 60, isStarted: true, isFinished: false, isReviewing: false, isLoading: false, domainResults: {}, activeTab: 'treinamento' });
+    set({
+      questions: selectedQuestions,
+      currentIndex: 0,
+      answers: {},
+      pbqAnswers: {},
+      markedForReview: [],
+      revealedExplanations: {},
+      timeLeft: 999 * 60,
+      isStarted: true,
+      isFinished: false,
+      isReviewing: false,
+      isLoading: false,
+      domainResults: {},
+      activeTab: 'treinamento'
+    });
   },
 
   generateRetaliacao: async (limit = 30) => {
@@ -453,9 +512,27 @@ export const useExamStore = create<ExamState>()(
     if (incorrectArray.length === 0) { set({ isLoading: false }); alert("Nenhum erro registrado nesta certificação!"); return; }
     const { data, error } = await supabase.from('questions').select('*').in('id', incorrectArray);
     if (error || !data || data.length === 0) { set({ isLoading: false }); return; }
-    const formattedQuestions = data.map(q => ({ ...q, options: Array.isArray(q.options) ? q.options : JSON.parse(q.options) }));
+    const formattedQuestions: QuestionExamItem[] = data.map(q => ({
+      ...q,
+      type: 'question' as const,
+      options: Array.isArray(q.options) ? q.options : JSON.parse(q.options)
+    }));
     const selectedQuestions = shuffleArray(formattedQuestions).slice(0, limit);
-    set({ questions: selectedQuestions, currentIndex: 0, answers: {}, markedForReview: [], revealedExplanations: {}, timeLeft: 999 * 60, isStarted: true, isFinished: false, isReviewing: false, isLoading: false, domainResults: {}, activeTab: 'treinamento' });
+    set({
+      questions: selectedQuestions,
+      currentIndex: 0,
+      answers: {},
+      pbqAnswers: {},
+      markedForReview: [],
+      revealedExplanations: {},
+      timeLeft: 999 * 60,
+      isStarted: true,
+      isFinished: false,
+      isReviewing: false,
+      isLoading: false,
+      domainResults: {},
+      activeTab: 'treinamento'
+    });
   },
 
   generateSpacedRepetitionSession: async (targetQuestionIds: string[], limit = 20) => {
@@ -470,8 +547,9 @@ export const useExamStore = create<ExamState>()(
       set({ isLoading: false });
       return;
     }
-    const formattedQuestions = data.map(q => ({
+    const formattedQuestions: QuestionExamItem[] = data.map(q => ({
       ...q,
+      type: 'question' as const,
       options: Array.isArray(q.options) ? q.options : JSON.parse(q.options)
     }));
     const selectedQuestions = shuffleArray(formattedQuestions);
@@ -479,6 +557,7 @@ export const useExamStore = create<ExamState>()(
       questions: selectedQuestions,
       currentIndex: 0,
       answers: {},
+      pbqAnswers: {},
       markedForReview: [],
       revealedExplanations: {},
       timeLeft: 999 * 60,
@@ -513,26 +592,71 @@ export const useExamStore = create<ExamState>()(
     set({ isSubmittingExam: true });
 
     try {
-      let correctCount = 0;
+      const mcqItems = state.questions.filter((q): q is QuestionExamItem => q.type !== 'pbq');
+      const pbqItems = state.questions.filter((q): q is PbqExamItem => q.type === 'pbq');
+
+      let correctMcqCount = 0;
+      let correctPbqCount = 0;
       const domainStats: Record<string, DomainResult> = {};
       const incorrectIds: string[] = [];
 
-      state.questions.forEach(q => { if (!domainStats[q.domain]) domainStats[q.domain] = { total: 0, correct: 0, percentage: 0 }; domainStats[q.domain].total += 1; });
-      state.questions.forEach((q) => {
-        if (state.answers[q.id as string] === q.correct_answer) { correctCount++; domainStats[q.domain].correct += 1; } 
-        else { incorrectIds.push(q.id); }
+      state.questions.forEach(q => {
+        if (!domainStats[q.domain]) {
+          domainStats[q.domain] = { total: 0, correct: 0, percentage: 0 };
+        }
+        domainStats[q.domain].total += 1;
       });
 
-      Object.keys(domainStats).forEach(domain => { domainStats[domain].percentage = Math.round((domainStats[domain].correct / domainStats[domain].total) * 100); });
-      const finalScore = Math.round(100 + (correctCount * (800 / totalQuestions)));
+      // Avaliação de MCQs
+      mcqItems.forEach((q) => {
+        if (state.answers[q.id as string] === q.correct_answer) {
+          correctMcqCount++;
+          domainStats[q.domain].correct += 1;
+        } else {
+          incorrectIds.push(q.id);
+        }
+      });
+
+      // Avaliação de PBQs
+      pbqItems.forEach((pbq) => {
+        const pbqAns = state.pbqAnswers[pbq.id];
+        if (pbqAns && pbqAns.completed && pbqAns.correct) {
+          correctPbqCount++;
+          domainStats[pbq.domain].correct += 1;
+        } else {
+          incorrectIds.push(pbq.id);
+        }
+      });
+
+      Object.keys(domainStats).forEach(domain => {
+        if (domainStats[domain].total > 0) {
+          domainStats[domain].percentage = Math.round((domainStats[domain].correct / domainStats[domain].total) * 100);
+        }
+      });
+
+      // Scoring ponderado CyberCert (MCQ peso 1, PBQ peso 3)
+      const mcqWeight = 1;
+      const pbqWeight = 3;
+      const totalPoints = (mcqItems.length * mcqWeight) + (pbqItems.length * pbqWeight);
+      const earnedPoints = (correctMcqCount * mcqWeight) + (correctPbqCount * pbqWeight);
+
+      const finalScore = totalPoints > 0
+        ? Math.min(900, Math.max(100, Math.round(100 + (earnedPoints * (800 / totalPoints)))))
+        : 100;
       const passed = finalScore >= 750;
+      const totalCorrect = correctMcqCount + correctPbqCount;
 
       // 1. Inserção do histórico agregado com captura do ID gerado
       let historyEntryId: string | null = null;
       try {
         const { data: insertedHistory, error: historyError } = await supabase.from('exam_history').insert([{
-          score: finalScore, correct_count: correctCount, total_questions: totalQuestions, passed: passed,
-          exam_type: state.examType, domain_stats: domainStats, incorrect_questions: incorrectIds,
+          score: finalScore,
+          correct_count: totalCorrect,
+          total_questions: totalQuestions,
+          passed: passed,
+          exam_type: state.examType,
+          domain_stats: domainStats,
+          incorrect_questions: incorrectIds,
           cert_id: state.selectedCert?.id,
           user_id: state.user?.id
         }]).select('id').maybeSingle();
@@ -544,9 +668,9 @@ export const useExamStore = create<ExamState>()(
         console.warn('Falha de rede ao persistir exam_history (modo offline preservado):', err);
       }
 
-      // 2. Registro granular de tentativas individuais com domínio e vínculo relacional
-      if (state.user) {
-        const attempts = state.questions.map((q) => ({
+      // 2. Registro granular de tentativas individuais (apenas MCQs com ID no catálogo questions)
+      if (state.user && mcqItems.length > 0) {
+        const attempts = mcqItems.map((q) => ({
           user_id: state.user?.id,
           question_id: q.id,
           cert_id: state.selectedCert?.id,
@@ -579,7 +703,20 @@ export const useExamStore = create<ExamState>()(
     }
   },
   
-  resetExam: () => set({ currentIndex: 0, answers: {}, markedForReview: [], revealedExplanations: {}, userFeedback: {}, isStarted: false, isFinished: false, isReviewing: false, isSubmittingExam: false, questions: [], activeTab: 'simulado' }),
+  resetExam: () => set({
+    currentIndex: 0,
+    answers: {},
+    pbqAnswers: {},
+    markedForReview: [],
+    revealedExplanations: {},
+    userFeedback: {},
+    isStarted: false,
+    isFinished: false,
+    isReviewing: false,
+    isSubmittingExam: false,
+    questions: [],
+    activeTab: 'simulado'
+  }),
   nextQuestion: () => set((state) => ({ currentIndex: Math.min(state.currentIndex + 1, state.questions.length - 1) })),
   prevQuestion: () => set((state) => ({ currentIndex: Math.max(state.currentIndex - 1, 0) }))
     }),
@@ -597,6 +734,7 @@ export const useExamStore = create<ExamState>()(
         questions: state.questions,
         currentIndex: state.currentIndex,
         answers: state.answers,
+        pbqAnswers: state.pbqAnswers,
         markedForReview: state.markedForReview,
         revealedExplanations: state.revealedExplanations,
         userFeedback: state.userFeedback,

@@ -240,18 +240,18 @@ export default function TcpHandshakeLab({
       {/* -------------------------------------------------------------------- */}
       {/* CABEÇALHO DO LABORATÓRIO + BANNER DE MODO PEDAGÓGICO                  */}
       {/* -------------------------------------------------------------------- */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
+      <section className="cockpit-card rounded-xl p-6 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
           <div>
             <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest mb-1">
-              <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-bold ${modeBadge.bg} ${modeBadge.color}`}>
+              <span className={`telemetry-chip font-bold ${modeBadge.color} border-current/30 bg-white/[0.02]`}>
                 <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
               </span>
             </div>
-            <h2 className="text-xl font-bold text-white tracking-wide mt-2">
+            <h2 className="text-xl font-bold text-white tracking-wide mt-2 font-heading">
               Montador de Sessão: TCP 3-Way Handshake
             </h2>
-            <p className="text-xs md:text-sm text-zinc-400 mt-1">
+            <p className="text-xs md:text-sm text-zinc-400 mt-1 leading-relaxed">
               {mode === 'guided' && 'Observe a ordem dos pacotes e entenda a transição de sockets de rede com orientação contínua.'}
               {mode === 'practice' && 'Construa o handshake correto filtrando pacotes de encerramento ou reset (FIN, RST). Dica disponível após erro.'}
               {mode === 'exam' && 'Avaliação autônoma de parâmetros TCP: sem dicas ou auxílios durante a resolução.'}
@@ -259,12 +259,12 @@ export default function TcpHandshakeLab({
           </div>
 
           {/* Seletor de Níveis (Permite alternar no guided/practice, bloqueado para desafio específico no exam) */}
-          <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 p-1 rounded-lg">
+          <div className="flex items-center gap-1.5 cockpit-subcard border border-white/[0.08] p-1.5 rounded-xl">
             <button
               type="button"
               onClick={() => { setCurrentLevel(1); handleReset(); }}
-              className={`px-3 py-1 rounded text-xs font-mono font-bold transition-all ${
-                currentLevel === 1 ? 'bg-cyan-500 text-black shadow' : 'text-zinc-500 hover:text-white'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                currentLevel === 1 ? 'avionics-primary text-white shadow' : 'avionics-button text-zinc-400 hover:text-white'
               }`}
             >
               1. Sequência
@@ -272,8 +272,8 @@ export default function TcpHandshakeLab({
             <button
               type="button"
               onClick={() => { setCurrentLevel(2); handleReset(); }}
-              className={`px-3 py-1 rounded text-xs font-mono font-bold transition-all ${
-                currentLevel === 2 ? 'bg-cyan-500 text-black shadow' : 'text-zinc-500 hover:text-white'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                currentLevel === 2 ? 'avionics-primary text-white shadow' : 'avionics-button text-zinc-400 hover:text-white'
               }`}
             >
               2. Estados Socket
@@ -281,8 +281,8 @@ export default function TcpHandshakeLab({
             <button
               type="button"
               onClick={() => { setCurrentLevel(3); handleReset(); }}
-              className={`px-3 py-1 rounded text-xs font-mono font-bold transition-all ${
-                currentLevel === 3 ? 'bg-cyan-500 text-black shadow' : 'text-zinc-500 hover:text-white'
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                currentLevel === 3 ? 'avionics-primary text-white shadow' : 'avionics-button text-zinc-400 hover:text-white'
               }`}
             >
               3. Números Seq/Ack
@@ -292,7 +292,7 @@ export default function TcpHandshakeLab({
 
         {/* Dica visível no modo guided */}
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+          <div className="p-3 cockpit-subcard border-emerald-500/30 rounded-xl bg-emerald-950/15">
             <p className="text-xs text-emerald-300 flex items-start gap-2">
               <Eye className="w-4 h-4 mt-0.5 shrink-0" />
               <span>
@@ -304,7 +304,7 @@ export default function TcpHandshakeLab({
 
         {/* Dica revelada no modo practice */}
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+          <div className="p-3 cockpit-subcard border-cyan-500/30 rounded-xl bg-cyan-950/15 animate-in fade-in">
             <p className="text-xs text-cyan-300 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
               <span>
@@ -316,31 +316,45 @@ export default function TcpHandshakeLab({
 
         {/* Visualização de Comunicação Cliente <-> Servidor */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-          <div className="bg-zinc-900/80 border border-zinc-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center justify-between text-cyan-400 font-bold border-b border-zinc-800 pb-2">
-              <span>ENDPOINT: CLIENTE (Browser / Host)</span>
-              <span className="text-[10px] text-zinc-500">IP: 192.168.1.50</span>
+          <div className="cockpit-subcard p-4 rounded-xl space-y-2.5 border border-white/[0.08]">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+              <span className="text-cyan-400 font-bold text-[11px] tracking-wider">ENDPOINT: CLIENTE (Host)</span>
+              <span className="telemetry-chip border-cyan-500/30 text-cyan-300 bg-cyan-950/20 font-bold">IP: 192.168.1.50</span>
             </div>
-            <div className="text-[11px] text-zinc-400">
-              Estado atual do Socket: <strong className="text-white">
+            <div className="text-[11px] text-zinc-400 flex items-center justify-between">
+              <span>Estado do Socket:</span>
+              <span className={`font-mono font-bold px-2.5 py-0.5 rounded text-[10px] tracking-wider ${
+                selectedPackets.length >= 2 
+                  ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40' 
+                  : selectedPackets.length === 1 
+                  ? 'bg-cyan-950/40 text-cyan-300 border border-cyan-500/40' 
+                  : 'bg-zinc-900 text-zinc-400 border border-zinc-700/40'
+              }`}>
                 {selectedPackets.length === 0 && 'CLOSED'}
                 {selectedPackets.length === 1 && 'SYN-SENT'}
                 {selectedPackets.length >= 2 && 'ESTABLISHED'}
-              </strong>
+              </span>
             </div>
           </div>
 
-          <div className="bg-zinc-900/80 border border-zinc-800 p-4 rounded-xl space-y-2">
-            <div className="flex items-center justify-between text-purple-400 font-bold border-b border-zinc-800 pb-2">
-              <span>ENDPOINT: SERVIDOR (Web / API)</span>
-              <span className="text-[10px] text-zinc-500">Porta: 443 (HTTPS)</span>
+          <div className="cockpit-subcard p-4 rounded-xl space-y-2.5 border border-white/[0.08]">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+              <span className="text-purple-400 font-bold text-[11px] tracking-wider">ENDPOINT: SERVIDOR (Web/API)</span>
+              <span className="telemetry-chip border-purple-500/30 text-purple-300 bg-purple-950/20 font-bold">PORT: 443 (HTTPS)</span>
             </div>
-            <div className="text-[11px] text-zinc-400">
-              Estado atual do Socket: <strong className="text-white">
+            <div className="text-[11px] text-zinc-400 flex items-center justify-between">
+              <span>Estado do Socket:</span>
+              <span className={`font-mono font-bold px-2.5 py-0.5 rounded text-[10px] tracking-wider ${
+                selectedPackets.length >= 2 
+                  ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/40' 
+                  : selectedPackets.length === 1 
+                  ? 'bg-cyan-950/40 text-cyan-300 border border-cyan-500/40' 
+                  : 'bg-zinc-900 text-zinc-400 border border-zinc-700/40'
+              }`}>
                 {selectedPackets.length === 0 && 'LISTEN'}
                 {selectedPackets.length === 1 && 'SYN-RECEIVED'}
                 {selectedPackets.length >= 2 && 'ESTABLISHED'}
-              </strong>
+              </span>
             </div>
           </div>
         </div>
@@ -350,18 +364,18 @@ export default function TcpHandshakeLab({
       {/* ÁREA DE DESAFIO ESPECÍFICO                                           */}
       {/* -------------------------------------------------------------------- */}
       {(currentLevel === 1 || currentLevel === 2) && (
-        <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-6">
+        <section className="cockpit-card hud-bracket rounded-xl p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <h3 className="text-base font-bold text-white flex items-center gap-2 font-heading">
               <span>Montagem dos 3 Passos da Conexão</span>
-              <span className="text-xs font-mono text-zinc-500 font-normal">
+              <span className="text-xs font-mono text-zinc-400 font-normal">
                 ({selectedPackets.length}/3 pacotes selecionados)
               </span>
             </h3>
             <button
               type="button"
               onClick={handleReset}
-              className="text-xs font-mono text-zinc-500 hover:text-zinc-300 flex items-center gap-1"
+              className="avionics-button px-2.5 py-1 text-xs font-mono text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 rounded-lg"
             >
               <RotateCcw className="w-3 h-3" /> Limpar
             </button>
@@ -375,26 +389,26 @@ export default function TcpHandshakeLab({
               return (
                 <div
                   key={idx}
-                  className={`p-4 rounded-xl border border-dashed flex flex-col justify-between min-h-[120px] transition-all ${
+                  className={`p-4 rounded-xl flex flex-col justify-between min-h-[125px] transition-all ${
                     flag 
-                      ? 'bg-zinc-900 border-cyan-500/80 shadow-[0_0_10px_rgba(6,182,212,0.1)]' 
-                      : 'bg-zinc-950 border-zinc-800'
+                      ? 'cockpit-subcard border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.15)] bg-cyan-950/10' 
+                      : 'cockpit-subcard border-dashed border-white/[0.12] bg-white/[0.01]'
                   }`}
                 >
-                  <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-                    <span>Etapa #{idx + 1}</span>
-                    <span>{idx === 0 ? 'CLIENT → SRV' : idx === 1 ? 'SRV → CLIENT' : 'CLIENT → SRV'}</span>
+                  <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest border-b border-white/[0.05] pb-1.5">
+                    <span className="telemetry-chip text-[9px] border-white/10 text-zinc-300">Etapa #{idx + 1}</span>
+                    <span className="text-[10px] text-zinc-400 font-bold">{idx === 0 ? 'CLIENT → SRV' : idx === 1 ? 'SRV → CLIENT' : 'CLIENT → SRV'}</span>
                   </div>
 
                   {flag ? (
                     <div className="my-2">
-                      <span className="text-lg font-mono font-black text-cyan-400 block">{flag}</span>
-                      <span className="text-[11px] text-zinc-400 font-mono">
+                      <span className="text-xl font-mono font-black text-cyan-300 block tracking-wider">{flag}</span>
+                      <span className="text-[11px] text-zinc-400 font-mono line-clamp-2 leading-relaxed">
                         {AVAILABLE_PACKET_OPTIONS.find(p => p.flag === flag)?.desc}
                       </span>
                     </div>
                   ) : (
-                    <div className="my-auto text-center text-xs font-mono text-zinc-600">
+                    <div className="my-auto text-center text-xs font-mono text-zinc-500">
                       {mode === 'guided' ? `Aguardando ${expectedStep.flag}` : 'Selecione o pacote abaixo'}
                     </div>
                   )}
@@ -403,7 +417,7 @@ export default function TcpHandshakeLab({
                     <button
                       type="button"
                       onClick={() => handleRemovePacket(idx)}
-                      className="text-[10px] font-mono text-red-400 hover:underline self-start mt-1"
+                      className="text-[10px] font-mono text-red-400 hover:text-red-300 underline self-start mt-1"
                     >
                       Remover pacote
                     </button>
@@ -415,7 +429,7 @@ export default function TcpHandshakeLab({
 
           {/* Pacotes disponíveis para clique */}
           <div className="space-y-2">
-            <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest block">
+            <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest block font-bold">
               Pacotes Disponíveis:
             </span>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -428,21 +442,21 @@ export default function TcpHandshakeLab({
                     type="button"
                     onClick={() => handleSelectPacket(pkt.flag)}
                     disabled={isSelected || selectedPackets.length >= 3 || isFinalized}
-                    className={`p-3 rounded-lg border text-left transition-all ${
+                    className={`p-3 rounded-xl border text-left transition-all ${
                       isSelected 
-                        ? 'opacity-40 bg-zinc-900 border-zinc-800 cursor-not-allowed'
-                        : 'bg-zinc-900 hover:border-cyan-500 hover:bg-zinc-850 border-zinc-800'
+                        ? 'opacity-40 cockpit-subcard border-white/[0.05] cursor-not-allowed'
+                        : 'avionics-button hover:border-cyan-400/50 hover:bg-white/[0.06]'
                     }`}
                   >
                     <div className="flex justify-between items-center">
                       <span className="font-mono text-sm font-bold text-white">{pkt.flag}</span>
                       {mode === 'guided' && isDistractor && (
-                        <span className="text-[9px] font-mono text-zinc-400 border border-zinc-700/60 px-1.5 py-0.5 rounded bg-zinc-800/50">
+                        <span className="telemetry-chip text-[8px] border-zinc-700/60 text-zinc-400 bg-zinc-900/60">
                           não pertence à abertura
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-zinc-400 mt-1 line-clamp-2">{pkt.desc}</p>
+                    <p className="text-[10px] text-zinc-400 mt-1 line-clamp-2 leading-relaxed">{pkt.desc}</p>
                   </button>
                 );
               })}
@@ -451,14 +465,14 @@ export default function TcpHandshakeLab({
 
           {/* Ações e Confiança */}
           {!isFinalized && (
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800">
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/[0.08]">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+                <span className="text-xs font-mono text-zinc-400">Confiança:</span>
                 <button
                   type="button"
                   onClick={() => setConfidence('CONFIDENT')}
-                  className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
-                    confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+                  className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                    confidence === 'CONFIDENT' ? 'avionics-primary text-white font-bold' : 'avionics-button text-zinc-400'
                   }`}
                 >
                   Certeza
@@ -466,20 +480,20 @@ export default function TcpHandshakeLab({
                 <button
                   type="button"
                   onClick={() => setConfidence('HESITANT')}
-                  className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
-                    confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+                  className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                    confidence === 'HESITANT' ? 'avionics-button border-amber-500/50 text-amber-300 bg-amber-950/30' : 'avionics-button text-zinc-400'
                   }`}
                 >
                   Dúvida
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {canRevealHint && (
                   <button
                     type="button"
                     onClick={() => setShowHintRevealed(true)}
-                    className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                    className="avionics-button px-3 py-2 border-amber-500/40 text-amber-300 bg-amber-950/20 rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
                   >
                     <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
                   </button>
@@ -488,7 +502,7 @@ export default function TcpHandshakeLab({
                 <button
                   type="button"
                   onClick={handleDontKnow}
-                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase tracking-wider"
+                  className="avionics-button px-4 py-2 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase tracking-wider"
                 >
                   Não sei
                 </button>
@@ -496,7 +510,7 @@ export default function TcpHandshakeLab({
                   type="button"
                   onClick={handleValidateSequence}
                   disabled={selectedPackets.length !== 3}
-                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-1.5"
+                  className="avionics-primary px-5 py-2 disabled:opacity-40 text-white font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
                 >
                   Validar Sequência <ArrowRight className="w-4 h-4" />
                 </button>
@@ -508,14 +522,14 @@ export default function TcpHandshakeLab({
 
       {/* Nível 3: Quiz de números de sequência */}
       {currentLevel === 3 && (
-        <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-6">
+        <section className="cockpit-card hud-bracket rounded-xl p-6 space-y-6">
           <div className="space-y-2">
-            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
+            <span className="telemetry-chip border-cyan-500/30 text-cyan-300 bg-cyan-950/20 font-bold block w-fit">
               {mode === 'exam' ? 'Avaliação Autônoma de Engenharia de Protocolo' : 'Desafio de Acknowledgment'}
             </span>
-            <h3 className="text-base font-bold text-white leading-relaxed">
-              Cenário: O Cliente envia um pacote inicial com flag <strong className="text-cyan-400">SYN</strong> e Número de Sequência Inicial <strong className="text-cyan-400">Seq = 1000</strong>.
-              Ao gerar a resposta com a flag <strong className="text-purple-400">SYN-ACK</strong>, qual deve ser o valor exato preenchido pelo Servidor no campo <strong className="text-emerald-400">Acknowledgment Number (ACK)</strong>?
+            <h3 className="text-base font-bold text-white leading-relaxed font-heading">
+              Cenário: O Cliente envia um pacote inicial com flag <strong className="text-cyan-400">SYN</strong> e Número de Sequência Inicial <strong className="text-cyan-400 font-mono">Seq = 1000</strong>.
+              Ao gerar a resposta com a flag <strong className="text-purple-400">SYN-ACK</strong>, qual deve ser o valor exato preenchido pelo Servidor no campo <strong className="text-emerald-400 font-mono">Acknowledgment Number (ACK)</strong>?
             </h3>
             {mode === 'guided' && (
               <p className="text-xs text-emerald-300 font-mono">
@@ -526,7 +540,7 @@ export default function TcpHandshakeLab({
 
           <form onSubmit={handleValidateLevel3} className="space-y-4">
             <div className="max-w-md">
-              <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">
+              <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1 font-bold">
                 Valor do campo ACK:
               </label>
               <input
@@ -535,7 +549,7 @@ export default function TcpHandshakeLab({
                 onChange={(e) => setSeqAnswer(e.target.value)}
                 disabled={isFinalized}
                 placeholder="Ex: 1001"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#05070a]/90 border border-white/[0.12] rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)]"
               />
             </div>
 
@@ -544,7 +558,7 @@ export default function TcpHandshakeLab({
                 <button
                   type="submit"
                   disabled={!seqAnswer.trim()}
-                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider"
+                  className="avionics-primary px-5 py-2.5 disabled:opacity-40 text-white font-bold rounded-lg text-xs font-mono uppercase tracking-wider"
                 >
                   Avaliar Resposta
                 </button>
@@ -556,12 +570,12 @@ export default function TcpHandshakeLab({
 
       {/* FEEDBACK PEDAGÓGICO */}
       {feedback.type && (
-        <div className={`p-4 rounded-xl border flex items-start gap-3 ${
+        <div className={`cockpit-card rounded-xl p-5 border flex items-start gap-3.5 ${
           feedback.type === 'success' 
-            ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200' 
+            ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' 
             : feedback.type === 'registered'
-            ? 'bg-zinc-900 border-zinc-700 text-zinc-300'
-            : 'bg-amber-950/40 border-amber-500/60 text-amber-200'
+            ? 'border-white/10 bg-white/[0.02] text-zinc-300' 
+            : 'border-amber-500/40 bg-amber-950/20 text-amber-200'
         }`}>
           {feedback.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
@@ -570,22 +584,22 @@ export default function TcpHandshakeLab({
           ) : (
             <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           )}
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1">
             <span className="text-xs font-mono uppercase font-bold tracking-wider block">
               {feedback.type === 'success' ? 'Validação Concluída' : feedback.type === 'registered' ? 'Avaliação Registrada' : 'Análise Conceitual'}
             </span>
             <p className="text-xs md:text-sm leading-relaxed">{feedback.message}</p>
             {feedback.consequenceText && mode !== 'exam' && (
-              <div className="p-3 bg-black/40 border border-amber-900/40 rounded-lg text-xs text-amber-300/90 font-mono">
+              <div className="p-3 cockpit-subcard border-amber-500/30 rounded-lg text-xs text-amber-300/90 font-mono">
                 {feedback.consequenceText}
               </div>
             )}
 
             {/* Debrief do modo exam */}
             {mode === 'exam' && isFinalized && (
-              <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1">
+              <div className="p-3 cockpit-subcard border-white/10 rounded-lg text-xs space-y-1">
                 <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
-                <p className="text-zinc-300">
+                <p className="text-zinc-300 leading-relaxed">
                   O handshake de 3 vias sincroniza conexões com SYN (ISN), SYN-ACK (ISN_s, Ack = ISN_c + 1) e ACK (Ack = ISN_s + 1). Sem o handshake completo, o socket não transiciona para ESTABLISHED.
                 </p>
               </div>
@@ -597,7 +611,7 @@ export default function TcpHandshakeLab({
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="text-xs font-mono text-cyan-400 hover:underline"
+                  className="text-xs font-mono text-cyan-400 hover:text-cyan-300 underline font-bold"
                 >
                   Tentar novamente →
                 </button>

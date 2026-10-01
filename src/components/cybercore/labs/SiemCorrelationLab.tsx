@@ -170,17 +170,20 @@ export default function SiemCorrelationLab({
   return (
     <div className="space-y-8 font-sans text-zinc-200">
       {/* Header */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
-        <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
-            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
-          </span>
-          <span className="text-xs font-mono text-zinc-500">
+      <section className="cockpit-card rounded-xl p-6 space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+          <div className="flex items-center gap-2">
+            <span className={`telemetry-chip font-bold ${modeBadge.color} border-current/30 bg-white/[0.02]`}>
+              <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
+            </span>
+          </div>
+          <span className="text-xs font-mono text-zinc-400">
             {concept.title}
           </span>
         </div>
-        <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <Database className="w-5 h-5 text-blue-400" />
+
+        <h2 className="text-xl font-bold text-white tracking-wide font-heading flex items-center gap-2.5">
+          <Database className="w-5 h-5 text-cyan-400" />
           Correlação Multi-Fonte no SIEM (Attack Chain Correlation)
         </h2>
         <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
@@ -188,7 +191,7 @@ export default function SiemCorrelationLab({
         </p>
 
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+          <div className="p-3 cockpit-subcard border-emerald-500/30 rounded-xl bg-emerald-950/15">
             <p className="text-xs text-emerald-300 flex items-start gap-2">
               <Eye className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
@@ -197,7 +200,7 @@ export default function SiemCorrelationLab({
         )}
 
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+          <div className="p-3 cockpit-subcard border-cyan-500/30 rounded-xl bg-cyan-950/15 animate-in fade-in">
             <p className="text-xs text-cyan-300 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
@@ -207,22 +210,22 @@ export default function SiemCorrelationLab({
       </section>
 
       {/* Interface de Seleção e Encadeamento */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+      <section className="cockpit-card hud-bracket rounded-xl p-6 space-y-6">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
           <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest font-bold">
             Trilha Cronológica de Ataque (Selecione 4 eventos na ordem correta)
           </span>
           <button
             type="button"
             onClick={handleReset}
-            className="text-xs font-mono text-zinc-500 hover:text-white flex items-center gap-1"
+            className="avionics-button px-2.5 py-1 text-xs font-mono text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 rounded-lg"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Limpar Linha do Tempo
           </button>
         </div>
 
         {/* Linha do Tempo Montada */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
           {[0, 1, 2, 3].map((slotIdx) => {
             const logId = selectedOrder[slotIdx];
             const evidence = LOG_EVIDENCES.find(e => e.id === logId);
@@ -230,24 +233,28 @@ export default function SiemCorrelationLab({
             return (
               <div 
                 key={slotIdx}
-                className={`p-4 rounded-xl border border-dashed flex flex-col justify-between min-h-[110px] ${
+                className={`p-4 rounded-xl flex flex-col justify-between min-h-[120px] transition-all ${
                   evidence 
-                    ? 'bg-zinc-900 border-blue-500 text-white' 
-                    : 'bg-zinc-950 border-zinc-800 text-zinc-600'
+                    ? 'cockpit-subcard border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.15)] bg-cyan-950/10 text-white' 
+                    : 'cockpit-subcard border-dashed border-white/[0.12] bg-white/[0.01] text-zinc-500'
                 }`}
               >
-                <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase">
-                  <span>Etapa #{slotIdx + 1}</span>
-                  {evidence && <span className="text-cyan-400 font-bold">{evidence.timestamp}</span>}
+                <div className="flex justify-between items-center text-[10px] font-mono text-zinc-400 uppercase tracking-widest border-b border-white/[0.05] pb-1.5">
+                  <span className="telemetry-chip text-[9px] border-white/10 text-zinc-300">Etapa #{slotIdx + 1}</span>
+                  {evidence && (
+                    <span className="telemetry-chip text-[9px] border-cyan-500/30 text-cyan-300 bg-cyan-950/20 font-bold">
+                      {evidence.timestamp}
+                    </span>
+                  )}
                 </div>
 
                 {evidence ? (
-                  <div className="my-1.5 space-y-1">
-                    <span className="text-xs font-bold text-blue-300 block font-mono">{evidence.source}</span>
-                    <span className="text-[11px] text-zinc-300 line-clamp-2">{evidence.stageName}</span>
+                  <div className="my-2 space-y-1">
+                    <span className="text-xs font-bold text-cyan-300 block font-mono tracking-wider">{evidence.source}</span>
+                    <span className="text-[11px] text-zinc-300 line-clamp-2 leading-relaxed font-sans">{evidence.stageName}</span>
                   </div>
                 ) : (
-                  <span className="my-auto text-center text-xs font-mono">
+                  <span className="my-auto text-center text-xs font-mono text-zinc-500">
                     {mode === 'guided' ? `Aguardando Etapa ${slotIdx + 1}` : 'Vazio'}
                   </span>
                 )}
@@ -256,7 +263,7 @@ export default function SiemCorrelationLab({
                   <button
                     type="button"
                     onClick={() => handleToggleLog(evidence.id)}
-                    className="text-[10px] font-mono text-red-400 hover:underline self-start"
+                    className="text-[10px] font-mono text-red-400 hover:text-red-300 underline self-start mt-1 font-bold"
                   >
                     Remover
                   </button>
@@ -267,7 +274,7 @@ export default function SiemCorrelationLab({
         </div>
 
         {/* Repositório de Logs Isolados para Selecionar */}
-        <div className="space-y-3 pt-3 border-t border-zinc-800">
+        <div className="space-y-3 pt-3 border-t border-white/[0.08]">
           <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest block font-bold">
             Logs Brutos Recebidos pelo SIEM:
           </span>
@@ -275,6 +282,12 @@ export default function SiemCorrelationLab({
             {LOG_EVIDENCES.map((ev) => {
               const isSelected = selectedOrder.includes(ev.id);
               const orderIndex = selectedOrder.indexOf(ev.id) + 1;
+
+              const sourceColorChip = 
+                ev.source === 'FIREWALL' ? 'border-cyan-500/30 text-cyan-300 bg-cyan-950/20' :
+                ev.source === 'WINDOWS_AUTH' ? 'border-purple-500/30 text-purple-300 bg-purple-950/20' :
+                ev.source === 'EDR_PROCESS' ? 'border-amber-500/30 text-amber-300 bg-amber-950/20' :
+                'border-emerald-500/30 text-emerald-300 bg-emerald-950/20';
 
               return (
                 <button
@@ -284,29 +297,31 @@ export default function SiemCorrelationLab({
                   disabled={isFinalized}
                   className={`p-3.5 rounded-xl border text-left font-mono text-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
                     isSelected 
-                      ? 'bg-zinc-900 border-blue-500 text-white' 
-                      : 'bg-zinc-950 border-zinc-800 hover:border-zinc-700 text-zinc-300'
+                      ? 'cockpit-subcard border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.12)] bg-cyan-950/15 text-white' 
+                      : 'avionics-button hover:border-white/[0.15] text-zinc-300'
                   }`}
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1.5 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-800 text-cyan-400">
+                      <span className={`telemetry-chip font-bold text-[9px] ${sourceColorChip}`}>
                         FONTE: {ev.source}
                       </span>
-                      <span className="text-zinc-500 text-[10px]">{ev.timestamp}</span>
+                      <span className="telemetry-chip text-[9px] border-white/10 text-zinc-400 bg-white/[0.02]">
+                        {ev.timestamp}
+                      </span>
                     </div>
-                    <code className="text-[11px] text-amber-300 block font-mono">
+                    <code className="text-[11px] text-zinc-200 block font-mono bg-black/40 p-2 rounded border border-white/[0.05] leading-relaxed">
                       {ev.rawLog}
                     </code>
                   </div>
 
                   <div className="shrink-0">
                     {isSelected ? (
-                      <span className="px-2.5 py-1 rounded bg-blue-600 text-white font-bold text-xs">
-                        #{orderIndex} Selecionado
+                      <span className="px-2.5 py-1 rounded bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 font-mono font-bold text-xs tracking-wider">
+                        #{orderIndex} Correlacionado
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs">
+                      <span className="px-2.5 py-1 rounded cockpit-subcard border border-white/10 text-zinc-400 text-xs font-mono hover:text-white">
                         + Correlacionar
                       </span>
                     )}
@@ -318,14 +333,14 @@ export default function SiemCorrelationLab({
         </div>
 
         {/* Rodapé */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+            <span className="text-xs font-mono text-zinc-400">Confiança:</span>
             <button
               type="button"
               onClick={() => setConfidence('CONFIDENT')}
-              className={`px-3 py-1 rounded text-xs font-mono ${
-                confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+              className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                confidence === 'CONFIDENT' ? 'avionics-primary text-white font-bold' : 'avionics-button text-zinc-400'
               }`}
             >
               Certeza
@@ -333,20 +348,20 @@ export default function SiemCorrelationLab({
             <button
               type="button"
               onClick={() => setConfidence('HESITANT')}
-              className={`px-3 py-1 rounded text-xs font-mono ${
-                confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+              className={`px-3 py-1 rounded-lg text-xs font-mono transition-all ${
+                confidence === 'HESITANT' ? 'avionics-button border-amber-500/50 text-amber-300 bg-amber-950/30' : 'avionics-button text-zinc-400'
               }`}
             >
               Dúvida
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {canRevealHint && (
               <button
                 type="button"
                 onClick={() => setShowHintRevealed(true)}
-                className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                className="avionics-button px-3 py-2 border-amber-500/40 text-amber-300 bg-amber-950/20 rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
               >
                 <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
               </button>
@@ -355,7 +370,7 @@ export default function SiemCorrelationLab({
             <button
               type="button"
               onClick={handleDontKnow}
-              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-lg text-xs font-mono uppercase flex items-center gap-1.5"
+              className="avionics-button px-4 py-2 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase flex items-center gap-1.5"
             >
               <HelpCircle className="w-3.5 h-3.5" /> Não sei
             </button>
@@ -363,7 +378,7 @@ export default function SiemCorrelationLab({
               type="button"
               disabled={selectedOrder.length !== 4 || isFinalized}
               onClick={handleValidateCorrelation}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+              className="avionics-primary px-5 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
             >
               Validar Correlação SIEM <ArrowRight className="w-4 h-4" />
             </button>
@@ -373,29 +388,29 @@ export default function SiemCorrelationLab({
 
       {/* Feedback */}
       {feedback && (
-        <section className={`p-6 rounded-xl border space-y-3 font-mono text-xs ${
+        <section className={`cockpit-card rounded-xl p-5 border space-y-3 font-mono text-xs ${
           feedback.isCorrect 
-            ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200' 
-            : 'bg-red-950/40 border-red-800/80 text-red-200'
+            ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' 
+            : 'border-red-500/40 bg-red-950/20 text-red-200'
         }`}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {feedback.isCorrect ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
             ) : (
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             )}
-            <h4 className="font-bold text-sm text-white">
+            <h4 className="font-bold text-sm text-white font-heading">
               {feedback.isCorrect ? 'Cadeia de Ataque Descoberta com Sucesso' : (mode === 'exam' ? 'Avaliação Registrada' : 'Falha na Correlação Multi-Fonte')}
             </h4>
           </div>
-          <p className="text-zinc-300 font-sans leading-relaxed">
+          <p className="text-zinc-300 font-sans leading-relaxed text-xs md:text-sm">
             {feedback.message}
           </p>
 
           {mode === 'exam' && isFinalized && (
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1 mt-2">
+            <div className="p-3 cockpit-subcard border-white/10 rounded-lg text-xs space-y-1 mt-2">
               <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
-              <p className="text-zinc-300 font-sans">
+              <p className="text-zinc-300 font-sans leading-relaxed">
                 Em operações de SOC e SIEM, a correlação temporal e causal reconstitui a Cyber Kill Chain: o ataque iniciou com varredura externa de portas (Firewall), logons repetidos (EventID 4625/4624), execução do processo malicioso via EDR e finalmente tráfego de comando e controle (DNS C2).
               </p>
             </div>

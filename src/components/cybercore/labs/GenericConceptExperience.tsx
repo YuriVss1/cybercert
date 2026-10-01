@@ -295,44 +295,44 @@ export default function GenericConceptExperience({
   };
 
   return (
-    <div className="space-y-6 font-sans text-zinc-200">
+    <div className="space-y-6 font-mono text-zinc-200">
       {/* Banner de Modo Pedagógico */}
-      <div className="bg-zinc-950/80 border border-zinc-800 rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between gap-4">
+      <div className="cockpit-card p-5 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-800/80 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className={`p-2 ${modeConfig.bg} border rounded-lg ${modeConfig.color}`}>
+            <div className={`p-2 rounded border ${modeConfig.bg} ${modeConfig.color}`}>
               <ModeIcon className="w-4 h-4" />
             </div>
             <div>
               <span className={`text-[10px] font-mono uppercase tracking-widest font-bold block ${modeConfig.color}`}>
                 {modeConfig.label}
               </span>
-              <p className="text-xs text-zinc-400">{modeConfig.desc}</p>
+              <p className="text-xs text-zinc-400 font-sans">{modeConfig.desc}</p>
             </div>
           </div>
 
           {challenges.length > 0 && (
-            <span className="text-xs font-mono text-zinc-500 bg-zinc-900 px-3 py-1 rounded-lg border border-zinc-800 shrink-0">
-              Desafio {currentIdx + 1}/{challenges.length}
+            <span className="telemetry-chip text-zinc-400 shrink-0">
+              DESAFIO {currentIdx + 1} DE {challenges.length}
             </span>
           )}
         </div>
 
         {/* Dica visível (guided) ou revelada (practice após erro) */}
         {showHint && (
-          <div className="p-3 bg-emerald-950/20 border border-emerald-900/40 rounded-lg animate-in fade-in duration-300">
-            <p className="text-xs text-emerald-300 flex items-start gap-2">
-              <Sparkles className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span><strong className="font-mono uppercase text-[10px] tracking-wider">Dica:</strong> {hintText}</span>
+          <div className="cockpit-subcard p-3 border-emerald-800/40 bg-emerald-950/20">
+            <p className="text-xs text-emerald-300 flex items-start gap-2 font-sans">
+              <Sparkles className="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-400" />
+              <span><strong className="font-mono uppercase text-[10px] tracking-wider text-emerald-200">Dica:</strong> {hintText}</span>
             </p>
           </div>
         )}
 
         {/* Explicação prévia (apenas guided) */}
         {showPreExplanation && !isFinalized && (
-          <div className="p-3 bg-cyan-950/20 border border-cyan-900/30 rounded-lg">
-            <p className="text-xs text-cyan-300 leading-relaxed">
-              <strong className="font-mono uppercase text-[10px] tracking-wider block mb-1">Orientação:</strong>
+          <div className="cockpit-subcard p-3 border-cyan-800/40 bg-cyan-950/20">
+            <p className="text-xs text-cyan-300 leading-relaxed font-sans">
+              <strong className="font-mono uppercase text-[10px] tracking-wider block mb-1 text-cyan-200">Orientação:</strong>
               {currentChallenge?.pedagogicalExplanation}
             </p>
           </div>
@@ -340,15 +340,14 @@ export default function GenericConceptExperience({
       </div>
 
       {currentChallenge ? (
-        <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 md:p-8 space-y-6 shadow-xl">
+        <section className="cockpit-card p-6 md:p-7 space-y-5">
           {/* Prompt do desafio */}
-          <div className="space-y-2">
+          <div className="space-y-2 border-b border-zinc-800/80 pb-3.5">
             <div className="flex items-center gap-2 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-              <span>Tipo: {currentChallenge.type}</span>
-              <span>•</span>
-              <span>Nível: {currentChallenge.level}</span>
+              <span className="telemetry-chip text-zinc-400">TIPO: {currentChallenge.type}</span>
+              <span className="telemetry-chip text-zinc-400">NÍVEL: {currentChallenge.level}</span>
             </div>
-            <h3 className="text-base md:text-lg font-bold text-white leading-relaxed">
+            <h3 className="text-sm md:text-base font-bold text-white leading-relaxed font-sans">
               {currentChallenge.prompt}
             </h3>
           </div>
@@ -356,7 +355,7 @@ export default function GenericConceptExperience({
           {/* ÁREA DE RESPOSTA */}
           {isMultipleChoice ? (
             <div className="space-y-2.5">
-              <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest">
+              <label className="block text-[11px] font-mono text-zinc-400 uppercase tracking-widest">
                 Selecione a resposta correta:
               </label>
               {multipleChoiceOptions.map((option, idx) => {
@@ -366,8 +365,8 @@ export default function GenericConceptExperience({
                 const isCorrectOption = option === expectedAnswer;
 
                 let optionStyle = isSelected
-                  ? 'bg-cyan-950/40 border-cyan-500/80 ring-1 ring-cyan-500/30'
-                  : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/80';
+                  ? 'bg-cyan-950/40 border-cyan-500/80 shadow-sm shadow-cyan-950/40 ring-1 ring-cyan-500/40'
+                  : 'cockpit-subcard hover:border-zinc-700/80 border-transparent';
 
                 let letterStyle = isSelected
                   ? 'bg-cyan-500 text-zinc-950 font-black border-cyan-400'
@@ -376,13 +375,13 @@ export default function GenericConceptExperience({
                 // Revelar respostas apenas quando finalizado (e quando o modo permite)
                 if (isRevealed && (stageMode !== 'exam' || feedback.type === 'success')) {
                   if (isCorrectOption) {
-                    optionStyle = 'bg-emerald-950/40 border-emerald-500 ring-1 ring-emerald-500/50';
+                    optionStyle = 'bg-emerald-950/40 border-emerald-500/80 ring-1 ring-emerald-500/50';
                     letterStyle = 'bg-emerald-500 text-zinc-950 font-black border-emerald-400';
                   } else if (isSelected && !isCorrectOption) {
-                    optionStyle = 'bg-red-950/40 border-red-500/50 opacity-70';
+                    optionStyle = 'bg-red-950/40 border-red-500/60 opacity-70';
                     letterStyle = 'bg-red-500 text-white font-black border-red-400';
                   } else {
-                    optionStyle = 'bg-zinc-950 border-zinc-900 opacity-40';
+                    optionStyle = 'bg-zinc-950/60 border-zinc-900 opacity-40';
                     letterStyle = 'bg-zinc-900 text-zinc-600 border-zinc-900';
                   }
                 }
@@ -391,13 +390,13 @@ export default function GenericConceptExperience({
                   <div
                     key={idx}
                     onClick={() => !isFinalized && setSelectedOption(option)}
-                    className={`p-4 rounded-xl border ${!isFinalized ? 'cursor-pointer' : ''} transition-all ${optionStyle}`}
+                    className={`p-3.5 rounded border ${!isFinalized ? 'cursor-pointer' : ''} transition-all ${optionStyle}`}
                   >
                     <div className="flex items-start gap-3.5">
-                      <div className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs shrink-0 transition-colors ${letterStyle}`}>
+                      <div className={`w-7 h-7 rounded border flex items-center justify-center font-mono text-xs shrink-0 transition-colors ${letterStyle}`}>
                         {letter}
                       </div>
-                      <span className={`text-sm leading-relaxed pt-0.5 ${isSelected || (isRevealed && isCorrectOption) ? 'text-white font-medium' : 'text-zinc-300'}`}>
+                      <span className={`text-xs md:text-sm leading-relaxed pt-1 font-sans ${isSelected || (isRevealed && isCorrectOption) ? 'text-white font-medium' : 'text-zinc-300'}`}>
                         {option}
                       </span>
                     </div>
@@ -408,7 +407,7 @@ export default function GenericConceptExperience({
           ) : (
             <form onSubmit={handleEvaluate} className="space-y-4">
               <div>
-                <label className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-2">
+                <label className="block text-[11px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5">
                   {(currentChallenge.config?.inputLabel as string) || 'Informe sua resposta:'}
                 </label>
                 <input
@@ -417,9 +416,9 @@ export default function GenericConceptExperience({
                   onChange={(e) => setUserAnswer(e.target.value)}
                   disabled={isFinalized}
                   placeholder={(currentChallenge.config?.placeholder as string) || 'Digite a resposta...'}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded p-2.5 font-mono text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 disabled:opacity-50"
                 />
-                <p className="text-[10px] text-zinc-600 mt-1.5 font-mono">
+                <p className="text-[10px] text-zinc-500 mt-1.5 font-mono">
                   Variações de acentuação, capitalização e artigos são toleradas.
                 </p>
               </div>
@@ -428,49 +427,53 @@ export default function GenericConceptExperience({
 
           {/* Ações: Confiança + Botões */}
           {!isFinalized && (
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-800/80">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+                <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Confiança:</span>
                 <button type="button" onClick={() => setConfidence('CONFIDENT')}
-                  className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
-                    confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                  className={`px-3 py-1 rounded text-xs transition-colors ${
+                    confidence === 'CONFIDENT'
+                      ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500/60 font-bold'
+                      : 'avionics-button text-zinc-400'}`}>
                   Certeza
                 </button>
                 <button type="button" onClick={() => setConfidence('HESITANT')}
-                  className={`px-2.5 py-1 rounded text-xs font-mono transition-all ${
-                    confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                  className={`px-3 py-1 rounded text-xs transition-colors ${
+                    confidence === 'HESITANT'
+                      ? 'bg-amber-950/80 text-amber-300 border border-amber-500/60 font-bold'
+                      : 'avionics-button text-zinc-400'}`}>
                   Dúvida
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {/* Botão revelar dica (practice, após erro) */}
                 {canRevealHint && (
                   <button type="button" onClick={() => setShowHintRevealed(true)}
-                    className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5">
+                    className="avionics-button text-amber-300 border-amber-500/40 hover:border-amber-400 flex items-center gap-1.5 text-xs uppercase">
                     <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
                   </button>
                 )}
 
                 <button type="button" onClick={handleDontKnow}
-                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5">
+                  className="avionics-button text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 text-xs uppercase">
                   <HelpCircle className="w-3.5 h-3.5" /> Não sei
                 </button>
 
                 <button type="button" onClick={() => handleEvaluate()}
                   disabled={isMultipleChoice ? !selectedOption : !userAnswer.trim()}
-                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-1.5">
-                  Validar Resposta <ArrowRight className="w-4 h-4" />
+                  className="avionics-primary text-xs uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                  Validar Resposta <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           )}
         </section>
       ) : (
-        <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-8 text-center space-y-3 font-mono text-xs text-zinc-400">
+        <div className="cockpit-card p-6 text-center space-y-3 font-mono text-xs text-zinc-400">
           <p>Este conceito possui fundamentação teórica consolidada na etapa &quot;Aprender&quot;.</p>
           <button type="button" onClick={() => onCompleteStage('practice')}
-            className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 rounded-lg text-xs">
+            className="avionics-button text-zinc-200 text-xs uppercase">
             Concluir Fixação do Módulo
           </button>
         </div>
@@ -478,30 +481,33 @@ export default function GenericConceptExperience({
 
       {/* FEEDBACK */}
       {feedback.type && (
-        <div className={`p-4 rounded-xl border flex items-start gap-3 transition-all ${
-          feedback.type === 'success' ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200'
-          : feedback.type === 'did_not_know' ? 'bg-cyan-950/40 border-cyan-500/60 text-cyan-200'
-          : feedback.type === 'registered' ? 'bg-zinc-900/60 border-zinc-700 text-zinc-300'
-          : 'bg-amber-950/30 border-amber-500/50 text-amber-200'
+        <div className={`cockpit-card p-4 space-y-2 transition-all ${
+          feedback.type === 'success' ? 'border-emerald-500/50 bg-emerald-950/20 text-emerald-200'
+          : feedback.type === 'did_not_know' ? 'border-cyan-500/50 bg-cyan-950/20 text-cyan-200'
+          : feedback.type === 'registered' ? 'border-zinc-700 bg-zinc-950/80 text-zinc-300'
+          : 'border-amber-500/50 bg-amber-950/20 text-amber-200'
         }`}>
-          {feedback.type === 'success'
-            ? <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-            : <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          }
-          <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            {feedback.type === 'success'
+              ? <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              : <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+            }
             <span className="text-xs font-mono uppercase font-bold tracking-wider block">
               {feedback.type === 'success' ? 'Correto!'
                : feedback.type === 'did_not_know' ? 'Reforço Agendado'
                : feedback.type === 'registered' ? 'Resposta Registrada'
                : 'Orientação Pedagógica'}
             </span>
-            <p className="text-xs md:text-sm leading-relaxed">{feedback.message}</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs md:text-sm font-sans leading-relaxed">{feedback.message}</p>
 
             {/* Debrief do modo exam: mostra explicação somente após finalização */}
             {stageMode === 'exam' && isFinalized && feedback.type !== 'success' && currentChallenge?.pedagogicalExplanation && (
-              <div className="mt-3 p-3 bg-zinc-900/60 border border-zinc-800 rounded-lg">
+              <div className="cockpit-subcard p-3 border-zinc-800 bg-zinc-950/80">
                 <p className="text-xs font-mono uppercase tracking-wider text-zinc-400 font-bold mb-1">Debrief:</p>
-                <p className="text-xs text-zinc-300 leading-relaxed">{currentChallenge.pedagogicalExplanation}</p>
+                <p className="text-xs text-zinc-300 font-sans leading-relaxed">{currentChallenge.pedagogicalExplanation}</p>
                 {expectedAnswer && (
                   <p className="text-xs text-cyan-400 font-mono mt-1.5">
                     Resposta esperada: <strong>{expectedAnswer}</strong>
@@ -511,18 +517,18 @@ export default function GenericConceptExperience({
             )}
 
             {/* Ações pós-feedback */}
-            <div className="flex items-center gap-3 mt-1">
+            <div className="flex items-center gap-3 pt-1">
               {/* Nova tentativa (guided/practice, após erro) */}
               {feedback.type === 'error' && !isFinalized && (
                 <button type="button" onClick={handleRetry}
-                  className="text-xs font-mono text-cyan-400 hover:underline flex items-center gap-1">
+                  className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
                   Tentar novamente →
                 </button>
               )}
               {/* Avançar para próximo desafio */}
               {isFinalized && currentIdx < challenges.length - 1 && (
                 <button type="button" onClick={handleNextChallenge}
-                  className="text-xs font-mono text-cyan-400 hover:underline flex items-center gap-1">
+                  className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
                   Avançar para o próximo desafio →
                 </button>
               )}

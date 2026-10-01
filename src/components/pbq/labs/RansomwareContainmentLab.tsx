@@ -117,14 +117,19 @@ export default function RansomwareContainmentLab({ onActionSubmit, isLocked }: P
   };
 
   return (
-    <div className="space-y-3 font-mono text-xs">
-      {/* Header */}
-      <div className="flex items-center justify-between px-1">
-        <span className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider">
-          Host Topology — VLAN 10
-        </span>
-        <span className="text-[10px] text-zinc-600">
-          Select a host to inspect telemetry
+    <div className="space-y-4 font-mono text-xs">
+      {/* Header Telemetry Bar */}
+      <div className="cockpit-card p-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px]">
+            Topologia de Rede — VLAN 10 (Financeiro)
+          </span>
+          <span className="telemetry-chip text-amber-400 border-amber-500/40 bg-amber-950/40 font-semibold">
+            INCIDENTE EM ANDAMENTO
+          </span>
+        </div>
+        <span className="text-[10px] text-zinc-500 font-mono">
+          Selecione o host para telemetria de tráfego SMB e processos
         </span>
       </div>
 
@@ -139,15 +144,17 @@ export default function RansomwareContainmentLab({ onActionSubmit, isLocked }: P
               <button
                 key={host.id}
                 onClick={() => setSelectedHostId(host.id)}
-                className={`w-full text-left p-3.5 rounded-xl border transition-all flex items-center justify-between ${
+                className={`w-full text-left p-3 rounded transition-all flex items-center justify-between cursor-pointer ${
                   isSelected
-                    ? "bg-zinc-800 border-cyan-500/80 shadow-md shadow-cyan-950/20"
-                    : "bg-zinc-900/90 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-850"
+                    ? "bg-cyan-950/30 border border-cyan-500/60 shadow-sm shadow-cyan-950/40"
+                    : "cockpit-subcard hover:border-zinc-700/80 border-transparent"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
-                    host.isServer ? "bg-cyan-950/80 text-cyan-400 border border-cyan-850" : "bg-zinc-800 text-zinc-300"
+                  <div className={`p-2 rounded border ${
+                    host.isServer
+                      ? "bg-cyan-950/60 text-cyan-400 border-cyan-700/60"
+                      : "bg-zinc-900 text-zinc-300 border-zinc-800"
                   }`}>
                     {host.isServer ? <Server className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
                   </div>
@@ -155,17 +162,17 @@ export default function RansomwareContainmentLab({ onActionSubmit, isLocked }: P
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-white text-xs">{host.name}</span>
                       {isIsolated && (
-                        <span className="text-[10px] font-bold text-red-400 bg-red-950/80 border border-red-800 px-1.5 py-0.2 rounded uppercase">
+                        <span className="telemetry-chip text-[9px] font-bold text-red-400 border-red-500/50 bg-red-950/60 uppercase">
                           Isolado
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-zinc-400 font-mono">{host.ip}</span>
+                    <span className="text-[11px] text-zinc-400 font-mono">{host.ip}</span>
                   </div>
                 </div>
 
                 <div className="text-right font-mono">
-                  <span className="text-[10px] text-zinc-400 block font-semibold">CPU</span>
+                  <span className="text-[9px] text-zinc-500 block uppercase">CPU</span>
                   <span className={`font-bold text-xs ${
                     parseInt(host.cpuUsage) > 80 ? "text-red-400" : "text-emerald-400"
                   }`}>
@@ -178,21 +185,23 @@ export default function RansomwareContainmentLab({ onActionSubmit, isLocked }: P
         </div>
 
         {/* Telemetry panel */}
-        <div className="lg:col-span-2 bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 space-y-4 flex flex-col justify-between shadow-md">
+        <div className="lg:col-span-2 cockpit-card p-5 space-y-4 flex flex-col justify-between">
           <div className="space-y-4">
             {/* Selected host header */}
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+            <div className="flex flex-wrap items-center justify-between pb-3 border-b border-zinc-800/80 gap-2">
               <div>
-                <span className="text-white font-bold text-base">
+                <span className="text-white font-bold text-base uppercase tracking-wide">
                   {selectedHost.name}
                 </span>
-                <span className="text-cyan-400 font-mono text-xs ml-3 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/60">{selectedHost.ip}</span>
+                <span className="telemetry-chip text-cyan-300 border-cyan-500/40 bg-cyan-950/40 font-mono ml-2.5">
+                  {selectedHost.ip}
+                </span>
                 <span className="text-zinc-400 text-xs ml-2">({selectedHost.role})</span>
               </div>
-              <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded border ${
+              <span className={`telemetry-chip text-[10px] font-bold uppercase tracking-wider ${
                 isolatedHosts.includes(selectedHost.id)
-                  ? "bg-red-950/80 text-red-400 border-red-800"
-                  : "bg-emerald-950/80 text-emerald-400 border-emerald-800"
+                  ? "text-red-400 border-red-500/40 bg-red-950/60"
+                  : "text-emerald-400 border-emerald-500/40 bg-emerald-950/60"
               }`}>
                 {isolatedHosts.includes(selectedHost.id) ? "Desconectado" : "Online"}
               </span>
@@ -200,36 +209,36 @@ export default function RansomwareContainmentLab({ onActionSubmit, isLocked }: P
 
             {/* Telemetry data */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800/80">
-                <span className="text-[11px] text-cyan-400 uppercase font-bold block mb-2">
+              <div className="cockpit-subcard p-3 border-zinc-800/80 bg-zinc-950/60">
+                <span className="text-[10px] text-cyan-400 uppercase tracking-wider font-bold block mb-2">
                   Sessões SMB Ativas (Porta 445)
                 </span>
-                <ul className="space-y-1 text-zinc-200 text-xs font-mono">
+                <ul className="space-y-1.5 text-zinc-200 text-xs font-mono">
                   {selectedHost.smbConnections.map((conn, idx) => (
-                    <li key={idx} className="truncate">{conn}</li>
+                    <li key={idx} className="truncate p-1 bg-zinc-900/60 rounded border border-zinc-800/40">{conn}</li>
                   ))}
                 </ul>
               </div>
 
-              <div className="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800/80">
-                <span className="text-[11px] text-cyan-400 uppercase font-bold block mb-2">
+              <div className="cockpit-subcard p-3 border-zinc-800/80 bg-zinc-950/60">
+                <span className="text-[10px] text-cyan-400 uppercase tracking-wider font-bold block mb-2">
                   Arquivos Manipulados Recentemente
                 </span>
-                <ul className="space-y-1 text-zinc-200 text-xs font-mono">
+                <ul className="space-y-1.5 text-zinc-200 text-xs font-mono">
                   {selectedHost.recentFiles.map((file, idx) => (
-                    <li key={idx} className="truncate">{file}</li>
+                    <li key={idx} className="truncate p-1 bg-zinc-900/60 rounded border border-zinc-800/40">{file}</li>
                   ))}
                 </ul>
               </div>
             </div>
 
             {/* Infection assessment */}
-            <div className="p-3 bg-zinc-950/60 rounded-xl border border-zinc-800/80 flex items-center justify-between text-xs">
-              <span className="text-zinc-300">Nível de Suspeita Heurística:</span>
-              <span className={`font-bold uppercase px-2 py-0.5 rounded border ${
+            <div className="cockpit-subcard p-3 border-zinc-800/80 bg-zinc-950/60 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="text-zinc-400 uppercase text-[10px] tracking-wider">Nível de Suspeita Heurística:</span>
+              <span className={`telemetry-chip font-bold uppercase text-[10px] ${
                 selectedHost.id === 'host-patient-zero'
-                  ? "bg-red-950/80 text-red-400 border-red-800"
-                  : "bg-zinc-800 text-zinc-300 border-zinc-700"
+                  ? "text-red-400 border-red-500/50 bg-red-950/60 font-mono"
+                  : "text-zinc-400 border-zinc-700 bg-zinc-900 font-mono"
               }`}>
                 {selectedHost.id === 'host-patient-zero' ? "CRÍTICO — Atividade Criptográfica" : "NORMAL — Sem Anomalias"}
               </span>
@@ -241,26 +250,26 @@ export default function RansomwareContainmentLab({ onActionSubmit, isLocked }: P
             <button
               onClick={() => handleIsolate(selectedHost.id)}
               disabled={isLocked || completed || isolatedHosts.includes(selectedHost.id)}
-              className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`w-full py-3 rounded font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 completed
-                  ? "bg-emerald-600 text-white cursor-not-allowed"
+                  ? "bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 cursor-not-allowed"
                   : isolatedHosts.includes(selectedHost.id)
-                  ? "bg-zinc-800 text-zinc-400 cursor-not-allowed"
+                  ? "bg-zinc-900 border border-zinc-800 text-zinc-500 cursor-not-allowed"
                   : isLocked
-                  ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                  : "bg-red-600 hover:bg-red-500 text-white shadow-md shadow-red-950/40"
+                  ? "bg-zinc-900 border border-zinc-800 text-zinc-600 cursor-not-allowed"
+                  : "avionics-primary bg-red-950/80 border-red-500/60 hover:bg-red-900 text-red-200 shadow-md shadow-red-950/30"
               }`}
             >
               {completed ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   <span>PACIENTE ZERO ISOLADO — AMEAÇA CONTIDA</span>
                 </>
               ) : isolatedHosts.includes(selectedHost.id) ? (
                 <span>ENDPOINT JÁ ISOLADO</span>
               ) : (
                 <>
-                  <AlertTriangle className="w-4 h-4" />
+                  <AlertTriangle className="w-4 h-4 text-red-400" />
                   <span>ISOLAR HOST DA REDE (CONTAINMENT)</span>
                 </>
               )}

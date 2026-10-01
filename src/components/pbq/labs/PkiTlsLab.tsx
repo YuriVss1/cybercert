@@ -108,19 +108,21 @@ export default function PkiTlsLab({ onActionSubmit, isLocked }: PbqLabProps) {
 
   return (
     <div className="space-y-4 text-xs font-mono">
-      {/* Header */}
-      <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-violet-400" />
-          <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px]">
+      {/* -------------------------------------------------------------------- */}
+      {/* MISSION HEADER + STATUS DE VALIDAÇÃO DA CADEIA                       */}
+      {/* -------------------------------------------------------------------- */}
+      <div className="cockpit-card p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Layers className="w-4 h-4 text-cyan-400 shrink-0" />
+          <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px] font-mono">
             PKI CERTIFICATE CHAIN INSPECTOR / HOST: api.rootsec.academy (PORT 443)
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className={`telemetry-chip text-[10px] font-bold ${
             intermediateBundle === "VALID_G4" && !disableHttpsPort80
-              ? "bg-emerald-950/80 border-emerald-500 text-emerald-400"
-              : "bg-red-950/80 border-red-500 text-red-400"
+              ? "border-emerald-500/40 bg-emerald-950/40 text-emerald-400"
+              : "border-red-500/40 bg-red-950/40 text-red-400"
           }`}>
             {intermediateBundle === "VALID_G4" && !disableHttpsPort80
               ? "CHAIN: VERIFIED & TRUSTED"
@@ -130,99 +132,103 @@ export default function PkiTlsLab({ onActionSubmit, isLocked }: PbqLabProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Visual Chain Representation */}
-        <div className="lg:col-span-1 bg-zinc-900/90 border border-zinc-800 rounded-lg p-3.5 space-y-3">
-          <div className="text-[11px] font-bold text-zinc-300 pb-2 border-b border-zinc-800 flex items-center gap-1.5">
-            <Key className="w-3.5 h-3.5 text-violet-400" />
-            HIERARQUIA DA CADEIA TLS (X.509)
+        {/* ------------------------------------------------------------------ */}
+        {/* VISUAL CHAIN HIERARCHY INSTRUMENT                                  */}
+        {/* ------------------------------------------------------------------ */}
+        <div className="lg:col-span-1 cockpit-card rounded-xl p-4 space-y-3">
+          <div className="text-[11px] font-bold text-zinc-300 pb-2 border-b border-white/[0.08] flex items-center gap-1.5">
+            <Key className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="hud-bracket py-0.5">HIERARQUIA DA CADEIA TLS (X.509)</span>
           </div>
 
           <div className="space-y-2 relative">
             {/* Root CA */}
-            <div className="p-2.5 bg-zinc-950 border border-zinc-800 rounded">
+            <div className="cockpit-subcard p-3 rounded-lg border-white/10 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-zinc-200 text-[10px]">1. ROOT CA (ÂNCORA DE CONFIANÇA)</span>
-                <span className="text-[9px] text-emerald-400 font-bold">TRUST STORE OK</span>
+                <span className="font-bold text-zinc-200 text-[10px]">1. ROOT CA (ÂNCORA)</span>
+                <span className="telemetry-chip text-[9px] text-emerald-400 border-emerald-500/30 font-bold">TRUST STORE OK</span>
               </div>
-              <p className="text-[10px] text-zinc-400 mt-1">DigiTrust Global Root CA</p>
-              <span className="text-[9px] text-zinc-500">SHA256 Fingerprint: 35:9A:..:12 | Validade: 2038</span>
+              <p className="text-[10px] text-zinc-300 font-sans">DigiTrust Global Root CA</p>
+              <span className="text-[9px] text-zinc-500 block">SHA256: 35:9A:..:12 | Validade: 2038</span>
             </div>
 
             <div className="flex justify-center -my-1">
-              <span className="text-zinc-600 font-bold">↓</span>
+              <span className="text-zinc-600 font-bold text-xs">↓</span>
             </div>
 
             {/* Intermediate CA */}
-            <div className={`p-2.5 rounded border transition-colors ${
+            <div className={`cockpit-subcard p-3 rounded-lg border transition-colors space-y-1 ${
               intermediateBundle === "VALID_G4"
-                ? "bg-emerald-950/30 border-emerald-500"
+                ? "border-emerald-500/50 bg-emerald-950/20"
                 : intermediateBundle === "SELF_SIGNED"
-                ? "bg-amber-950/30 border-amber-500"
-                : "bg-red-950/40 border-red-500"
+                ? "border-amber-500/50 bg-amber-950/20"
+                : "border-red-500/50 bg-red-950/20"
             }`}>
               <div className="flex items-center justify-between">
-                <span className="font-bold text-zinc-200 text-[10px]">2. INTERMEDIATE CA BUNDLE</span>
-                <span className={`text-[9px] font-bold ${
+                <span className="font-bold text-zinc-200 text-[10px]">2. INTERMEDIATE CA</span>
+                <span className={`telemetry-chip text-[9px] font-bold ${
                   intermediateBundle === "VALID_G4"
-                    ? "text-emerald-400"
+                    ? "text-emerald-400 border-emerald-500/40"
                     : intermediateBundle === "SELF_SIGNED"
-                    ? "text-amber-400"
-                    : "text-red-400"
+                    ? "text-amber-400 border-amber-500/40"
+                    : "text-red-400 border-red-500/40"
                 }`}>
                   {intermediateBundle === "VALID_G4" ? "VALID (G4)" : intermediateBundle === "SELF_SIGNED" ? "SELF-SIGNED" : "EXPIRED"}
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-300 mt-1">
+              <p className="text-[10px] text-zinc-300 font-sans">
                 {intermediateBundle === "VALID_G4"
                   ? "DigiTrust Intermediate CA G4 (Cross-Signed)"
                   : intermediateBundle === "SELF_SIGNED"
                   ? "OpenSSL Self-Signed Untrusted Root"
                   : "DigiTrust Intermediate CA G2 (Expirou em 2024)"}
               </p>
-              <span className="text-[9px] text-zinc-500">
+              <span className="text-[9px] text-zinc-500 block">
                 {intermediateBundle === "VALID_G4" ? "Cadeia completa até a Raiz" : "Quebra de confiança no cliente"}
               </span>
             </div>
 
             <div className="flex justify-center -my-1">
-              <span className="text-zinc-600 font-bold">↓</span>
+              <span className="text-zinc-600 font-bold text-xs">↓</span>
             </div>
 
             {/* Leaf Certificate */}
-            <div className="p-2.5 bg-zinc-950 border border-zinc-800 rounded">
+            <div className="cockpit-subcard p-3 rounded-lg border-white/10 space-y-1">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-zinc-200 text-[10px]">3. SERVER LEAF CERTIFICATE</span>
-                <span className="text-[9px] text-emerald-400 font-bold">CN VALIDO</span>
+                <span className="telemetry-chip text-[9px] text-emerald-400 border-emerald-500/30 font-bold">CN VÁLIDO</span>
               </div>
-              <p className="text-[10px] text-zinc-300 mt-1">CN = api.rootsec.academy</p>
-              <span className="text-[9px] text-zinc-500">SAN: api.rootsec.academy, rootsec.academy</span>
+              <p className="text-[10px] text-zinc-300 font-sans">CN = api.rootsec.academy</p>
+              <span className="text-[9px] text-zinc-500 block">SAN: api.rootsec.academy, rootsec.academy</span>
             </div>
           </div>
         </div>
 
-        {/* Nginx Configuration & Options */}
-        <div className="lg:col-span-2 bg-zinc-900/90 border border-zinc-800 rounded-lg p-3.5 space-y-4 flex flex-col justify-between">
-          <div className="space-y-3">
-            <div className="text-[11px] font-bold text-zinc-300 pb-2 border-b border-zinc-800 flex items-center justify-between">
-              <span>CONFIGURAÇÃO DE BUNDLE TLS (/etc/nginx/conf.d/ssl.conf)</span>
-              <span className="text-[10px] text-zinc-500">Web Server: Nginx 1.24</span>
+        {/* ------------------------------------------------------------------ */}
+        {/* NGINX CONFIGURATION & ACTIONS                                      */}
+        {/* ------------------------------------------------------------------ */}
+        <div className="lg:col-span-2 cockpit-card rounded-xl p-4 space-y-4 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="text-[11px] font-bold text-zinc-300 pb-2 border-b border-white/[0.08] flex items-center justify-between">
+              <span className="hud-bracket py-0.5">CONFIGURAÇÃO DE BUNDLE TLS (/etc/nginx/conf.d/ssl.conf)</span>
+              <span className="telemetry-chip text-[10px] text-zinc-400">Web Server: Nginx 1.24</span>
             </div>
 
             {/* Certificate Bundle Selection */}
             <div className="space-y-2">
-              <label className="text-[11px] font-semibold text-zinc-300 block">
+              <label className="text-[11px] font-semibold text-zinc-300 block uppercase tracking-wider">
                 1. SELECIONE O PACOTE DE AUTORIDADE INTERMEDIÁRIA (CA-BUNDLE):
               </label>
               <div className="space-y-2">
                 {bundleOptions.map(b => (
                   <label
                     key={b.type}
-                    className={`block p-2.5 rounded border cursor-pointer ${
+                    className={`block p-3 rounded-lg border cursor-pointer transition-all ${
                       intermediateBundle === b.type
                         ? b.type === "VALID_G4"
-                          ? "bg-emerald-950/30 border-emerald-500 text-emerald-200"
-                          : "bg-red-950/30 border-red-500 text-red-200"
-                        : "bg-zinc-950 border-zinc-800 text-zinc-400"
+                          ? "cockpit-subcard border-emerald-500/60 bg-emerald-950/20 text-emerald-200"
+                          : "cockpit-subcard border-red-500/60 bg-red-950/20 text-red-200"
+                        : "cockpit-subcard border-white/10 text-zinc-400 hover:border-white/20"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -231,6 +237,7 @@ export default function PkiTlsLab({ onActionSubmit, isLocked }: PbqLabProps) {
                         name="bundle"
                         checked={intermediateBundle === b.type}
                         onChange={() => setIntermediateBundle(b.type)}
+                        className="accent-cyan-500"
                       />
                       <span className={`font-bold text-[11px] ${
                         b.type === "VALID_G4" ? "text-emerald-400" : b.type === "EXPIRED_G2" ? "text-red-400" : "text-amber-400"
@@ -238,22 +245,22 @@ export default function PkiTlsLab({ onActionSubmit, isLocked }: PbqLabProps) {
                         {b.title}
                       </span>
                     </div>
-                    <p className="text-[10px] text-zinc-500 mt-1 pl-5">{b.desc}</p>
+                    <p className="text-[10px] text-zinc-400 mt-1 pl-5 font-sans leading-relaxed">{b.desc}</p>
                   </label>
                 ))}
               </div>
             </div>
 
             {/* TLS Protocol & Security controls */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-zinc-800">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-white/[0.08]">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-zinc-300 block">
+                <label className="text-[11px] font-semibold text-zinc-300 block uppercase tracking-wider">
                   2. PROTOCOLO MÍNIMO TLS:
                 </label>
                 <select
                   value={minTlsVersion}
                   onChange={(e) => setMinTlsVersion(e.target.value as "TLS1.0" | "TLS1.2" | "TLS1.3")}
-                  className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 rounded px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-violet-500"
+                  className="w-full bg-black/60 border border-white/10 text-zinc-200 rounded-lg px-3 py-2 text-[11px] focus:outline-none focus:border-cyan-500/50 transition-colors"
                 >
                   <option value="TLS1.0">TLSv1.0 + TLSv1.1 (Depreciados / Inseguros)</option>
                   <option value="TLS1.2">TLSv1.2 (Padrão de compatibilidade)</option>
@@ -262,15 +269,16 @@ export default function PkiTlsLab({ onActionSubmit, isLocked }: PbqLabProps) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-zinc-300 block">
+                <label className="text-[11px] font-semibold text-zinc-300 block uppercase tracking-wider">
                   3. CONTROLE DE PORTA WEB:
                 </label>
                 <button
+                  type="button"
                   onClick={() => setDisableHttpsPort80(!disableHttpsPort80)}
-                  className={`w-full py-2 px-3 rounded border text-left text-[10px] font-semibold flex items-center justify-between ${
+                  className={`w-full py-2 px-3 rounded-lg border text-left text-[10px] font-semibold flex items-center justify-between transition-colors ${
                     disableHttpsPort80
-                      ? "bg-red-950/40 border-red-500 text-red-300"
-                      : "bg-zinc-950 border-zinc-800 text-zinc-300"
+                      ? "cockpit-subcard border-red-500/50 bg-red-950/30 text-red-300"
+                      : "cockpit-subcard border-white/10 text-zinc-300 hover:border-white/20"
                   }`}
                 >
                   <span>{disableHttpsPort80 ? "Desativar HTTPS (Voltar para HTTP/80)" : "Manter HTTPS Obrigatório (Porta 443)"}</span>
@@ -281,14 +289,15 @@ export default function PkiTlsLab({ onActionSubmit, isLocked }: PbqLabProps) {
           </div>
 
           <button
+            type="button"
             onClick={handleApplyChain}
             disabled={isLocked || completed}
-            className={`w-full py-2.5 rounded font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               completed
-                ? "bg-emerald-600 text-white cursor-not-allowed"
+                ? "bg-emerald-600/80 text-white cursor-not-allowed"
                 : isLocked
-                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                : "bg-violet-600 hover:bg-violet-500 text-white"
+                ? "avionics-button opacity-50 cursor-not-allowed"
+                : "avionics-primary"
             }`}
           >
             {completed ? (

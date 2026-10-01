@@ -205,26 +205,32 @@ export default function WindowsEventLab({
 
   return (
     <div className="space-y-8 font-sans text-zinc-200">
-      {/* Header */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
-        <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
-            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
-          </span>
-          <span className="text-xs font-mono text-zinc-500">
-            {concept.title}
-          </span>
+      {/* -------------------------------------------------------------------- */}
+      {/* MISSION HEADER + PEDAGOGICAL MODE INDICATOR                          */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="cockpit-card rounded-xl p-6 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+          <div>
+            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest mb-1">
+              <span className={`telemetry-chip font-bold ${modeBadge.color} border-current/30 bg-white/[0.02]`}>
+                <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
+              </span>
+              <span className="telemetry-chip text-zinc-400 border-white/10 bg-white/[0.02]">
+                {concept.title}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-wide mt-2 font-heading flex items-center gap-2">
+              <Terminal className="w-5 h-5 text-cyan-400 shrink-0" />
+              Análise Forense de Windows Security Event Logs
+            </h2>
+            <p className="text-xs md:text-sm text-zinc-400 mt-1 leading-relaxed max-w-3xl">
+              Eventos de segurança do Windows (Event IDs 4624, 4688, 7045) registram evidências críticas de intrusão. Identifique técnicas adversárias (MITRE ATT&CK) a partir dos campos estruturados de telemetria.
+            </p>
+          </div>
         </div>
-        <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-cyan-400" />
-          Análise Forense de Windows Security Event Logs
-        </h2>
-        <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
-          Eventos de segurança do Windows (Event IDs 4624, 4688, 7045) registram evidências críticas de intrusão. Identifique técnicas adversárias (MITRE ATT&CK) a partir dos campos estruturados de telemetria.
-        </p>
 
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+          <div className="cockpit-subcard p-3 rounded-lg border-emerald-500/30 bg-emerald-950/20">
             <p className="text-xs text-emerald-300 flex items-start gap-2">
               <Eye className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
@@ -233,7 +239,7 @@ export default function WindowsEventLab({
         )}
 
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+          <div className="cockpit-subcard p-3 rounded-lg border-cyan-500/30 bg-cyan-950/20 animate-in fade-in">
             <p className="text-xs text-cyan-300 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
@@ -242,7 +248,9 @@ export default function WindowsEventLab({
         )}
       </section>
 
-      {/* Navegação de Casos */}
+      {/* -------------------------------------------------------------------- */}
+      {/* NAVEGAÇÃO DE CASOS FORENSES                                          */}
+      {/* -------------------------------------------------------------------- */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {WINDOWS_EVENT_CASES.map((c, idx) => {
           const isSolved = caseFeedback[c.id]?.isCorrect;
@@ -255,11 +263,11 @@ export default function WindowsEventLab({
               onClick={() => { setActiveCaseIdx(idx); setShowHintRevealed(false); }}
               className={`px-3 py-1.5 rounded-lg border font-mono text-xs flex items-center gap-2 whitespace-nowrap transition-all ${
                 isCurrent 
-                  ? 'bg-cyan-950/80 border-cyan-500 text-white shadow-[0_0_10px_rgba(6,182,212,0.2)]' 
-                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                  ? 'cockpit-subcard border-cyan-500/60 bg-cyan-950/30 text-white shadow-[0_0_10px_rgba(6,182,212,0.15)]' 
+                  : 'cockpit-subcard border-white/10 text-zinc-400 hover:border-white/20'
               }`}
             >
-              <FileText className="w-3.5 h-3.5 text-zinc-500" />
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
               <span>Caso {idx + 1}</span>
               {isSolved && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
             </button>
@@ -267,13 +275,15 @@ export default function WindowsEventLab({
         })}
       </div>
 
-      {/* Visualizador de Log & Pergunta */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6">
+      {/* -------------------------------------------------------------------- */}
+      {/* VISUALIZADOR DE LOG & ANÁLISE FORENSE                                */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="cockpit-card rounded-xl p-6 space-y-6">
         <div>
-          <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">
+          <span className="hud-bracket py-0.5 text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">
             {currentCase.title}
           </span>
-          <pre className="mt-3 p-4 rounded-xl bg-black border border-zinc-800 text-emerald-400 font-mono text-xs overflow-x-auto leading-relaxed shadow-inner">
+          <pre className="mt-3 p-4 rounded-xl bg-black/70 border border-white/10 text-emerald-400 font-mono text-xs overflow-x-auto leading-relaxed shadow-inner">
             {currentCase.eventSnippet}
           </pre>
         </div>
@@ -292,8 +302,8 @@ export default function WindowsEventLab({
                   onClick={() => handleSelectOption(opt.id)}
                   className={`p-3.5 rounded-xl border cursor-pointer font-mono text-xs flex items-center gap-3 transition-all ${
                     isSelected 
-                      ? 'bg-cyan-950/60 border-cyan-500 text-white ring-1 ring-cyan-500/50' 
-                      : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 text-zinc-300'
+                      ? 'cockpit-subcard border-cyan-500/70 bg-cyan-950/30 text-white ring-1 ring-cyan-500/50' 
+                      : 'cockpit-subcard border-white/10 hover:border-white/20 text-zinc-300'
                   }`}
                 >
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
@@ -301,7 +311,7 @@ export default function WindowsEventLab({
                   }`}>
                     {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-black" />}
                   </div>
-                  <span className="leading-relaxed">{opt.text}</span>
+                  <span className="leading-relaxed font-sans">{opt.text}</span>
                 </div>
               );
             })}
@@ -309,14 +319,14 @@ export default function WindowsEventLab({
         </div>
 
         {/* Rodapé de Ações */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+            <span className="text-xs font-mono text-zinc-400">Confiança:</span>
             <button
               type="button"
               onClick={() => setConfidence('CONFIDENT')}
-              className={`px-3 py-1 rounded text-xs font-mono ${
-                confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+              className={`avionics-button text-xs font-mono py-1 px-3 ${
+                confidence === 'CONFIDENT' ? 'border-cyan-500/60 bg-cyan-950/40 text-cyan-300' : 'text-zinc-400'
               }`}
             >
               Certeza
@@ -324,8 +334,8 @@ export default function WindowsEventLab({
             <button
               type="button"
               onClick={() => setConfidence('HESITANT')}
-              className={`px-3 py-1 rounded text-xs font-mono ${
-                confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+              className={`avionics-button text-xs font-mono py-1 px-3 ${
+                confidence === 'HESITANT' ? 'border-amber-500/60 bg-amber-950/40 text-amber-300' : 'text-zinc-400'
               }`}
             >
               Dúvida
@@ -337,7 +347,7 @@ export default function WindowsEventLab({
               <button
                 type="button"
                 onClick={() => setShowHintRevealed(true)}
-                className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                className="avionics-button text-amber-400 border-amber-500/30 bg-amber-950/20 hover:bg-amber-950/40 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
               >
                 <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
               </button>
@@ -346,7 +356,7 @@ export default function WindowsEventLab({
             <button
               type="button"
               onClick={handleDontKnow}
-              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-lg text-xs font-mono uppercase flex items-center gap-1.5"
+              className="avionics-button text-xs font-mono uppercase flex items-center gap-1.5"
             >
               <HelpCircle className="w-3.5 h-3.5" /> Não sei
             </button>
@@ -354,7 +364,7 @@ export default function WindowsEventLab({
               type="button"
               disabled={!currentSelection}
               onClick={handleValidateCurrentCase}
-              className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+              className="avionics-primary text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
             >
               Validar Hipótese <ArrowRight className="w-4 h-4" />
             </button>
@@ -362,12 +372,14 @@ export default function WindowsEventLab({
         </div>
       </section>
 
-      {/* Feedback do Caso Atual */}
+      {/* -------------------------------------------------------------------- */}
+      {/* FEEDBACK DO CASO ATUAL & DEBRIEF                                     */}
+      {/* -------------------------------------------------------------------- */}
       {currentFb && (
-        <section className={`p-6 rounded-xl border space-y-3 font-mono text-xs ${
+        <section className={`cockpit-card rounded-xl p-6 space-y-4 font-mono text-xs border ${
           currentFb.isCorrect 
-            ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200' 
-            : 'bg-red-950/40 border-red-800/80 text-red-200'
+            ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' 
+            : 'border-red-500/40 bg-red-950/20 text-red-200'
         }`}>
           <div className="flex items-center gap-2">
             {currentFb.isCorrect ? (
@@ -375,18 +387,18 @@ export default function WindowsEventLab({
             ) : (
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             )}
-            <h4 className="font-bold text-sm text-white">
+            <h4 className="font-bold text-sm text-white font-heading tracking-wide">
               {currentFb.isCorrect ? 'Identificação Forense Precisa' : (mode === 'exam' ? 'Avaliação Registrada' : 'Conclusão Requer Revisão')}
             </h4>
           </div>
-          <p className="text-zinc-300 font-sans leading-relaxed">
+          <p className="text-zinc-300 font-sans leading-relaxed text-sm">
             {currentFb.message}
           </p>
 
           {mode === 'exam' && isFinalized && (
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1 mt-2">
-              <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
-              <p className="text-zinc-300 font-sans">
+            <div className="cockpit-subcard p-4 rounded-lg border-white/10 text-xs space-y-1 mt-2">
+              <span className="font-mono text-zinc-400 uppercase font-bold block text-[11px]">Debrief do Exame:</span>
+              <p className="text-zinc-300 font-sans leading-relaxed text-sm">
                 Em perícia forense do Windows: Logon Type 10 corresponde a Remote Desktop (RDP). No Event 4688, processos como WINWORD gerando PowerShell com flags ocultas indicam vetor de macro maliciosa. A instalação de PSEXESVC (Event 7045) sinaliza execução remota lateral.
               </p>
             </div>

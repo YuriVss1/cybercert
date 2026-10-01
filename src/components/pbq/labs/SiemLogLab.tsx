@@ -204,10 +204,12 @@ export default function SiemLogLab({ onActionSubmit, isLocked }: PbqLabProps) {
 
   return (
     <div className="space-y-4 text-xs font-mono">
-      {/* SIEM Search Header */}
-      <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg flex flex-col md:flex-row items-stretch md:items-center gap-2">
-        <div className="flex items-center gap-2 text-amber-400 font-semibold uppercase tracking-wider text-[11px] shrink-0">
-          <Terminal className="w-4 h-4" />
+      {/* -------------------------------------------------------------------- */}
+      {/* SIEM SEARCH HEADER / SPL QUERY BAR                                   */}
+      {/* -------------------------------------------------------------------- */}
+      <div className="cockpit-card p-3 rounded-xl flex flex-col md:flex-row items-stretch md:items-center gap-2">
+        <div className="flex items-center gap-2 text-cyan-400 font-semibold uppercase tracking-wider text-[11px] shrink-0 font-mono">
+          <Terminal className="w-4 h-4 text-cyan-400" />
           <span>SIEM SPL QUERY:</span>
         </div>
         <div className="flex-1 relative">
@@ -215,37 +217,40 @@ export default function SiemLogLab({ onActionSubmit, isLocked }: PbqLabProps) {
             type="text"
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-700 text-zinc-100 rounded px-3 py-1.5 pl-8 focus:border-amber-500 focus:outline-none"
+            className="w-full bg-black/60 border border-white/10 text-zinc-100 rounded-lg px-3 py-1.5 pl-8 focus:border-cyan-500/50 focus:outline-none font-mono text-xs transition-colors"
           />
           <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-2.5" />
         </div>
         <div className="flex gap-1.5 shrink-0">
           <button
+            type="button"
             onClick={() => { setActiveFilterTab("4625"); setFilterQuery("index=wineventlog EventCode=4625"); }}
-            className={`px-2.5 py-1.5 rounded border text-[11px] font-semibold transition-colors ${
+            className={`avionics-button px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
               activeFilterTab === "4625"
-                ? "bg-red-950/60 border-red-500 text-red-300"
-                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                ? "border-red-500/60 bg-red-950/40 text-red-300"
+                : "text-zinc-400"
             }`}
           >
             Event 4625 (Falha)
           </button>
           <button
+            type="button"
             onClick={() => { setActiveFilterTab("4624"); setFilterQuery("index=wineventlog EventCode=4624"); }}
-            className={`px-2.5 py-1.5 rounded border text-[11px] font-semibold transition-colors ${
+            className={`avionics-button px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
               activeFilterTab === "4624"
-                ? "bg-emerald-950/60 border-emerald-500 text-emerald-300"
-                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-300"
+                : "text-zinc-400"
             }`}
           >
             Event 4624 (Sucesso)
           </button>
           <button
+            type="button"
             onClick={() => { setActiveFilterTab("ALL"); setFilterQuery("index=wineventlog *"); }}
-            className={`px-2.5 py-1.5 rounded border text-[11px] font-semibold transition-colors ${
+            className={`avionics-button px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
               activeFilterTab === "ALL"
-                ? "bg-blue-950/60 border-blue-500 text-blue-300"
-                : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                ? "border-cyan-500/60 bg-cyan-950/40 text-cyan-300"
+                : "text-zinc-400"
             }`}
           >
             Todos
@@ -254,48 +259,50 @@ export default function SiemLogLab({ onActionSubmit, isLocked }: PbqLabProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left 2 Cols: Events Table & Detail Inspector */}
+        {/* ------------------------------------------------------------------ */}
+        {/* LEFT 2 COLS: EVENTS TABLE & DETAIL INSPECTOR                       */}
+        {/* ------------------------------------------------------------------ */}
         <div className="lg:col-span-2 space-y-3">
-          <div className="bg-zinc-900/90 border border-zinc-800 rounded-lg overflow-hidden">
-            <div className="p-2.5 bg-zinc-950/80 border-b border-zinc-800 flex justify-between items-center">
-              <span className="text-zinc-300 font-semibold flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-zinc-400" />
-                TELEMETRIA DE LOGS CORRELACIONADOS ({filteredLogs.length})
+          <div className="cockpit-card rounded-xl overflow-hidden p-0 border border-white/[0.08]">
+            <div className="p-3 bg-black/40 border-b border-white/[0.08] flex justify-between items-center">
+              <span className="text-zinc-300 font-semibold flex items-center gap-1.5 text-[11px]">
+                <Database className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="hud-bracket py-0.5">TELEMETRIA DE LOGS CORRELACIONADOS ({filteredLogs.length})</span>
               </span>
-              <span className="text-[10px] text-zinc-500">Clique na linha para inspecionar</span>
+              <span className="telemetry-chip text-[10px] text-zinc-400">Clique na linha para inspecionar</span>
             </div>
 
-            <div className="divide-y divide-zinc-800/60 max-h-[260px] overflow-y-auto">
+            <div className="divide-y divide-white/[0.06] max-h-[260px] overflow-y-auto">
               {filteredLogs.map(log => (
                 <div
                   key={log.id}
                   onClick={() => setSelectedLog(log)}
-                  className={`p-2.5 cursor-pointer transition-colors flex items-center justify-between text-[11px] ${
+                  className={`p-3 cursor-pointer transition-colors flex items-center justify-between text-[11px] ${
                     selectedLog?.id === log.id
-                      ? "bg-zinc-800/90 border-l-4 border-l-amber-500"
-                      : "hover:bg-zinc-800/40"
+                      ? "bg-cyan-950/20 border-l-2 border-l-cyan-400"
+                      : "hover:bg-white/[0.02]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-zinc-500 font-mono">{log.timestamp}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    <span className="text-zinc-500 font-mono text-[10px]">{log.timestamp}</span>
+                    <span className={`telemetry-chip px-1.5 py-0.5 rounded text-[10px] font-bold ${
                       log.eventId === 4625
-                        ? "bg-red-950/80 text-red-400 border border-red-800/60"
-                        : "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
+                        ? "border-red-500/40 bg-red-950/40 text-red-400"
+                        : "border-emerald-500/40 bg-emerald-950/40 text-emerald-400"
                     }`}>
                       ID {log.eventId}
                     </span>
                     <div>
-                      <div className="text-zinc-200 font-semibold">{log.user}</div>
-                      <div className="text-[10px] text-zinc-400">{log.eventDesc}</div>
+                      <div className="text-zinc-200 font-semibold font-mono">{log.user}</div>
+                      <div className="text-[10px] text-zinc-400 font-sans">{log.eventDesc}</div>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <div className={`font-semibold ${log.isMalicious ? "text-red-400" : "text-zinc-300"}`}>
+                    <div className={`font-semibold font-mono ${log.isMalicious ? "text-red-400" : "text-zinc-300"}`}>
                       {log.sourceIp}
                     </div>
-                    <div className="text-[10px] text-zinc-500">{log.status}</div>
+                    <div className="text-[10px] text-zinc-500 font-mono">{log.status}</div>
                   </div>
                 </div>
               ))}
@@ -304,17 +311,17 @@ export default function SiemLogLab({ onActionSubmit, isLocked }: PbqLabProps) {
 
           {/* Detailed Raw Log Box */}
           {selectedLog && (
-            <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
+            <div className="cockpit-card rounded-xl p-3.5 border-white/10 space-y-2">
               <div className="text-[11px] font-semibold text-zinc-400 mb-1 flex items-center justify-between">
-                <span>INSPEÇÃO DETALHADA: EVENTO {selectedLog.eventId}</span>
-                <span className="text-zinc-500">{selectedLog.timestamp}</span>
+                <span className="font-mono text-cyan-400">INSPEÇÃO DETALHADA: EVENTO {selectedLog.eventId}</span>
+                <span className="telemetry-chip text-zinc-400 text-[10px]">{selectedLog.timestamp}</span>
               </div>
-              <div className="p-2 bg-zinc-900/80 rounded border border-zinc-800/80 text-[10px] text-zinc-300 font-mono space-y-1">
+              <div className="p-3 bg-black/60 rounded-lg border border-white/10 text-[10px] text-zinc-300 font-mono space-y-1.5">
                 <div><strong className="text-zinc-400">Target Host:</strong> {selectedLog.destHost}</div>
                 <div><strong className="text-zinc-400">Account Name:</strong> {selectedLog.user}</div>
                 <div><strong className="text-zinc-400">Source Network Address:</strong> {selectedLog.sourceIp}</div>
                 <div><strong className="text-zinc-400">Status Code:</strong> {selectedLog.status}</div>
-                <div className="text-amber-400/90 pt-1 border-t border-zinc-800">
+                <div className="text-cyan-300 pt-1.5 border-t border-white/[0.08]">
                   <strong>Extended Telemetry:</strong> {selectedLog.rawDetails}
                 </div>
               </div>
@@ -322,80 +329,85 @@ export default function SiemLogLab({ onActionSubmit, isLocked }: PbqLabProps) {
           )}
         </div>
 
-        {/* Right Col: Remediation Actions */}
-        <div className="p-4 bg-zinc-900/90 border border-zinc-800 rounded-lg space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-zinc-800">
-            <ShieldAlert className="w-4 h-4 text-red-400" />
-            <span className="text-zinc-200 font-bold tracking-wide">PLANO DE RESPOSTA</span>
-          </div>
-
-          {/* Action 1: Edge Firewall Block */}
-          <div className="space-y-2">
-            <label className="text-[11px] text-zinc-300 font-semibold block">
-              1. IP DE ORIGEM PARA DROP NO FIREWALL DE BORDA:
-            </label>
-            <div className="space-y-1.5">
-              {ipOptions.map(opt => (
-                <label
-                  key={opt.ip}
-                  className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors ${
-                    selectedBlockIp === opt.ip
-                      ? "bg-amber-950/30 border-amber-500 text-amber-200"
-                      : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="blockIp"
-                    value={opt.ip}
-                    checked={selectedBlockIp === opt.ip}
-                    onChange={(e) => setSelectedBlockIp(e.target.value)}
-                    className="mt-0.5 text-amber-500 focus:ring-0"
-                  />
-                  <span className="text-[10px] leading-tight">{opt.label}</span>
-                </label>
-              ))}
+        {/* ------------------------------------------------------------------ */}
+        {/* RIGHT COL: REMEDIATION ACTIONS                                     */}
+        {/* ------------------------------------------------------------------ */}
+        <div className="cockpit-card rounded-xl p-4 space-y-4 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-white/[0.08]">
+              <ShieldAlert className="w-4 h-4 text-cyan-400" />
+              <span className="text-zinc-200 font-bold tracking-wide font-heading">PLANO DE RESPOSTA</span>
             </div>
-          </div>
 
-          {/* Action 2: Target Account Action */}
-          <div className="space-y-2 pt-2 border-t border-zinc-800">
-            <label className="text-[11px] text-zinc-300 font-semibold block">
-              2. MEDIDA DE CONTENÇÃO NA CONTA ALVO:
-            </label>
-            <div className="space-y-1.5">
-              {accountOptions.map(act => (
-                <label
-                  key={act.id}
-                  className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors ${
-                    selectedAccountAction === act.id
-                      ? "bg-amber-950/30 border-amber-500 text-amber-200"
-                      : "bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:border-zinc-700"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="accountAction"
-                    value={act.id}
-                    checked={selectedAccountAction === act.id}
-                    onChange={(e) => setSelectedAccountAction(e.target.value)}
-                    className="mt-0.5 text-amber-500 focus:ring-0"
-                  />
-                  <span className="text-[10px] leading-tight">{act.label}</span>
-                </label>
-              ))}
+            {/* Action 1: Edge Firewall Block */}
+            <div className="space-y-2">
+              <label className="text-[11px] text-zinc-300 font-semibold block uppercase tracking-wider">
+                1. IP DE ORIGEM PARA DROP NO FIREWALL DE BORDA:
+              </label>
+              <div className="space-y-2">
+                {ipOptions.map(opt => (
+                  <label
+                    key={opt.ip}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                      selectedBlockIp === opt.ip
+                        ? "cockpit-subcard border-cyan-500/60 bg-cyan-950/20 text-cyan-200"
+                        : "cockpit-subcard border-white/10 text-zinc-400 hover:border-white/20"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="blockIp"
+                      value={opt.ip}
+                      checked={selectedBlockIp === opt.ip}
+                      onChange={(e) => setSelectedBlockIp(e.target.value)}
+                      className="mt-0.5 accent-cyan-500"
+                    />
+                    <span className="text-[10px] leading-tight font-mono">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Action 2: Target Account Action */}
+            <div className="space-y-2 pt-3 border-t border-white/[0.08]">
+              <label className="text-[11px] text-zinc-300 font-semibold block uppercase tracking-wider">
+                2. MEDIDA DE CONTENÇÃO NA CONTA ALVO:
+              </label>
+              <div className="space-y-2">
+                {accountOptions.map(act => (
+                  <label
+                    key={act.id}
+                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all ${
+                      selectedAccountAction === act.id
+                        ? "cockpit-subcard border-cyan-500/60 bg-cyan-950/20 text-cyan-200"
+                        : "cockpit-subcard border-white/10 text-zinc-400 hover:border-white/20"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="accountAction"
+                      value={act.id}
+                      checked={selectedAccountAction === act.id}
+                      onChange={(e) => setSelectedAccountAction(e.target.value)}
+                      className="mt-0.5 accent-cyan-500"
+                    />
+                    <span className="text-[10px] leading-tight font-sans">{act.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={handleApplyRemediation}
             disabled={isLocked || completed}
-            className={`w-full py-2.5 rounded font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
               completed
-                ? "bg-emerald-600 text-white cursor-not-allowed"
+                ? "bg-emerald-600/80 text-white cursor-not-allowed"
                 : isLocked
-                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                : "bg-red-600 hover:bg-red-500 text-white"
+                ? "avionics-button opacity-50 cursor-not-allowed"
+                : "avionics-primary"
             }`}
           >
             {completed ? (

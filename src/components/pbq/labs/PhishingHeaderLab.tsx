@@ -91,21 +91,23 @@ export default function PhishingHeaderLab({ onActionSubmit, isLocked }: PbqLabPr
 
   return (
     <div className="space-y-4 font-mono text-xs">
-      {/* Raw Email Headers Viewer */}
-      <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3.5 space-y-3">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+      {/* -------------------------------------------------------------------- */}
+      {/* RAW EMAIL HEADERS VIEWER / MISSION PANEL                             */}
+      {/* -------------------------------------------------------------------- */}
+      <div className="cockpit-card rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-cyan-400" />
-            <span className="text-zinc-200 font-bold text-xs uppercase tracking-wider">
+            <span className="text-zinc-200 font-bold text-xs uppercase tracking-wider font-mono">
               RFC 822 EMAIL HEADERS // VISUALIZADOR FORENSE DE MTA
             </span>
           </div>
-          <span className="px-2 py-0.5 rounded text-[10px] bg-red-950 text-red-400 border border-red-900 font-bold">
+          <span className="telemetry-chip text-[10px] border-red-500/40 bg-red-950/40 text-red-400 font-bold">
             GATEWAY HOLD
           </span>
         </div>
 
-        <div className="bg-black/80 border border-zinc-900 rounded p-3 space-y-1.5 overflow-x-auto text-[11px] leading-relaxed text-zinc-300 font-mono">
+        <div className="bg-black/60 border border-white/10 rounded-xl p-3.5 space-y-1.5 overflow-x-auto text-[11px] leading-relaxed text-zinc-300 font-mono">
           <div><strong className="text-zinc-500">From:</strong> CEO Office &lt;ceo@pаypal.com&gt; <span className="text-red-400 text-[10px]">[Punycode: xn--pypal-4ve.com]</span></div>
           <div><strong className="text-zinc-500">To:</strong> financeiro@empresa.com</div>
           <div><strong className="text-zinc-500">Subject:</strong> URGENTE: Autorização de Pagamento Imediato</div>
@@ -117,65 +119,70 @@ export default function PhishingHeaderLab({ onActionSubmit, isLocked }: PbqLabPr
         </div>
       </div>
 
-      {/* Forensic Checklist & Actions */}
+      {/* -------------------------------------------------------------------- */}
+      {/* FORENSIC CHECKLIST & ACTIONS                                         */}
+      {/* -------------------------------------------------------------------- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Checklist */}
-        <div className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-lg space-y-2.5">
-          <span className="text-[11px] text-zinc-300 font-bold uppercase block pb-1 border-b border-zinc-800">
+        <div className="cockpit-card rounded-xl p-4 space-y-3">
+          <span className="hud-bracket py-0.5 text-[11px] text-zinc-300 font-bold uppercase block pb-1 border-b border-white/[0.08]">
             1. Marque os Indicadores de Comprometimento (IoC):
           </span>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {indicators.map(ind => (
               <label
                 key={ind.id}
                 onClick={() => toggleFlag(ind.id)}
-                className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors text-[11px] ${
+                className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all text-[11px] ${
                   selectedFlags[ind.id]
-                    ? 'bg-amber-950/30 border-amber-500 text-amber-200'
-                    : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:border-zinc-700'
+                    ? 'cockpit-subcard border-cyan-500/60 bg-cyan-950/20 text-cyan-200'
+                    : 'cockpit-subcard border-white/10 text-zinc-400 hover:border-white/20'
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={Boolean(selectedFlags[ind.id])}
                   onChange={() => {}}
-                  className="mt-0.5 text-amber-500 focus:ring-0 rounded"
+                  className="mt-0.5 accent-cyan-500 rounded"
                 />
-                <span className="leading-tight">{ind.label}</span>
+                <span className="leading-tight font-sans">{ind.label}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* Tactical Actions */}
-        <div className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-lg space-y-3 flex flex-col justify-between">
+        <div className="cockpit-card rounded-xl p-4 space-y-3 flex flex-col justify-between">
           <div>
-            <span className="text-[11px] text-zinc-300 font-bold uppercase block pb-1 border-b border-zinc-800 mb-3">
+            <span className="hud-bracket py-0.5 text-[11px] text-zinc-300 font-bold uppercase block pb-1 border-b border-white/[0.08] mb-3">
               2. Ação Operacional no Gateway de E-mail:
             </span>
             <div className="space-y-2">
               <button
+                type="button"
                 onClick={() => handleAction('quarantine')}
                 disabled={isLocked || completed}
-                className="w-full py-2.5 px-3 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all"
+                className="avionics-primary w-full py-2.5 px-3 rounded-lg text-xs uppercase flex items-center justify-center gap-2"
               >
                 <Archive className="w-4 h-4" />
                 <span>[ QUARENTENA & BLOQUEIO DE MTA ]</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleAction('whitelist')}
                 disabled={isLocked || completed}
-                className="w-full py-2 px-3 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold text-xs uppercase flex items-center justify-center gap-2 transition-colors"
+                className="avionics-button w-full py-2 px-3 rounded-lg text-xs uppercase flex items-center justify-center gap-2"
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span>Adicionar à Whitelist de Confiança</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => handleAction('ignore')}
                 disabled={isLocked || completed}
-                className="w-full py-2 px-3 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold text-xs uppercase flex items-center justify-center gap-2 transition-colors"
+                className="avionics-button w-full py-2 px-3 rounded-lg text-xs uppercase flex items-center justify-center gap-2"
               >
                 <Ban className="w-4 h-4 text-amber-400" />
                 <span>Liberar Mensagem para a Caixa Postal</span>
@@ -183,7 +190,7 @@ export default function PhishingHeaderLab({ onActionSubmit, isLocked }: PbqLabPr
             </div>
           </div>
 
-          <div className="text-[10px] text-zinc-500 italic">
+          <div className="text-[10px] text-zinc-500 italic font-mono pt-2 border-t border-white/[0.06]">
             * A decisão no MTA é definitiva para as caixas de correio da corporação.
           </div>
         </div>

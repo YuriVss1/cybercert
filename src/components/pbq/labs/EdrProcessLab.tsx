@@ -94,12 +94,28 @@ export default function EdrProcessLab({ onActionSubmit, isLocked }: PbqLabProps)
       return;
     }
 
-    setProcesses(prev => prev.map(p => {
+    const updatedProcesses = processes.map(p => {
       if (p.pid === pid) {
         return { ...p, status: "TERMINATED" as const };
       }
       return p;
-    }));
+    });
+
+    setProcesses(updatedProcesses);
+
+    // Condição de sucesso: ambos os processos maliciosos (6120 e 8812) devem ser finalizados
+    const maliciousRemaining = updatedProcesses.some(
+      p => (p.pid === 8812 || p.pid === 6120) && p.status === "RUNNING"
+    );
+
+    if (!maliciousRemaining) {
+      setCompleted(true);
+      setRegistryRunKeyPresent(false);
+      onActionSubmit({
+        correct: true,
+        actionId: 'edr-remediation-success'
+      });
+    }
   };
 
   const handlePurgeRegistry = () => {
@@ -168,20 +184,34 @@ export default function EdrProcessLab({ onActionSubmit, isLocked }: PbqLabProps)
   };
 
   return (
-    <div className="space-y-4 text-xs font-mono">
+    <div className="space-y-4 font-mono text-xs">
       {/* Top Telemetry Header */}
-      <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Cpu className="w-4 h-4 text-cyan-400" />
-          <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px]">
-            EDR SENSOR / WS-DIR-01 (KERNEL TELEMETRY ACTIVE)
-          </span>
+      <div className="cockpit-card p-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded bg-cyan-950/40 border border-cyan-500/30 text-cyan-400">
+            <Cpu className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px]">
+                EDR SENSOR / WS-DIR-01
+              </span>
+              <span className="telemetry-chip">KERNEL TELEMETRY ACTIVE</span>
+            </div>
+            <div className="text-[10px] text-zinc-500">Live Endpoint Inspection & Process Tree Analysis</div>
+          </div>
         </div>
+
         <div className="flex items-center gap-3">
-          <span className="text-zinc-400">Status EDR: <span className="text-red-400 font-semibold">C2 BEACON DETECTADO</span></span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Status EDR:</span>
+            <span className="telemetry-chip text-red-400 border-red-500/40 bg-red-950/40 font-semibold">
+              C2 BEACON DETECTADO
+            </span>
+          </div>
           <button
             onClick={handleReboot}
-            className="px-2 py-1 rounded bg-zinc-900 border border-zinc-700 hover:border-amber-500 text-zinc-300 flex items-center gap-1.5 text-[10px]"
+            className="avionics-button flex items-center gap-1.5 text-[10px] text-amber-300 border-amber-500/30 hover:border-amber-400 hover:text-amber-200"
           >
             <RefreshCw className="w-3 h-3 text-amber-400" />
             <span>Reiniciar Estação</span>
@@ -191,16 +221,18 @@ export default function EdrProcessLab({ onActionSubmit, isLocked }: PbqLabProps)
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Process Tree List */}
-        <div className="lg:col-span-2 bg-zinc-900/90 border border-zinc-800 rounded-lg overflow-hidden">
-          <div className="p-2.5 bg-zinc-950/80 border-b border-zinc-800 flex justify-between items-center">
-            <span className="text-zinc-300 font-semibold flex items-center gap-1.5">
+        <div className="lg:col-span-2 cockpit-card p-0 overflow-hidden flex flex-col">
+          <div className="p-3 bg-zinc-950/80 border-b border-zinc-800/80 flex justify-between items-center">
+            <div className="flex items-center gap-2">
               <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-              ÁRVORE HIERÁRQUICA DE PROCESSOS
-            </span>
+              <span className="text-zinc-200 font-bold text-[11px] uppercase tracking-wider">
+                Árvore Hierárquica de Processos
+              </span>
+            </div>
             <span className="text-[10px] text-zinc-500">Selecione para inspecionar memória</span>
           </div>
 
-          <div className="divide-y divide-zinc-800/60">
+          <div className="divide-y divide-zinc-800/60 p-2 space-y-1">
             {processes.map(proc => {
               const isSelected = selectedPid === proc.pid;
               const isDead = proc.status === "TERMINATED";
@@ -209,39 +241,41 @@ export default function EdrProcessLab({ onActionSubmit, isLocked }: PbqLabProps)
                 <div
                   key={proc.pid}
                   onClick={() => setSelectedPid(proc.pid)}
-                  className={`p-3 cursor-pointer transition-colors ${
-                    isSelected ? "bg-zinc-800/80 border-l-4 border-l-cyan-500" : "hover:bg-zinc-800/30"
+                  className={`p-3 rounded cursor-pointer transition-all ${
+                    isSelected
+                      ? "bg-cyan-950/30 border border-cyan-500/50 shadow-sm shadow-cyan-950/40"
+                      : "cockpit-subcard hover:border-zinc-700/80 border-transparent"
                   } ${isDead ? "opacity-50" : ""}`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-zinc-400 font-mono text-[10px]">PID: {proc.pid}</span>
                       <span className="text-zinc-500 text-[10px]">(PPID: {proc.parentPid})</span>
-                      <span className="text-zinc-200 font-bold">{proc.name}</span>
+                      <span className="text-zinc-100 font-bold text-xs">{proc.name}</span>
                       {proc.isMalicious && (
-                        <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-red-950 text-red-400 border border-red-800/60">
+                        <span className="telemetry-chip text-red-400 border-red-500/40 bg-red-950/50 text-[9px] font-bold">
                           THREAT DETECTED
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                        isDead ? "bg-zinc-800 text-zinc-400" : "bg-emerald-950 text-emerald-400"
+                      <span className={`telemetry-chip text-[10px] font-semibold ${
+                        isDead ? "text-zinc-400 border-zinc-700 bg-zinc-900" : "text-emerald-400 border-emerald-500/40 bg-emerald-950/40"
                       }`}>
                         {proc.status}
                       </span>
                       {!isDead && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleKillProcess(proc.pid); }}
-                          className="px-2 py-1 bg-red-950/80 hover:bg-red-900 border border-red-700 text-red-300 rounded text-[10px] font-bold"
+                          className="px-2 py-1 bg-red-950/80 hover:bg-red-900 border border-red-700 text-red-200 rounded text-[10px] font-bold transition-colors"
                         >
                           KILL PID
                         </button>
                       )}
                     </div>
                   </div>
-                  <div className="text-[10px] text-zinc-400 truncate font-mono">
-                    <span className="text-zinc-500">Cmd:</span> {proc.commandLine}
+                  <div className="text-[10px] text-zinc-400 truncate font-mono bg-zinc-950/60 p-1.5 rounded border border-zinc-800/40">
+                    <span className="text-zinc-500 font-semibold">Cmd:</span> {proc.commandLine}
                   </div>
                 </div>
               );
@@ -253,54 +287,84 @@ export default function EdrProcessLab({ onActionSubmit, isLocked }: PbqLabProps)
         <div className="space-y-4">
           {/* Process Inspector Box */}
           {selectedProcess && (
-            <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-2">
-              <div className="text-[11px] font-bold text-zinc-300 flex items-center justify-between border-b border-zinc-800 pb-1.5">
-                <span>ANÁLISE DE BINÁRIO (PID {selectedProcess.pid})</span>
-                <span className={selectedProcess.status === "TERMINATED" ? "text-zinc-500" : "text-emerald-400"}>
+            <div className="cockpit-card p-3 space-y-2.5">
+              <div className="text-[11px] font-bold text-zinc-300 flex items-center justify-between border-b border-zinc-800/80 pb-2">
+                <span className="uppercase tracking-wider">Análise de Binário (PID {selectedProcess.pid})</span>
+                <span className={`telemetry-chip text-[9px] ${selectedProcess.status === "TERMINATED" ? "text-zinc-500" : "text-emerald-400 border-emerald-500/30"}`}>
                   {selectedProcess.status}
                 </span>
               </div>
-              <div className="text-[10px] space-y-1 text-zinc-400">
-                <div><strong className="text-zinc-300">Processo:</strong> {selectedProcess.name}</div>
-                <div><strong className="text-zinc-300">Contexto de Usuário:</strong> {selectedProcess.user}</div>
-                <div><strong className="text-zinc-300">Consumo de CPU:</strong> {selectedProcess.cpu}</div>
-                <div className="break-all pt-1 border-t border-zinc-900">
-                  <strong className="text-zinc-300">Linha de Comando Completa:</strong>
-                  <p className="text-amber-400/90 mt-0.5">{selectedProcess.commandLine}</p>
+              <div className="text-[10px] space-y-1.5 text-zinc-400">
+                <div className="flex justify-between border-b border-zinc-900 pb-1">
+                  <strong className="text-zinc-300">Processo:</strong>
+                  <span className="text-zinc-200 font-mono">{selectedProcess.name}</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-900 pb-1">
+                  <strong className="text-zinc-300">Contexto Usuário:</strong>
+                  <span className="text-zinc-200 font-mono">{selectedProcess.user}</span>
+                </div>
+                <div className="flex justify-between border-b border-zinc-900 pb-1">
+                  <strong className="text-zinc-300">Consumo de CPU:</strong>
+                  <span className="text-cyan-400 font-mono">{selectedProcess.cpu}</span>
+                </div>
+                <div className="pt-1.5">
+                  <strong className="text-zinc-300 block mb-1">Linha de Comando Completa:</strong>
+                  <p className="text-amber-300/90 text-[10px] break-all bg-zinc-950/80 p-2 rounded border border-zinc-800/60 font-mono">
+                    {selectedProcess.commandLine}
+                  </p>
+                </div>
+
+                {/* Ação Direta no Processo Selecionado */}
+                <div className="pt-2">
+                  {selectedProcess.status === "RUNNING" ? (
+                    <button
+                      onClick={() => handleKillProcess(selectedProcess.pid)}
+                      disabled={isLocked || completed}
+                      className="w-full py-2 bg-red-950/90 hover:bg-red-900 border border-red-600 text-red-200 rounded font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Encerrar Processo (PID {selectedProcess.pid})</span>
+                    </button>
+                  ) : (
+                    <div className="p-2 rounded bg-zinc-900/60 border border-zinc-800 text-zinc-500 font-mono text-[10px] flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-zinc-500" />
+                      <span>PROCESSO FINALIZADO NA MEMÓRIA</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
           {/* Registry Persistence Box */}
-          <div className="p-3 bg-zinc-900/90 border border-zinc-800 rounded-lg space-y-3">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-              <span className="text-zinc-200 font-bold text-[11px] flex items-center gap-1.5">
+          <div className="cockpit-card p-3 space-y-3">
+            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2">
+              <span className="text-zinc-200 font-bold text-[11px] flex items-center gap-1.5 uppercase tracking-wider">
                 <Shield className="w-3.5 h-3.5 text-amber-400" />
-                PERSISTÊNCIA NO REGISTRO DO WINDOWS
+                Persistência no Registro
               </span>
             </div>
 
             {registryRunKeyPresent ? (
-              <div className="p-2.5 bg-red-950/20 border border-red-800/50 rounded text-[10px] space-y-2">
-                <div className="text-red-300 font-semibold flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3 text-red-400" />
+              <div className="cockpit-subcard p-2.5 border-red-800/40 bg-red-950/20 text-[10px] space-y-2">
+                <div className="text-red-300 font-semibold flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 text-red-400" />
                   Chave Run Anômala Ativa:
                 </div>
-                <div className="text-zinc-400 font-mono text-[9px] break-all bg-zinc-950 p-1.5 rounded">
-                  HKCU\Software\Microsoft\Windows\CurrentVersion\Run<br />
+                <div className="text-zinc-400 font-mono text-[9px] break-all bg-zinc-950/90 p-2 rounded border border-zinc-800">
+                  <span className="text-zinc-500">HKCU\Software\Microsoft\Windows\CurrentVersion\Run</span><br />
                   <span className="text-amber-300">&quot;SecurityUpdate&quot;</span> = &quot;rundll32.exe C:\Users\Public\updater.dll,StartRoutine&quot;
                 </div>
                 <button
                   onClick={handlePurgeRegistry}
-                  className="w-full py-1.5 bg-red-900/60 hover:bg-red-800 border border-red-600 text-red-200 rounded font-bold text-[10px] flex items-center justify-center gap-1.5"
+                  className="w-full py-1.5 bg-red-950/80 hover:bg-red-900 border border-red-600 text-red-200 rounded font-bold text-[10px] flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />
                   DELETAR CHAVE DE REGISTRO
                 </button>
               </div>
             ) : (
-              <div className="p-2.5 bg-emerald-950/30 border border-emerald-800/50 rounded text-[10px] text-emerald-300 flex items-center gap-2">
+              <div className="cockpit-subcard p-2.5 border-emerald-800/40 bg-emerald-950/20 text-[10px] text-emerald-300 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Chave Run maliciosa removida com sucesso. Sem persistência ativa.</span>
               </div>
@@ -311,10 +375,10 @@ export default function EdrProcessLab({ onActionSubmit, isLocked }: PbqLabProps)
               disabled={isLocked || completed}
               className={`w-full py-2.5 rounded font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
                 completed
-                  ? "bg-emerald-600 text-white cursor-not-allowed"
+                  ? "bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 cursor-not-allowed"
                   : isLocked
-                  ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                  : "bg-cyan-600 hover:bg-cyan-500 text-white"
+                  ? "bg-zinc-900 border border-zinc-800 text-zinc-500 cursor-not-allowed"
+                  : "avionics-primary"
               }`}
             >
               {completed ? (

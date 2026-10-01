@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { useExamStore } from "@/stores/examStore";
+import type { QuestionExamItem, PbqExamItem } from "@/stores/examStore";
+import PbqAssessmentAdapter from "@/components/pbq/PbqAssessmentAdapter";
 import { supabase } from "@/lib/supabase";
 import { 
   ShieldAlert, Terminal, Clock, CheckCircle2, XCircle, ChevronRight, 
@@ -133,7 +136,7 @@ export default function RootSecApp() {
     activeTab, setActiveTab, examType, timeRange, setTimeRange,
     certifications, selectedCert, setSelectedCert, fetchCertifications, seedDatabase,
     pbqsList,
-    questions, currentIndex, answers, markedForReview, revealedExplanations, timeLeft,
+    questions, currentIndex, answers, pbqAnswers, recordPbqAnswer, markedForReview, revealedExplanations, timeLeft,
     userFeedback, recordFeedback,
     isStarted, isFinished, isReviewing, isLoading, history,
     questionComments, fetchComments, addComment, upvoteComment,
@@ -228,7 +231,7 @@ export default function RootSecApp() {
       }
 
       const currentQ = questions[currentIndex];
-      if (!currentQ || !Array.isArray(currentQ.options)) return;
+      if (!currentQ || currentQ.type === 'pbq' || !Array.isArray(currentQ.options)) return;
       const isRevealed = revealedExplanations[currentQ.id] || isReviewing;
       if (isRevealed) return;
 
@@ -523,12 +526,13 @@ export default function RootSecApp() {
     : pbqsList;
 
   // LEARNING ENGINE ADAPTATIVO & TELEMETRIA COGNITIVA
+  const mcqQuestions = questions.filter((q): q is QuestionExamItem => q.type !== 'pbq');
   const readinessResult = calculateReadiness(currentHistory);
   const domainAnalyses = calculateDomainPerformance(currentHistory, domainsList);
   const weakAreasList = identifyWeakAreas(domainAnalyses);
-  const recurringErrorsAnalysis = analyzeRecurringErrors(currentHistory, questions);
+  const recurringErrorsAnalysis = analyzeRecurringErrors(currentHistory, mcqQuestions);
   const studyRecommendation = generateStudyRecommendations(domainAnalyses, weakAreasList, recurringErrorsAnalysis);
-  const skillPerformanceList = calculateSkillPerformance(questions, currentHistory);
+  const skillPerformanceList = calculateSkillPerformance(mcqQuestions, currentHistory);
 
   // REPETIÇÃO ESPAÇADA & RETENÇÃO ATIVA
   const attemptedQuestionIds = Array.from(new Set(
@@ -648,7 +652,9 @@ export default function RootSecApp() {
     if (!currentQ) return <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center font-mono">Carregando questão...</div>;
 
     const totalQuestions = questions.length;
-    const answeredCount = Object.keys(answers).length;
+    const answeredPbqCount = Object.values(pbqAnswers).filter(a => a.completed).length;
+    const answeredMcqCount = Object.keys(answers).length;
+    const answeredCount = answeredMcqCount + answeredPbqCount;
     const unansweredCount = totalQuestions - answeredCount;
     const markedCount = markedForReview.length;
     const progressPct = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
@@ -717,8 +723,60 @@ export default function RootSecApp() {
           
           {/* COLUNA ESQUERDA: ÁREA DA QUESTÃO E NAVEGAÇÃO (LG:W-8/12 OU FLEX-1) */}
           <div className="flex-1 w-full space-y-6">
-            
-            {/* CARD DA QUESTÃO */}
+            {currentQ.type === 'pbq' ? (
+              <div className="space-y-6">
+                <PbqAssessmentAdapter
+                  item={currentQ}
+                  isLocked={timeLeft === 0 || isFinished}
+                  isReviewing={isReviewing}
+                  savedAnswer={pbqAnswers[currentQ.id]}
+                  onCommitAnswer={(result) => recordPbqAnswer(currentQ.id, result)}
+                />
+
+                {/* CONTROLES INFERIORES PARA PBQ */}
+                <div className="cockpit-card p-4 rounded-xl border border-zinc-800 bg-zinc-950/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                  <button
+                    type="button"
+                    onClick={() => !isReviewing && toggleMarkForReview(currentQ.id)}
+                    disabled={isReviewing}
+                    className={`px-4 py-2.5 rounded-xl border text-xs font-mono transition-all flex items-center justify-center gap-2 ${
+                      markedForReview.includes(currentQ.id)
+                        ? 'bg-amber-950/60 border-amber-600/70 text-amber-300'
+                        : 'border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                    } ${isReviewing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Bookmark className={`w-3.5 h-3.5 ${markedForReview.includes(currentQ.id) ? 'fill-current' : ''}`} />
+                    <span>{markedForReview.includes(currentQ.id) ? 'Marcada para Revisão' : 'Marcar para Revisão'}</span>
+                  </button>
+
+                  <span className="hidden md:block text-[11px] font-mono text-zinc-500 text-center">
+                    Cenário Prático · Use os controles do lab para mitigar a ameaça
+                  </span>
+
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={prevQuestion}
+                      disabled={currentIndex === 0}
+                      className="px-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 text-xs font-mono font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-zinc-700 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1.5"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Anterior</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextQuestion}
+                      disabled={currentIndex === totalQuestions - 1}
+                      className="px-6 py-2.5 rounded-xl border border-cyan-500/40 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold shadow-md shadow-cyan-950/50 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1.5"
+                    >
+                      <span>Próxima</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+            /* CARD DA QUESTÃO */
             <div className="bg-zinc-950/90 border border-zinc-800/90 rounded-2xl p-6 md:p-8 shadow-2xl relative">
               
               {/* Identificador e Domínio */}
@@ -978,6 +1036,7 @@ export default function RootSecApp() {
               </div>
 
             </div>
+          )}
 
           </div>
 
@@ -1054,7 +1113,8 @@ export default function RootSecApp() {
               {/* Grade de botões com rolagem customizada */}
               <div className="grid grid-cols-5 gap-1.5 overflow-y-auto max-h-[42vh] pr-1.5 custom-scrollbar">
                 {questions.map((q, idx) => {
-                  const isAnswered = !!answers[q.id];
+                  const isPbq = q.type === 'pbq';
+                  const isAnswered = isPbq ? !!pbqAnswers[q.id]?.completed : !!answers[q.id];
                   const isMarked = markedForReview.includes(q.id);
                   const isCurrent = currentIndex === idx;
 
@@ -1063,8 +1123,11 @@ export default function RootSecApp() {
                   if (questionMapFilter === 'marked' && !isMarked) return null;
 
                   let btnStyle = 'bg-zinc-900/60 border-zinc-800/80 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300';
-                  if (isReviewing || revealedExplanations[q.id]) {
-                    btnStyle = answers[q.id] === q.correct_answer
+                  if (isReviewing || (!isPbq && revealedExplanations[q.id])) {
+                    const isCorrect = isPbq
+                      ? Boolean(pbqAnswers[q.id]?.completed && pbqAnswers[q.id]?.correct)
+                      : answers[q.id] === q.correct_answer;
+                    btnStyle = isCorrect
                       ? 'bg-emerald-950/50 border-emerald-700/60 text-emerald-300'
                       : 'bg-red-950/50 border-red-700/60 text-red-300';
                   } else if (isAnswered && isMarked) {
@@ -1073,6 +1136,8 @@ export default function RootSecApp() {
                     btnStyle = 'bg-amber-950/30 border-amber-600/50 text-amber-400';
                   } else if (isAnswered) {
                     btnStyle = 'bg-cyan-950/40 border-cyan-800/50 text-cyan-300 font-medium';
+                  } else if (isPbq) {
+                    btnStyle = 'bg-cyan-950/20 border-cyan-700/40 text-cyan-400 font-semibold';
                   }
 
                   return (
@@ -1083,9 +1148,9 @@ export default function RootSecApp() {
                       className={`h-9 text-xs font-mono rounded-lg border transition-all flex items-center justify-center relative ${btnStyle} ${
                         isCurrent ? 'ring-2 ring-white font-bold text-white scale-105 z-10' : ''
                       }`}
-                      title={`Questão ${idx + 1}${isMarked ? ' (Marcada para revisão)' : ''}${isAnswered ? ' (Respondida)' : ''}`}
+                      title={`${isPbq ? 'Laboratório PBQ' : 'Questão'} ${idx + 1}${isMarked ? ' (Marcada para revisão)' : ''}${isAnswered ? ' (Respondida)' : ''}`}
                     >
-                      <span>{String(idx + 1).padStart(2, '0')}</span>
+                      <span>{isPbq ? `P${String(idx + 1)}` : String(idx + 1).padStart(2, '0')}</span>
                       {isMarked && (
                         <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400" />
                       )}
@@ -1265,9 +1330,19 @@ export default function RootSecApp() {
   // ==========================================
   if (isFinished && !isReviewing) {
     const totalQuestions = questions.length;
-    let correctCount = 0;
-    questions.forEach((q) => { if (answers[q.id] === q.correct_answer) correctCount++; });
-    const finalScore = Math.round(100 + (correctCount * (800 / totalQuestions)));
+    const mcqItems = questions.filter((q): q is QuestionExamItem => q.type !== 'pbq');
+    const pbqItems = questions.filter((q): q is PbqExamItem => q.type === 'pbq');
+
+    let correctMcqCount = 0;
+    mcqItems.forEach((q) => { if (answers[q.id] === q.correct_answer) correctMcqCount++; });
+    let correctPbqCount = 0;
+    pbqItems.forEach((p) => { if (pbqAnswers[p.id]?.completed && pbqAnswers[p.id]?.correct) correctPbqCount++; });
+
+    const totalPoints = (mcqItems.length * 1) + (pbqItems.length * 3);
+    const earnedPoints = (correctMcqCount * 1) + (correctPbqCount * 3);
+    const finalScore = totalPoints > 0
+      ? Math.min(900, Math.max(100, Math.round(100 + (earnedPoints * (800 / totalPoints)))))
+      : 100;
     const passed = finalScore >= 750;
 
     return (
@@ -1276,7 +1351,27 @@ export default function RootSecApp() {
           <div className="text-center border-b border-zinc-800/80 pb-8 mb-8">
             {passed ? <CheckCircle2 className="w-20 h-20 text-emerald-500 mx-auto mb-4" /> : <XCircle className="w-20 h-20 text-red-500 mx-auto mb-4" />}
             <h1 className="text-2xl font-bold text-white mb-2 uppercase tracking-widest">{examType === 'official' ? (passed ? "CERTIFICAÇÃO ALCANÇADA" : "FALHA NA AVALIAÇÃO") : "TREINAMENTO TÁTICO FINALIZADO"}</h1>
-            <p className="text-6xl font-black mt-4 mb-2 text-white">{correctCount} <span className="text-2xl text-zinc-600">/ {totalQuestions} Acertos</span></p>
+            <p className="text-6xl font-black mt-4 mb-2 text-white">
+              {finalScore} <span className="text-2xl text-zinc-500">/ 900 PTS</span>
+            </p>
+            <p className="text-xs font-mono text-zinc-400 mt-2">
+              Ponto de corte oficial: 750 Pontos · {passed ? "APROVADO" : "NÃO APROVADO"}
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-lg mx-auto mt-6 text-xs font-mono">
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                <span className="text-zinc-500 block text-[10px] uppercase">Total de Itens</span>
+                <span className="text-lg font-bold text-white">{totalQuestions}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                <span className="text-cyan-500 block text-[10px] uppercase">Múltipla Escolha</span>
+                <span className="text-lg font-bold text-cyan-300">{correctMcqCount} / {mcqItems.length}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                <span className="text-purple-500 block text-[10px] uppercase">Laboratórios PBQ</span>
+                <span className="text-lg font-bold text-purple-300">{correctPbqCount} / {pbqItems.length}</span>
+              </div>
+            </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <button onClick={startReview} className="flex-1 py-4 bg-purple-900/30 hover:bg-purple-800/50 border border-purple-700/50 text-purple-400 font-bold rounded-xl flex items-center justify-center gap-2 uppercase text-sm"><Search className="w-4 h-4"/> Revisar Respostas</button>
@@ -1362,6 +1457,13 @@ export default function RootSecApp() {
             </span>
             <span className="text-[9px] text-zinc-600 font-mono">[05]</span>
           </button>
+          <Link href="/campanhas" className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase text-zinc-400 hover:bg-white/[0.03] hover:text-cyan-300 border border-transparent">
+            <span className="flex items-center gap-2.5">
+              <Crosshair className="w-4 h-4 text-cyan-400" /> 
+              Campanhas
+            </span>
+            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-950/60 border border-cyan-800/60 text-cyan-400">NOVO</span>
+          </Link>
           <button onClick={() => setActiveTab('historico')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-wider uppercase ${activeTab === 'historico' ? 'bg-white/[0.08] text-white border border-white/[0.15] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.18)]' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-zinc-200 border border-transparent mt-4'}`}>
             <span className="flex items-center gap-2.5">
               <History className={`w-4 h-4 ${activeTab === 'historico' ? 'text-sky-400' : 'text-zinc-500'}`} /> 

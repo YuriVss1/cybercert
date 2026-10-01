@@ -156,21 +156,26 @@ export default function FirewallAclLab({ onActionSubmit, isLocked }: PbqLabProps
 
   return (
     <div className="space-y-4 font-mono text-xs">
-      <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-amber-500" />
-          <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px]">
+      {/* -------------------------------------------------------------------- */}
+      {/* MISSION HEADER                                                       */}
+      {/* -------------------------------------------------------------------- */}
+      <div className="cockpit-card p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Shield className="w-4 h-4 text-cyan-400 shrink-0" />
+          <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px] font-mono">
             FIREWALL ACL EDITOR / INBOUND POLICY (TOP-DOWN EVALUATION)
           </span>
         </div>
-        <span className="text-zinc-500 text-[10px]">
-          Regras são avaliadas sequencialmente da linha 1 até a última
+        <span className="telemetry-chip text-zinc-400 border-white/10 text-[10px]">
+          AVALIAÇÃO SEQUENCIAL TOP-DOWN
         </span>
       </div>
 
-      {/* ACL Table */}
-      <div className="bg-zinc-900/90 border border-zinc-800 rounded-lg overflow-hidden">
-        <div className="p-2.5 bg-zinc-950/80 border-b border-zinc-800 grid grid-cols-12 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+      {/* -------------------------------------------------------------------- */}
+      {/* ACL RULES TABLE INSTRUMENT                                           */}
+      {/* -------------------------------------------------------------------- */}
+      <div className="cockpit-card rounded-xl overflow-hidden p-0 border border-white/[0.08]">
+        <div className="p-3 bg-black/40 border-b border-white/[0.08] grid grid-cols-12 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
           <div className="col-span-1">#</div>
           <div className="col-span-2">Ação</div>
           <div className="col-span-3">Origem</div>
@@ -178,52 +183,55 @@ export default function FirewallAclLab({ onActionSubmit, isLocked }: PbqLabProps
           <div className="col-span-3 text-right">Ordem Top-Down</div>
         </div>
 
-        <div className="divide-y divide-zinc-800/60">
+        <div className="divide-y divide-white/[0.06]">
           {rules.map((rule, idx) => (
             <div
               key={rule.id}
-              className={`p-2.5 grid grid-cols-12 items-center text-[11px] transition-colors ${
-                rule.id === 'rule-deny-all' ? 'bg-zinc-950/60 font-semibold' : 'hover:bg-zinc-800/30'
+              className={`p-3 grid grid-cols-12 items-center text-[11px] transition-colors ${
+                rule.id === 'rule-deny-all' ? 'bg-black/60 font-semibold' : 'hover:bg-white/[0.02]'
               }`}
             >
-              <div className="col-span-1 text-zinc-500 font-bold">{idx + 1}</div>
+              <div className="col-span-1 text-zinc-500 font-bold font-mono">{idx + 1}</div>
 
               <div className="col-span-2">
                 <button
+                  type="button"
                   onClick={() => toggleAction(rule.id)}
                   disabled={isLocked || completed || rule.id === 'rule-deny-all'}
-                  className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                  className={`telemetry-chip px-2.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
                     rule.action === 'PERMIT'
-                      ? 'bg-emerald-950/80 border-emerald-500 text-emerald-400'
-                      : 'bg-red-950/80 border-red-500 text-red-400'
+                      ? 'border-emerald-500/40 bg-emerald-950/40 text-emerald-400'
+                      : 'border-red-500/40 bg-red-950/40 text-red-400'
                   }`}
                 >
                   {rule.action}
                 </button>
               </div>
 
-              <div className="col-span-3 text-zinc-300 truncate">
+              <div className="col-span-3 text-zinc-300 truncate font-sans">
                 {rule.source}
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-3 font-sans">
                 <div className="text-zinc-200 truncate">{rule.dest}</div>
-                <div className="text-[10px] text-zinc-500">{rule.port}</div>
+                <div className="text-[10px] text-zinc-500 font-mono">{rule.port}</div>
               </div>
 
-              <div className="col-span-3 flex justify-end gap-1">
+              <div className="col-span-3 flex justify-end gap-1.5">
                 <button
+                  type="button"
                   onClick={() => moveRule(idx, 'up')}
                   disabled={isLocked || completed || idx === 0}
-                  className="p-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded disabled:opacity-30"
+                  className="avionics-button p-1.5 text-zinc-300 disabled:opacity-30"
                   title="Mover para cima"
                 >
                   <ArrowUp className="w-3.5 h-3.5" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => moveRule(idx, 'down')}
                   disabled={isLocked || completed || idx === rules.length - 1}
-                  className="p-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded disabled:opacity-30"
+                  className="avionics-button p-1.5 text-zinc-300 disabled:opacity-30"
                   title="Mover para baixo"
                 >
                   <ArrowDown className="w-3.5 h-3.5" />
@@ -234,16 +242,17 @@ export default function FirewallAclLab({ onActionSubmit, isLocked }: PbqLabProps
         </div>
       </div>
 
-      <div className="flex justify-end pt-1">
+      <div className="flex justify-end pt-2">
         <button
+          type="button"
           onClick={handleApplyRules}
           disabled={isLocked || completed}
           className={`px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all ${
             completed
-              ? "bg-emerald-600 text-white cursor-not-allowed"
+              ? "bg-emerald-600/80 text-white cursor-not-allowed"
               : isLocked
-              ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              : "bg-amber-500 hover:bg-amber-400 text-zinc-950"
+              ? "avionics-button opacity-50 cursor-not-allowed"
+              : "avionics-primary"
           }`}
         >
           {completed ? (

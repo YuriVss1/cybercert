@@ -96,27 +96,30 @@ export default function IamPrivilegeLab({ onActionSubmit, isLocked }: PbqLabProp
 
   return (
     <div className="space-y-4 font-mono text-xs">
-      {/* Identity Banner */}
-      <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* -------------------------------------------------------------------- */}
+      {/* IDENTITY BANNER / COCKPIT PANEL                                      */}
+      {/* -------------------------------------------------------------------- */}
+      <div className="cockpit-card p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Key className="w-4 h-4 text-cyan-400" />
-            <span className="text-white font-bold text-sm">IAM Identity: svc-backup</span>
-            <span className="px-2 py-0.5 rounded text-[10px] bg-red-950 text-red-400 border border-red-900 font-bold">
+            <Key className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="text-white font-bold text-sm font-heading">IAM Identity: svc-backup</span>
+            <span className="telemetry-chip text-[10px] border-red-500/40 bg-red-950/40 text-red-400 font-bold">
               POLÍTICA ANÔMALA
             </span>
           </div>
-          <p className="text-zinc-500 text-[11px]">ARN: arn:aws:iam::948122019012:user/automation/svc-backup</p>
+          <p className="text-zinc-400 text-[11px] font-mono">ARN: arn:aws:iam::948122019012:user/automation/svc-backup</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
+            type="button"
             onClick={() => setKeysRotated(!keysRotated)}
             disabled={isLocked || completed}
-            className={`px-3 py-1.5 rounded border text-[11px] font-bold transition-all flex items-center gap-1.5 ${
+            className={`avionics-button text-[11px] font-bold flex items-center gap-1.5 ${
               keysRotated
-                ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
-                : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-700'
+                ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-400'
+                : 'text-zinc-300'
             }`}
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -124,12 +127,13 @@ export default function IamPrivilegeLab({ onActionSubmit, isLocked }: PbqLabProp
           </button>
 
           <button
+            type="button"
             onClick={() => setMfaEnforced(!mfaEnforced)}
             disabled={isLocked || completed}
-            className={`px-3 py-1.5 rounded border text-[11px] font-bold transition-all flex items-center gap-1.5 ${
+            className={`avionics-button text-[11px] font-bold flex items-center gap-1.5 ${
               mfaEnforced
-                ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
-                : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-700'
+                ? 'border-emerald-500/60 bg-emerald-950/40 text-emerald-400'
+                : 'text-zinc-300'
             }`}
           >
             <Lock className="w-3.5 h-3.5" />
@@ -137,9 +141,10 @@ export default function IamPrivilegeLab({ onActionSubmit, isLocked }: PbqLabProp
           </button>
 
           <button
+            type="button"
             onClick={handleDeleteUser}
             disabled={isLocked || completed}
-            className="px-3 py-1.5 rounded border text-[11px] font-bold transition-all flex items-center gap-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 border-red-800"
+            className="avionics-button text-[11px] font-bold flex items-center gap-1.5 border-red-500/40 bg-red-950/30 hover:bg-red-900/50 text-red-300"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Deletar Conta</span>
@@ -147,50 +152,55 @@ export default function IamPrivilegeLab({ onActionSubmit, isLocked }: PbqLabProp
         </div>
       </div>
 
-      {/* Policies List */}
+      {/* -------------------------------------------------------------------- */}
+      {/* POLICIES LIST INSTRUMENT                                             */}
+      {/* -------------------------------------------------------------------- */}
       <div className="space-y-2">
-        <span className="text-[10px] text-zinc-400 uppercase font-bold block">
+        <span className="hud-bracket py-0.5 text-[10px] text-zinc-300 uppercase font-bold block">
           Políticas IAM Anexadas (Inspecione permissões excessivas e revogue):
         </span>
 
         {policies.map(policy => (
           <div
             key={policy.id}
-            className={`p-3.5 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+            className={`cockpit-subcard p-4 rounded-xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
               policy.attached
                 ? policy.isRogue
-                  ? 'bg-red-950/20 border-red-800/80'
-                  : 'bg-zinc-900/80 border-zinc-800'
-                : 'bg-zinc-950/40 border-zinc-900 opacity-50'
+                  ? 'border-red-500/60 bg-red-950/20'
+                  : 'border-white/10'
+                : 'border-white/[0.05] bg-black/40 opacity-50'
             }`}
           >
-            <div>
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className={`font-bold ${policy.isRogue && policy.attached ? 'text-red-400' : 'text-zinc-200'}`}>
+                <span className={`font-bold font-mono ${policy.isRogue && policy.attached ? 'text-red-400' : 'text-zinc-200'}`}>
                   {policy.name}
                 </span>
                 <span className="text-[10px] text-zinc-500 font-mono">({policy.type})</span>
                 {!policy.attached && (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] bg-zinc-800 text-zinc-400">
+                  <span className="telemetry-chip px-1.5 py-0.2 rounded text-[9px] border-white/10 bg-white/[0.02] text-zinc-400">
                     DESANEXADA
                   </span>
                 )}
               </div>
-              <p className="text-[10px] font-mono text-zinc-400 mt-1 bg-zinc-950 p-1.5 rounded border border-zinc-850 truncate max-w-xl">
+              <p className="text-[10px] font-mono text-zinc-400 bg-black/50 p-2 rounded-lg border border-white/[0.06] truncate max-w-xl">
                 Statement: {policy.statement}
               </p>
             </div>
 
             {policy.attached ? (
               <button
+                type="button"
                 onClick={() => handleDetach(policy.id)}
                 disabled={isLocked || completed}
-                className="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[10px] font-bold border border-zinc-700 shrink-0"
+                className="avionics-button px-3 py-1.5 text-zinc-200 text-[10px] font-bold shrink-0 self-start md:self-auto"
               >
                 DESANEXAR POLÍTICA
               </button>
             ) : (
-              <span className="text-[10px] text-zinc-500 font-bold shrink-0">Revogado</span>
+              <span className="telemetry-chip text-[10px] text-zinc-500 font-bold shrink-0 self-start md:self-auto border-white/10">
+                Revogado
+              </span>
             )}
           </div>
         ))}
@@ -198,14 +208,15 @@ export default function IamPrivilegeLab({ onActionSubmit, isLocked }: PbqLabProp
 
       <div className="flex justify-end pt-2">
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={isLocked || completed}
           className={`px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all ${
             completed
-              ? "bg-emerald-600 text-white cursor-not-allowed"
+              ? "bg-emerald-600/80 text-white cursor-not-allowed"
               : isLocked
-              ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-              : "bg-cyan-600 hover:bg-cyan-500 text-white"
+              ? "avionics-button opacity-50 cursor-not-allowed"
+              : "avionics-primary"
           }`}
         >
           {completed ? (

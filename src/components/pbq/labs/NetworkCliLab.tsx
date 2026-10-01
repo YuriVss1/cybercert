@@ -140,36 +140,42 @@ export default function NetworkCliLab({ onActionSubmit, isLocked }: PbqLabProps)
   return (
     <div className="space-y-4 text-xs font-mono">
       {/* Network Header */}
-      <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg flex items-center justify-between">
+      <div className="p-3 cockpit-card rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Network className="w-4 h-4 text-emerald-400" />
+          <Network className="w-4 h-4 text-cyan-400 shrink-0" />
           <span className="text-zinc-200 font-bold uppercase tracking-wider text-[11px]">
             INVESTIGAÇÃO CLI / ANÁLISE DE TRÁFEGO CAMADA 2 & 3
           </span>
         </div>
-        <div className="text-[10px] text-zinc-400">
-          Status Rede: <span className="text-red-400 font-bold">MAN-IN-THE-MIDDLE SUSPEITO</span>
+        <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+          <span>Status Rede:</span>
+          <span className="telemetry-chip border-red-500/40 text-red-400 bg-red-950/30 font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+            MAN-IN-THE-MIDDLE SUSPEITO
+          </span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left 2 Cols: Interactive Terminal */}
-        <div className="lg:col-span-2 bg-black border border-zinc-800 rounded-lg overflow-hidden flex flex-col h-[340px]">
-          {/* Terminal Title Bar */}
-          <div className="p-2 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between">
+        <div className="lg:col-span-2 cockpit-card hud-bracket rounded-xl overflow-hidden flex flex-col h-[350px]">
+          {/* Terminal Avionics Title Bar */}
+          <div className="p-2.5 bg-white/[0.02] border-b border-white/[0.06] flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-              <span className="text-[10px] text-zinc-400 ml-2 font-mono">analyst@sec-workstation:~$</span>
+              <span className="telemetry-chip border-cyan-500/30 text-cyan-300 bg-cyan-950/20 font-bold">
+                SEC-WORKSTATION-CLI
+              </span>
+              <span className="telemetry-chip border-emerald-500/30 text-emerald-400 bg-emerald-950/20 font-bold">
+                LINK: ACTIVE
+              </span>
             </div>
             {/* Quick Command Pills */}
-            <div className="flex gap-1">
+            <div className="flex items-center gap-1.5">
               {["arp -a", "tracert 8.8.8.8", "show mac-address-table"].map(cmd => (
                 <button
                   key={cmd}
                   onClick={() => handleExecuteCommand(cmd)}
-                  className="px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-[9px] font-semibold border border-zinc-700"
+                  className="avionics-button px-2.5 py-1 text-zinc-300 rounded text-[9px] font-mono font-bold"
                 >
                   {cmd}
                 </button>
@@ -178,16 +184,16 @@ export default function NetworkCliLab({ onActionSubmit, isLocked }: PbqLabProps)
           </div>
 
           {/* Terminal Body */}
-          <div className="flex-1 p-3 overflow-y-auto space-y-2 text-[11px] font-mono leading-relaxed">
+          <div className="flex-1 p-3 overflow-y-auto space-y-2 text-[11px] font-mono leading-relaxed bg-[#05070a]/90">
             {history.map((item, idx) => (
               <div key={idx} className="space-y-1">
                 {item.command !== "system_init" && (
-                  <div className="text-emerald-400 flex items-center gap-1.5">
-                    <span className="text-zinc-500">analyst@sec-workstation:~$</span>
+                  <div className="text-cyan-400 flex items-center gap-1.5 font-bold">
+                    <span className="text-zinc-500 font-normal">analyst@sec-workstation:~$</span>
                     <span>{item.command}</span>
                   </div>
                 )}
-                <pre className="text-zinc-300 whitespace-pre-wrap font-mono text-[10px] bg-zinc-950/60 p-2 rounded border border-zinc-900">
+                <pre className="text-zinc-300 whitespace-pre-wrap font-mono text-[10px] cockpit-subcard p-2.5 rounded border border-white/[0.05]">
                   {item.output}
                 </pre>
               </div>
@@ -195,88 +201,92 @@ export default function NetworkCliLab({ onActionSubmit, isLocked }: PbqLabProps)
           </div>
 
           {/* Terminal Input Bar */}
-          <div className="p-2 bg-zinc-900 border-t border-zinc-800 flex items-center gap-2">
-            <span className="text-emerald-400 font-mono text-xs">$</span>
+          <div className="p-2.5 bg-white/[0.02] border-t border-white/[0.06] flex items-center gap-2">
+            <span className="text-cyan-400 font-mono text-xs font-bold">$</span>
             <input
               type="text"
               value={terminalInput}
               onChange={(e) => setTerminalInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleExecuteCommand()}
               placeholder="Digite comando (ex: arp -a, tracert 8.8.8.8, show mac-address-table)..."
-              className="flex-1 bg-transparent text-zinc-200 text-xs focus:outline-none font-mono"
+              className="flex-1 bg-transparent text-zinc-200 text-xs focus:outline-none font-mono placeholder:text-zinc-600"
             />
             <button
               onClick={() => handleExecuteCommand()}
-              className="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] flex items-center gap-1"
+              className="avionics-button px-3 py-1 rounded text-zinc-200 text-[10px] font-mono font-bold flex items-center gap-1.5"
             >
-              <CornerDownLeft className="w-3 h-3" />
+              <CornerDownLeft className="w-3 h-3 text-cyan-400" />
               <span>Enter</span>
             </button>
           </div>
         </div>
 
         {/* Right Col: Remediation Decision */}
-        <div className="bg-zinc-900/90 border border-zinc-800 rounded-lg p-3.5 space-y-4 flex flex-col justify-between">
+        <div className="cockpit-card rounded-xl p-4 space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
-            <div className="text-[11px] font-bold text-zinc-300 pb-2 border-b border-zinc-800 flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-              AÇÃO TÁTICA DE CONTENÇÃO
+            <div className="text-[11px] font-bold text-zinc-200 pb-2 border-b border-white/[0.08] flex items-center gap-2 font-mono">
+              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="uppercase tracking-wider">AÇÃO TÁTICA DE CONTENÇÃO</span>
             </div>
 
-            <p className="text-[10px] text-zinc-400">
+            <p className="text-[10px] text-zinc-400 leading-relaxed font-sans">
               Analise a saída do terminal, descubra a porta do switch onde o host invasor está conectado e aplique a mitigação correta:
             </p>
 
             <div className="space-y-2">
-              {mitigations.map(mit => (
-                <label
-                  key={mit.id}
-                  className={`block p-2.5 rounded border cursor-pointer ${
-                    selectedMitigation === mit.id
-                      ? mit.isCorrect
-                        ? "bg-emerald-950/30 border-emerald-500 text-emerald-200"
-                        : "bg-red-950/30 border-red-500 text-red-200"
-                      : "bg-zinc-950 border-zinc-800 text-zinc-400"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="mitigation"
-                      checked={selectedMitigation === mit.id}
-                      onChange={() => setSelectedMitigation(mit.id)}
-                    />
-                    <span className="font-bold text-[10px]">
-                      {mit.title}
-                    </span>
-                  </div>
-                  <p className="text-[9px] text-zinc-500 mt-1 pl-5">
-                    {mit.desc}
-                  </p>
-                </label>
-              ))}
+              {mitigations.map(mit => {
+                const isSelected = selectedMitigation === mit.id;
+                return (
+                  <label
+                    key={mit.id}
+                    className={`block p-2.5 rounded-lg border cursor-pointer transition-all ${
+                      isSelected
+                        ? mit.isCorrect
+                          ? "bg-emerald-950/30 border-emerald-500/50 text-emerald-200 shadow-[inset_0_1px_0_0_rgba(16,185,129,0.2)]"
+                          : "bg-red-950/30 border-red-500/50 text-red-200 shadow-[inset_0_1px_0_0_rgba(239,68,68,0.2)]"
+                        : "cockpit-subcard border-white/[0.06] text-zinc-400 hover:border-white/[0.14] hover:text-zinc-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="mitigation"
+                        checked={isSelected}
+                        onChange={() => setSelectedMitigation(mit.id)}
+                        className="accent-cyan-500"
+                      />
+                      <span className="font-bold text-[10px] font-mono">
+                        {mit.title}
+                      </span>
+                    </div>
+                    <p className="text-[9px] text-zinc-400 mt-1 pl-5 font-sans leading-normal">
+                      {mit.desc}
+                    </p>
+                  </label>
+                );
+              })}
             </div>
           </div>
 
           <button
             onClick={handleApplyAction}
             disabled={isLocked || completed}
-            className={`w-full py-2.5 rounded font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+            className={`w-full py-3 rounded-xl font-bold font-mono text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
               completed
-                ? "bg-emerald-600 text-white cursor-not-allowed"
+                ? "bg-emerald-600/90 text-white border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-not-allowed"
                 : isLocked
-                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                ? "bg-zinc-800 text-zinc-500 border border-zinc-700/50 cursor-not-allowed"
+                : "avionics-primary text-white"
             }`}
           >
             {completed ? (
               <>
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-200" />
                 <span>ATAQUE MITM BLOQUEADO</span>
               </>
             ) : (
               <>
-                <Play className="w-4 h-4" />
+                <Play className="w-4 h-4 text-cyan-200 fill-current" />
                 <span>APLICAR MITIGAÇÃO DE REDE</span>
               </>
             )}

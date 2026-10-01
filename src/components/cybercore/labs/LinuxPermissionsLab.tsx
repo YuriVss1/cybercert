@@ -149,55 +149,63 @@ export default function LinuxPermissionsLab({
   const canRevealHint = mode === 'practice' && feedback && !feedback.isCorrect && !showHintRevealed;
 
   return (
-    <div className="space-y-8 font-sans text-zinc-200">
-      {/* Header */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
-        <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
-            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
-          </span>
-          <span className="text-xs font-mono text-zinc-500">
+    <div className="space-y-6 font-mono text-zinc-200">
+      {/* Mission / Header */}
+      <section className="cockpit-card p-5 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <span className={`telemetry-chip flex items-center gap-1.5 font-bold ${modeBadge.color} border-current/30`}>
+              <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
+            </span>
+            <span className="telemetry-chip text-zinc-400">
+              SUBSYSTEM: POSIX ACCESS CONTROL
+            </span>
+          </div>
+          <span className="text-[10px] text-zinc-500 font-mono">
             {concept.title}
           </span>
         </div>
-        <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-emerald-400" />
-          Permissões POSIX do Linux (Octal & Simbólico)
-        </h2>
-        <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
-          Manipule diretamente os bits de leitura (r=4), escrita (w=2) e execução (x=1) para <strong>Owner</strong>, <strong>Group</strong> e <strong>Others</strong>. Compreenda por que chaves privadas SSH e scripts de sistema exigem modos octais específicos.
-        </p>
+
+        <div>
+          <h2 className="text-base md:text-lg font-bold text-white tracking-wide flex items-center gap-2 uppercase">
+            <Terminal className="w-5 h-5 text-emerald-400" />
+            Permissões POSIX do Linux (Octal & Simbólico)
+          </h2>
+          <p className="text-xs text-zinc-400 leading-relaxed mt-1 font-sans">
+            Manipule diretamente os bits de leitura (r=4), escrita (w=2) e execução (x=1) para <strong>Owner</strong>, <strong>Group</strong> e <strong>Others</strong>. Compreenda por que chaves privadas SSH e scripts de sistema exigem modos octais específicos.
+          </p>
+        </div>
 
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
-            <p className="text-xs text-emerald-300 flex items-start gap-2">
-              <Eye className="w-4 h-4 mt-0.5 shrink-0" />
-              <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
+          <div className="cockpit-subcard p-3 border-emerald-800/40 bg-emerald-950/20">
+            <p className="text-xs text-emerald-300 flex items-start gap-2 font-sans">
+              <Eye className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
+              <span><strong className="font-mono uppercase text-emerald-200">Orientação Pedagógica:</strong> {modeBadge.hint}</span>
             </p>
           </div>
         )}
 
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
-            <p className="text-xs text-cyan-300 flex items-start gap-2">
-              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
-              <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
+          <div className="cockpit-subcard p-3 border-cyan-800/40 bg-cyan-950/20">
+            <p className="text-xs text-cyan-300 flex items-start gap-2 font-sans">
+              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-cyan-400" />
+              <span><strong className="font-mono uppercase text-cyan-200">Dica Revelada:</strong> {modeBadge.hint}</span>
             </p>
           </div>
         )}
       </section>
 
-      {/* Desafio Atual */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
-          <div className="flex items-center gap-2">
+      {/* Permission Instrument & Matrix */}
+      <section className="cockpit-card p-5 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => { setActiveScenario('ssh_key'); setFeedback(null); setShowHintRevealed(false); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              className={`px-3 py-1.5 rounded text-xs font-mono font-bold uppercase tracking-wider transition-all ${
                 activeScenario === 'ssh_key' 
-                  ? 'bg-emerald-500 text-black shadow' 
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  ? 'bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 shadow-sm' 
+                  : 'avionics-button text-zinc-400'
               }`}
             >
               Desafio 1: Chave SSH Privada (~/.ssh/id_rsa)
@@ -205,10 +213,10 @@ export default function LinuxPermissionsLab({
             <button
               type="button"
               onClick={() => { setActiveScenario('script'); setFeedback(null); setShowHintRevealed(false); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+              className={`px-3 py-1.5 rounded text-xs font-mono font-bold uppercase tracking-wider transition-all ${
                 activeScenario === 'script' 
-                  ? 'bg-emerald-500 text-black shadow' 
-                  : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                  ? 'bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 shadow-sm' 
+                  : 'avionics-button text-zinc-400'
               }`}
             >
               Desafio 2: Script Executável (/opt/deploy.sh)
@@ -218,14 +226,14 @@ export default function LinuxPermissionsLab({
           <button
             type="button"
             onClick={handleReset}
-            className="text-xs font-mono text-zinc-500 hover:text-white flex items-center gap-1"
+            className="avionics-button text-[11px] text-zinc-400 flex items-center gap-1.5 self-start sm:self-auto"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Redefinir Bits
+            <RotateCcw className="w-3 h-3" /> Redefinir Bits
           </button>
         </div>
 
         {/* Cenário Descritivo */}
-        <div className="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-1">
+        <div className="cockpit-subcard p-3 border-emerald-800/30 bg-emerald-950/10 space-y-1">
           <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold block">
             Objetivo de Hardening:
           </span>
@@ -238,148 +246,150 @@ export default function LinuxPermissionsLab({
 
         {/* Display Visual Simbólico e Octal */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-black border border-zinc-800 flex flex-col justify-center items-center font-mono">
+          <div className="p-3.5 rounded bg-zinc-950/90 border border-zinc-800/80 flex flex-col justify-center items-center font-mono">
             <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Notação Octal (chmod)</span>
-            <span className="text-3xl font-black text-emerald-400 mt-1">{totalOctal}</span>
+            <span className="text-3xl font-black text-emerald-400 mt-1 tracking-wider">{totalOctal}</span>
           </div>
-          <div className="p-4 rounded-xl bg-black border border-zinc-800 flex flex-col justify-center items-center font-mono">
+          <div className="p-3.5 rounded bg-zinc-950/90 border border-zinc-800/80 flex flex-col justify-center items-center font-mono">
             <span className="text-[10px] text-zinc-500 uppercase tracking-widest">Notação Simbólica (ls -l)</span>
-            <span className="text-2xl font-bold text-cyan-300 mt-1">{totalSymbolic}</span>
+            <span className="text-2xl font-bold text-cyan-300 mt-1 tracking-widest">{totalSymbolic}</span>
           </div>
         </div>
 
         {/* Seletor de Bits (Owner, Group, Others) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Owner */}
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 space-y-3 font-mono">
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
-              <span className="text-xs font-bold text-white uppercase">User / Owner (u)</span>
-              <span className="text-sm font-black text-emerald-400">Octal: {userOctal}</span>
+          <div className="cockpit-subcard p-4 space-y-3 font-mono">
+            <div className="flex justify-between items-center border-b border-zinc-800/80 pb-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">User / Owner (u)</span>
+              <span className="telemetry-chip text-emerald-400 border-emerald-500/30 font-bold">Octal: {userOctal}</span>
             </div>
             <div className="space-y-2 text-xs">
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Leitura (r = 4)</span>
                 <input
                   type="checkbox"
                   checked={userPerms.r}
                   disabled={isFinalized}
                   onChange={() => handleToggle('user', 'r')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Escrita (w = 2)</span>
                 <input
                   type="checkbox"
                   checked={userPerms.w}
                   disabled={isFinalized}
                   onChange={() => handleToggle('user', 'w')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Execução (x = 1)</span>
                 <input
                   type="checkbox"
                   checked={userPerms.x}
                   disabled={isFinalized}
                   onChange={() => handleToggle('user', 'x')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
             </div>
           </div>
 
           {/* Group */}
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 space-y-3 font-mono">
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
-              <span className="text-xs font-bold text-white uppercase">Group (g)</span>
-              <span className="text-sm font-black text-emerald-400">Octal: {groupOctal}</span>
+          <div className="cockpit-subcard p-4 space-y-3 font-mono">
+            <div className="flex justify-between items-center border-b border-zinc-800/80 pb-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">Group (g)</span>
+              <span className="telemetry-chip text-emerald-400 border-emerald-500/30 font-bold">Octal: {groupOctal}</span>
             </div>
             <div className="space-y-2 text-xs">
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Leitura (r = 4)</span>
                 <input
                   type="checkbox"
                   checked={groupPerms.r}
                   disabled={isFinalized}
                   onChange={() => handleToggle('group', 'r')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Escrita (w = 2)</span>
                 <input
                   type="checkbox"
                   checked={groupPerms.w}
                   disabled={isFinalized}
                   onChange={() => handleToggle('group', 'w')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Execução (x = 1)</span>
                 <input
                   type="checkbox"
                   checked={groupPerms.x}
                   disabled={isFinalized}
                   onChange={() => handleToggle('group', 'x')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
             </div>
           </div>
 
           {/* Others */}
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/40 space-y-3 font-mono">
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
-              <span className="text-xs font-bold text-white uppercase">Others / World (o)</span>
-              <span className="text-sm font-black text-emerald-400">Octal: {othersOctal}</span>
+          <div className="cockpit-subcard p-4 space-y-3 font-mono">
+            <div className="flex justify-between items-center border-b border-zinc-800/80 pb-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">Others / World (o)</span>
+              <span className="telemetry-chip text-emerald-400 border-emerald-500/30 font-bold">Octal: {othersOctal}</span>
             </div>
             <div className="space-y-2 text-xs">
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Leitura (r = 4)</span>
                 <input
                   type="checkbox"
                   checked={othersPerms.r}
                   disabled={isFinalized}
                   onChange={() => handleToggle('others', 'r')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Escrita (w = 2)</span>
                 <input
                   type="checkbox"
                   checked={othersPerms.w}
                   disabled={isFinalized}
                   onChange={() => handleToggle('others', 'w')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
-              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950 border border-zinc-800/80">
+              <label className="flex items-center justify-between cursor-pointer p-2 rounded bg-zinc-950/80 border border-zinc-800/80 hover:border-zinc-700 transition-colors">
                 <span className="text-zinc-300">Execução (x = 1)</span>
                 <input
                   type="checkbox"
                   checked={othersPerms.x}
                   disabled={isFinalized}
                   onChange={() => handleToggle('others', 'x')}
-                  className="accent-emerald-500 w-4 h-4"
+                  className="accent-emerald-500 w-4 h-4 cursor-pointer"
                 />
               </label>
             </div>
           </div>
         </div>
 
-        {/* Rodapé */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800">
+        {/* Rodapé de Controle */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800/80">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+            <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Confiança:</span>
             <button
               type="button"
               onClick={() => setConfidence('CONFIDENT')}
-              className={`px-3 py-1 rounded text-xs font-mono ${
-                confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+              className={`px-3 py-1 rounded text-xs transition-colors ${
+                confidence === 'CONFIDENT'
+                  ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500/60 font-bold'
+                  : 'avionics-button text-zinc-400'
               }`}
             >
               Certeza
@@ -387,20 +397,22 @@ export default function LinuxPermissionsLab({
             <button
               type="button"
               onClick={() => setConfidence('HESITANT')}
-              className={`px-3 py-1 rounded text-xs font-mono ${
-                confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+              className={`px-3 py-1 rounded text-xs transition-colors ${
+                confidence === 'HESITANT'
+                  ? 'bg-amber-950/80 text-amber-300 border border-amber-500/60 font-bold'
+                  : 'avionics-button text-zinc-400'
               }`}
             >
               Dúvida
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {canRevealHint && (
               <button
                 type="button"
                 onClick={() => setShowHintRevealed(true)}
-                className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                className="avionics-button text-amber-300 border-amber-500/40 hover:border-amber-400 flex items-center gap-1.5 text-xs uppercase"
               >
                 <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
               </button>
@@ -409,7 +421,7 @@ export default function LinuxPermissionsLab({
             <button
               type="button"
               onClick={handleDontKnow}
-              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-lg text-xs font-mono uppercase flex items-center gap-1.5"
+              className="avionics-button text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 text-xs uppercase"
             >
               <HelpCircle className="w-3.5 h-3.5" /> Não sei
             </button>
@@ -417,20 +429,20 @@ export default function LinuxPermissionsLab({
               type="button"
               disabled={isFinalized}
               onClick={handleValidate}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+              className="avionics-primary text-xs uppercase tracking-wider flex items-center gap-2"
             >
-              Aplicar chmod & Validar <ArrowRight className="w-4 h-4" />
+              Aplicar chmod & Validar <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </section>
 
-      {/* Feedback */}
+      {/* Feedback Panel */}
       {feedback && (
-        <section className={`p-6 rounded-xl border space-y-3 font-mono text-xs ${
+        <section className={`cockpit-card p-5 space-y-3 font-mono text-xs ${
           feedback.isCorrect 
-            ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200' 
-            : 'bg-red-950/40 border-red-800/80 text-red-200'
+            ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' 
+            : 'border-red-500/40 bg-red-950/20 text-red-200'
         }`}>
           <div className="flex items-center gap-2">
             {feedback.isCorrect ? (
@@ -438,7 +450,7 @@ export default function LinuxPermissionsLab({
             ) : (
               <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
             )}
-            <h4 className="font-bold text-sm text-white">
+            <h4 className="font-bold text-sm text-white uppercase tracking-wider">
               {feedback.isCorrect ? 'Hardening de Permissões Aprovado' : (mode === 'exam' ? 'Avaliação Registrada' : 'Permissão Insegura ou Inadequada')}
             </h4>
           </div>
@@ -447,7 +459,7 @@ export default function LinuxPermissionsLab({
           </p>
 
           {mode === 'exam' && isFinalized && (
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1 mt-2">
+            <div className="cockpit-subcard p-3 border-zinc-800 bg-zinc-950/80 text-xs space-y-1 mt-2">
               <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
               <p className="text-zinc-300 font-sans">
                 No modelo de segurança POSIX, chaves criptográficas como ~/.ssh/id_rsa exigem modo restrito 600 (-rw-------), onde apenas o proprietário pode ler e escrever. Scripts executáveis de sistema geralmente adotam 755 (-rwxr-xr-x), impedindo modificação por terceiros.

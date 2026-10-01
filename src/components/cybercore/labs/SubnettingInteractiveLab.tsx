@@ -342,23 +342,26 @@ export default function SubnettingInteractiveLab({
   const canRevealHint = mode === 'practice' && feedback.type === 'pedagogical_error' && !showHintRevealed;
 
   return (
-    <div className="space-y-8 font-sans text-zinc-200">
+    <div className="space-y-6 font-mono text-zinc-200">
       
       {/* -------------------------------------------------------------------- */}
       {/* CABEÇALHO DO LABORATÓRIO + BANNER DE MODO                            */}
       {/* -------------------------------------------------------------------- */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-4">
+      <section className="cockpit-card p-5 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
           <div>
-            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest mb-1">
-              <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-bold ${modeBadge.bg} ${modeBadge.color}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`telemetry-chip flex items-center gap-1.5 font-bold ${modeBadge.color} border-current/30`}>
                 <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
               </span>
+              <span className="telemetry-chip text-zinc-400">
+                PROTOCOL: IPv4 / CIDR DECOMPOSITION
+              </span>
             </div>
-            <h2 className="text-xl font-bold text-white tracking-wide mt-2">
+            <h2 className="text-base md:text-lg font-bold text-white tracking-wide uppercase">
               Laboratório Interativo de Partição IPv4 & CIDR
             </h2>
-            <p className="text-xs md:text-sm text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-400 mt-1 font-sans">
               {mode === 'guided' && 'Explore o manipulador visual contínuo de sub-redes com assistência direta e cálculos de blocos expostos.'}
               {mode === 'practice' && 'Resolva os níveis progressivos de cálculo de máscara, rede e broadcast. Dicas liberadas após erro.'}
               {mode === 'exam' && 'Avaliação autônoma de particionamento de sub-redes: construa os blocos sem a calculadora visual.'}
@@ -367,17 +370,17 @@ export default function SubnettingInteractiveLab({
 
           {/* Seletor de modo interativo */}
           {mode !== 'exam' && (
-            <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 p-1.5 rounded-lg">
-              <span className="text-xs text-zinc-400 font-mono px-2">Prefixo CIDR:</span>
+            <div className="flex items-center gap-1.5 bg-zinc-950/80 border border-zinc-800/80 p-1.5 rounded">
+              <span className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider px-1.5">Prefixo:</span>
               {[24, 25, 26, 27, 28].map((prefix) => (
                 <button
                   key={prefix}
                   type="button"
                   onClick={() => handlePrefixChange(prefix)}
-                  className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all ${
+                  className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-all ${
                     selectedPrefix === prefix
-                      ? 'bg-cyan-500 text-black shadow-[0_0_10px_rgba(6,182,212,0.4)]'
-                      : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                      ? 'bg-cyan-950/90 text-cyan-300 border border-cyan-500/60 shadow-sm'
+                      : 'avionics-button text-zinc-400'
                   }`}
                 >
                   /{prefix}
@@ -389,11 +392,11 @@ export default function SubnettingInteractiveLab({
 
         {/* Dica visível no modo guided */}
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
-            <p className="text-xs text-emerald-300 flex items-start gap-2">
-              <Eye className="w-4 h-4 mt-0.5 shrink-0" />
+          <div className="cockpit-subcard p-3 border-emerald-800/40 bg-emerald-950/20">
+            <p className="text-xs text-emerald-300 flex items-start gap-2 font-sans">
+              <Eye className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
               <span>
-                <strong>Orientação Pedagógica:</strong> {modeBadge.hint} Cada bit emprestado da porção de host dobra o número de sub-redes e divide o tamanho do bloco pela metade.
+                <strong className="font-mono uppercase text-emerald-200">Orientação Pedagógica:</strong> {modeBadge.hint} Cada bit emprestado da porção de host dobra o número de sub-redes e divide o tamanho do bloco pela metade.
               </span>
             </p>
           </div>
@@ -401,11 +404,11 @@ export default function SubnettingInteractiveLab({
 
         {/* Dica revelada no modo practice */}
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
-            <p className="text-xs text-cyan-300 flex items-start gap-2">
-              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
+          <div className="cockpit-subcard p-3 border-cyan-800/40 bg-cyan-950/20">
+            <p className="text-xs text-cyan-300 flex items-start gap-2 font-sans">
+              <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-cyan-400" />
               <span>
-                <strong>Dica Revelada:</strong> {modeBadge.hint}
+                <strong className="font-mono uppercase text-cyan-200">Dica Revelada:</strong> {modeBadge.hint}
               </span>
             </p>
           </div>
@@ -414,9 +417,11 @@ export default function SubnettingInteractiveLab({
         {/* Barra de Divisão Visual (visível em guided e practice; oculta/bloqueada em exam) */}
         {mode !== 'exam' ? (
           <div className="space-y-3 pt-2">
-            <div className="flex justify-between items-center text-xs font-mono text-zinc-400">
+            <div className="flex flex-wrap justify-between items-center text-xs font-mono text-zinc-400 gap-2">
               <span>Rede Base: <strong className="text-zinc-200">{baseIp}/24</strong> (256 endereços)</span>
-              <span>Total de Sub-redes: <strong className="text-cyan-400 font-bold">{generatedSubnets.length}</strong></span>
+              <span className="telemetry-chip text-cyan-400 border-cyan-500/30">
+                TOTAL DE SUB-REDES: <strong className="font-bold">{generatedSubnets.length}</strong>
+              </span>
             </div>
 
             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${generatedSubnets.length}, 1fr)` }}>
@@ -427,14 +432,14 @@ export default function SubnettingInteractiveLab({
                     key={sub.networkAddress}
                     type="button"
                     onClick={() => setInspectedBlockIndex(idx)}
-                    className={`p-3 rounded-lg border text-left transition-all relative overflow-hidden ${
+                    className={`p-3 rounded border text-left transition-all relative overflow-hidden cursor-pointer ${
                       isSelected
-                        ? 'bg-cyan-950/60 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)] ring-1 ring-cyan-500'
-                        : 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900'
+                        ? 'bg-cyan-950/40 border-cyan-500/70 shadow-sm shadow-cyan-950/40 ring-1 ring-cyan-500/40'
+                        : 'cockpit-subcard hover:border-zinc-700/80 border-transparent'
                     }`}
                   >
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] uppercase font-mono tracking-widest text-zinc-500">
+                      <span className="text-[10px] uppercase font-mono tracking-widest text-zinc-400">
                         Sub-rede #{sub.index}
                       </span>
                       <span className="text-[10px] font-mono text-cyan-400 font-bold">
@@ -453,38 +458,38 @@ export default function SubnettingInteractiveLab({
             </div>
 
             {inspectedBlock && (
-              <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="cockpit-subcard p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between border-b border-zinc-800/80 pb-2.5 gap-2">
                   <div className="flex items-center gap-2">
                     <Sliders className="w-4 h-4 text-cyan-400" />
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                    <h3 className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
                       Inspeção Técnica: Sub-rede #{inspectedBlock.index} ({inspectedBlock.networkAddress}/{inspectedBlock.prefix})
                     </h3>
                   </div>
-                  <span className="text-xs font-mono text-zinc-400">
-                    Máscara: <strong className="text-zinc-200">{inspectedBlock.subnetMask}</strong>
+                  <span className="telemetry-chip text-zinc-300">
+                    Máscara: <strong className="text-cyan-300 font-mono">{inspectedBlock.subnetMask}</strong>
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 font-mono text-xs">
-                  <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-                    <span className="text-zinc-500 block text-[10px] uppercase tracking-wider mb-1">Network (Rede)</span>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 font-mono text-xs">
+                  <div className="bg-zinc-950/80 p-2.5 rounded border border-zinc-800/80">
+                    <span className="text-zinc-500 block text-[9px] uppercase tracking-wider mb-1">Network (Rede)</span>
                     <span className="text-cyan-400 font-bold">{inspectedBlock.networkAddress}</span>
                   </div>
-                  <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-                    <span className="text-zinc-500 block text-[10px] uppercase tracking-wider mb-1">Primeiro Host</span>
+                  <div className="bg-zinc-950/80 p-2.5 rounded border border-zinc-800/80">
+                    <span className="text-zinc-500 block text-[9px] uppercase tracking-wider mb-1">Primeiro Host</span>
                     <span className="text-emerald-400 font-bold">{inspectedBlock.firstUsableHost}</span>
                   </div>
-                  <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-                    <span className="text-zinc-500 block text-[10px] uppercase tracking-wider mb-1">Último Host</span>
+                  <div className="bg-zinc-950/80 p-2.5 rounded border border-zinc-800/80">
+                    <span className="text-zinc-500 block text-[9px] uppercase tracking-wider mb-1">Último Host</span>
                     <span className="text-emerald-400 font-bold">{inspectedBlock.lastUsableHost}</span>
                   </div>
-                  <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-                    <span className="text-zinc-500 block text-[10px] uppercase tracking-wider mb-1">Broadcast</span>
+                  <div className="bg-zinc-950/80 p-2.5 rounded border border-zinc-800/80">
+                    <span className="text-zinc-500 block text-[9px] uppercase tracking-wider mb-1">Broadcast</span>
                     <span className="text-amber-400 font-bold">{inspectedBlock.broadcastAddress}</span>
                   </div>
-                  <div className="bg-zinc-950 p-3 rounded-lg border border-zinc-800 col-span-2 md:col-span-1">
-                    <span className="text-zinc-500 block text-[10px] uppercase tracking-wider mb-1">Capacidade Útil</span>
+                  <div className="bg-zinc-950/80 p-2.5 rounded border border-zinc-800/80 col-span-2 md:col-span-1">
+                    <span className="text-zinc-500 block text-[9px] uppercase tracking-wider mb-1">Capacidade Útil</span>
                     <span className="text-white font-bold">{inspectedBlock.usableHosts} IPs</span>
                   </div>
                 </div>
@@ -492,7 +497,7 @@ export default function SubnettingInteractiveLab({
             )}
           </div>
         ) : (
-          <div className="p-4 bg-amber-950/20 border border-amber-900/40 rounded-xl text-xs font-mono text-amber-300/80">
+          <div className="cockpit-subcard p-4 border-amber-900/40 bg-amber-950/20 text-xs font-mono text-amber-300/90">
             ⚠️ O manipulador visual interativo está bloqueado durante a avaliação autônoma (Modo Testar) para aferir a capacidade de cálculo independente.
           </div>
         )}
@@ -501,20 +506,20 @@ export default function SubnettingInteractiveLab({
       {/* -------------------------------------------------------------------- */}
       {/* SEÇÃO 2: DESAFIOS DE RECUPERAÇÃO CONCEITUAL                          */}
       {/* -------------------------------------------------------------------- */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
+      <section className="cockpit-card p-5 space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-3">
           <div>
-            <span className="text-cyan-400 font-mono text-xs uppercase tracking-widest">
+            <span className="text-cyan-400 font-mono text-[11px] uppercase tracking-widest block">
               {mode === 'exam' ? 'Avaliação Autônoma' : 'Prática e Fixação Conceitual'}
             </span>
-            <h2 className="text-lg font-bold text-white tracking-wide mt-1">
+            <h2 className="text-sm md:text-base font-bold text-white tracking-wide uppercase mt-0.5">
               Desafios de Particionamento
             </h2>
           </div>
 
           {/* Seletor de Níveis (visível apenas fora do modo exam) */}
           {mode !== 'exam' && (
-            <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 p-1 rounded-lg">
+            <div className="flex items-center gap-1 bg-zinc-950/80 border border-zinc-800/80 p-1 rounded">
               {[1, 2, 3, 4, 5].map((lvl) => (
                 <button
                   key={lvl}
@@ -526,10 +531,10 @@ export default function SubnettingInteractiveLab({
                     setShowHintRevealed(false);
                     setIsFinalized(false);
                   }}
-                  className={`px-3 py-1 rounded text-xs font-mono font-bold transition-all ${
+                  className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition-all ${
                     currentLevel === lvl
-                      ? 'bg-zinc-800 text-white border border-cyan-500'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-cyan-950/90 text-cyan-300 border border-cyan-500/60 font-bold'
+                      : 'avionics-button text-zinc-400'
                   }`}
                 >
                   Nível {lvl}
@@ -540,17 +545,19 @@ export default function SubnettingInteractiveLab({
         </div>
 
         {/* Descrição do Nível Atual */}
-        <div className="bg-zinc-900/40 border border-zinc-800 p-4 rounded-xl space-y-3">
+        <div className="cockpit-subcard p-4 space-y-2">
           <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-            <span className="text-cyan-400 font-bold">Nível {currentLevel} de 5:</span>
-            {currentLevel === 1 && 'Cálculo de Máscara de Sub-rede'}
-            {currentLevel === 2 && 'Identificação do Endereço de Rede (Network ID)'}
-            {currentLevel === 3 && 'Identificação do Endereço de Broadcast'}
-            {currentLevel === 4 && 'Construção da Partição Completa de 4 Sub-redes'}
-            {currentLevel === 5 && 'Dimensionamento de Capacidade para Departamentos'}
+            <span className="telemetry-chip text-cyan-400 border-cyan-500/30 font-bold">Nível {currentLevel} de 5</span>
+            <span className="text-zinc-300 font-bold">
+              {currentLevel === 1 && 'Cálculo de Máscara de Sub-rede'}
+              {currentLevel === 2 && 'Identificação do Endereço de Rede (Network ID)'}
+              {currentLevel === 3 && 'Identificação do Endereço de Broadcast'}
+              {currentLevel === 4 && 'Construção da Partição Completa de 4 Sub-redes'}
+              {currentLevel === 5 && 'Dimensionamento de Capacidade para Departamentos'}
+            </span>
           </div>
 
-          <p className="text-sm font-medium text-zinc-200">
+          <p className="text-xs md:text-sm font-sans text-zinc-200 leading-relaxed">
             {currentLevel === 1 && 'Qual é a máscara decimal pontuada correspondente ao prefixo CIDR /26?'}
             {currentLevel === 2 && 'Dado o endereço IP 192.168.10.77/26, informe o endereço de Rede (Network Address) correspondente:'}
             {currentLevel === 3 && 'Qual é o endereço de Broadcast da sub-rede à qual pertence o IP 192.168.10.77/26?'}
@@ -563,7 +570,7 @@ export default function SubnettingInteractiveLab({
         <form onSubmit={handleEvaluateLevel} className="space-y-4">
           {currentLevel !== 4 ? (
             <div>
-              <label htmlFor={maskInputId} className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-2">
+              <label htmlFor={maskInputId} className="block text-[11px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5">
                 Sua Resposta:
               </label>
               <input
@@ -577,24 +584,24 @@ export default function SubnettingInteractiveLab({
                   currentLevel === 2 ? 'ex: 192.168.10.64' :
                   currentLevel === 3 ? 'ex: 192.168.10.127' : '/27'
                 }
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 font-mono text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded p-2.5 font-mono text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
               />
             </div>
           ) : (
             /* Builder Interativo para o Nível 4 */
             <div className="space-y-3">
-              <span className="block text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">
+              <span className="block text-[11px] font-mono text-zinc-400 uppercase tracking-widest mb-1">
                 Tabela de Partição da Rede 192.168.20.0/24:
               </span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {builderSubnets.map((sub, idx) => (
-                  <div key={idx} className="bg-zinc-900 p-3 rounded-lg border border-zinc-800 space-y-2">
-                    <span className="text-[11px] font-mono text-cyan-400 font-bold block">
+                  <div key={idx} className="cockpit-subcard p-3 space-y-2">
+                    <span className="text-[11px] font-mono text-cyan-400 font-bold block uppercase tracking-wider">
                       Sub-rede #{idx + 1} (/26)
                     </span>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <span className="text-[10px] text-zinc-500 font-mono block">Network</span>
+                        <span className="text-[10px] text-zinc-500 font-mono block uppercase">Network</span>
                         <input
                           type="text"
                           value={sub.net}
@@ -605,11 +612,11 @@ export default function SubnettingInteractiveLab({
                             setBuilderSubnets(updated);
                           }}
                           placeholder={`192.168.20.${idx * 64}`}
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-white"
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
                         />
                       </div>
                       <div>
-                        <span className="text-[10px] text-zinc-500 font-mono block">Broadcast</span>
+                        <span className="text-[10px] text-zinc-500 font-mono block uppercase">Broadcast</span>
                         <input
                           type="text"
                           value={sub.bcast}
@@ -620,7 +627,7 @@ export default function SubnettingInteractiveLab({
                             setBuilderSubnets(updated);
                           }}
                           placeholder={`192.168.20.${(idx + 1) * 64 - 1}`}
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-white"
+                          className="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
                         />
                       </div>
                     </div>
@@ -631,16 +638,16 @@ export default function SubnettingInteractiveLab({
           )}
 
           {!isFinalized && (
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-800/80">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+                <span className="text-[11px] text-zinc-500 uppercase tracking-wider">Confiança:</span>
                 <button
                   type="button"
                   onClick={() => setUserConfidence('CONFIDENT')}
-                  className={`px-2.5 py-1 rounded text-xs font-mono ${
+                  className={`px-3 py-1 rounded text-xs transition-colors ${
                     userConfidence === 'CONFIDENT'
-                      ? 'bg-cyan-950 text-cyan-300 border border-cyan-500'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-500/60 font-bold'
+                      : 'avionics-button text-zinc-400'
                   }`}
                 >
                   Certeza
@@ -648,22 +655,22 @@ export default function SubnettingInteractiveLab({
                 <button
                   type="button"
                   onClick={() => setUserConfidence('HESITANT')}
-                  className={`px-2.5 py-1 rounded text-xs font-mono ${
+                  className={`px-3 py-1 rounded text-xs transition-colors ${
                     userConfidence === 'HESITANT'
-                      ? 'bg-amber-950 text-amber-300 border border-amber-500'
-                      : 'text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-amber-950/80 text-amber-300 border border-amber-500/60 font-bold'
+                      : 'avionics-button text-zinc-400'
                   }`}
                 >
                   Dúvida
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {canRevealHint && (
                   <button
                     type="button"
                     onClick={() => setShowHintRevealed(true)}
-                    className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                    className="avionics-button text-amber-300 border-amber-500/40 hover:border-amber-400 flex items-center gap-1.5 text-xs uppercase"
                   >
                     <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
                   </button>
@@ -672,14 +679,14 @@ export default function SubnettingInteractiveLab({
                 <button
                   type="button"
                   onClick={() => handleDidNotKnow(`sub-lvl-${currentLevel}`, currentLevel === 4 ? 'build' : 'calculate')}
-                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-400 hover:text-white rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                  className="avionics-button text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 text-xs uppercase"
                 >
                   <HelpCircle className="w-3.5 h-3.5" /> Não sei
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-1.5"
+                  className="avionics-primary text-xs uppercase tracking-wider flex items-center gap-1.5"
                 >
                   Validar <ChevronRight className="w-4 h-4" />
                 </button>
@@ -691,14 +698,14 @@ export default function SubnettingInteractiveLab({
         {/* Feedback Pedagógico Específico */}
         {feedback.type && (
           <div
-            className={`p-4 rounded-xl border flex items-start gap-3 transition-all ${
+            className={`cockpit-subcard p-4 flex items-start gap-3 transition-all ${
               feedback.type === 'success'
-                ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200'
+                ? 'border-emerald-500/50 bg-emerald-950/20 text-emerald-200'
                 : feedback.type === 'did_not_know'
-                ? 'bg-cyan-950/40 border-cyan-500/60 text-cyan-200'
+                ? 'border-cyan-500/50 bg-cyan-950/20 text-cyan-200'
                 : feedback.type === 'registered'
-                ? 'bg-zinc-900 border-zinc-700 text-zinc-300'
-                : 'bg-amber-950/30 border-amber-500/50 text-amber-200'
+                ? 'border-zinc-700 bg-zinc-950/80 text-zinc-300'
+                : 'border-amber-500/50 bg-amber-950/20 text-amber-200'
             }`}
           >
             {feedback.type === 'success' ? (
@@ -717,12 +724,12 @@ export default function SubnettingInteractiveLab({
                 {feedback.type === 'did_not_know' && 'Reforço Pedagógico Agendado'}
                 {feedback.type === 'pedagogical_error' && `Orientação Pedagógica (Tentativa #${feedback.hintLevel})`}
               </span>
-              <p className="text-sm leading-relaxed">{feedback.message}</p>
+              <p className="text-xs md:text-sm font-sans leading-relaxed">{feedback.message}</p>
 
               {mode === 'exam' && isFinalized && (
-                <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1 mt-2">
+                <div className="cockpit-subcard p-3 border-zinc-800 bg-zinc-950/80 text-xs space-y-1 mt-2">
                   <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
-                  <p className="text-zinc-300">
+                  <p className="text-zinc-300 font-sans">
                     Ao dividir uma rede /24 em /26, o tamanho do bloco é 64 (256 / 4 = 64). Os quatro blocos são: .0 (broadcast .63), .64 (broadcast .127), .128 (broadcast .191) e .192 (broadcast .255).
                   </p>
                 </div>
@@ -735,16 +742,16 @@ export default function SubnettingInteractiveLab({
       {/* -------------------------------------------------------------------- */}
       {/* SEÇÃO 3: STATUS REAL DE DOMÍNIO DO CONCEITO                          */}
       {/* -------------------------------------------------------------------- */}
-      <section className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono">
+      <section className="cockpit-card p-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-cyan-950/80 border border-cyan-800 rounded-lg text-cyan-400">
+          <div className="p-2 rounded bg-cyan-950/60 border border-cyan-500/40 text-cyan-400">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <span className="text-zinc-500 block uppercase tracking-wider text-[10px]">
               Evidência de Domínio Atual
             </span>
-            <span className="text-white font-bold text-sm">
+            <span className="text-white font-bold text-xs uppercase">
               {mastery?.retentionState === 'MASTERED' && 'CONSOLIDADO & DOMINADO (85%+ Acurácia em 3+ Desafios)'}
               {mastery?.retentionState === 'CONSOLIDATED' && 'CONSOLIDADO (Retenção intermediária confirmada)'}
               {mastery?.retentionState === 'IN_DEVELOPMENT' && 'EM DESENVOLVIMENTO (Prática contínua)'}
@@ -753,21 +760,21 @@ export default function SubnettingInteractiveLab({
           </div>
         </div>
 
-        <div className="flex items-center gap-6 text-zinc-400">
+        <div className="flex flex-wrap items-center gap-5 text-zinc-400">
           <div>
-            <span className="text-zinc-500 block text-[10px]">Tentativas</span>
+            <span className="text-zinc-500 block text-[9px] uppercase">Tentativas</span>
             <strong className="text-zinc-200">{mastery?.totalAttempts || 0}</strong>
           </div>
           <div>
-            <span className="text-zinc-500 block text-[10px]">Acurácia</span>
+            <span className="text-zinc-500 block text-[9px] uppercase">Acurácia</span>
             <strong className="text-cyan-400">{mastery?.accuracy || 0}%</strong>
           </div>
           <div>
-            <span className="text-zinc-500 block text-[10px]">Tipos Praticados</span>
+            <span className="text-zinc-500 block text-[9px] uppercase">Tipos Praticados</span>
             <strong className="text-zinc-200">{mastery?.challengeDiversityCount || 0}/3</strong>
           </div>
           <div>
-            <span className="text-zinc-500 block text-[10px]">Próxima Revisão</span>
+            <span className="text-zinc-500 block text-[9px] uppercase">Próxima Revisão</span>
             <strong className="text-zinc-200">
               {mastery?.nextReviewAt ? new Date(mastery.nextReviewAt).toLocaleDateString('pt-BR') : 'Hoje'}
             </strong>

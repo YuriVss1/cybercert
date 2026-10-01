@@ -188,26 +188,32 @@ export default function KerberosFlowLab({
 
   return (
     <div className="space-y-8 font-sans text-zinc-200">
-      {/* Header */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
-        <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
-            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
-          </span>
-          <span className="text-xs font-mono text-zinc-500">
-            {concept.title}
-          </span>
+      {/* -------------------------------------------------------------------- */}
+      {/* MISSION HEADER + PEDAGOGICAL MODE INDICATOR                          */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="cockpit-card rounded-xl p-6 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+          <div>
+            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest mb-1">
+              <span className={`telemetry-chip font-bold ${modeBadge.color} border-current/30 bg-white/[0.02]`}>
+                <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
+              </span>
+              <span className="telemetry-chip text-zinc-400 border-white/10 bg-white/[0.02]">
+                {concept.title}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-wide mt-2 font-heading flex items-center gap-2">
+              <Key className="w-5 h-5 text-cyan-400 shrink-0" />
+              Fluxo de Autenticação Kerberos & Vetores de Ataque
+            </h2>
+            <p className="text-xs md:text-sm text-zinc-400 mt-1 leading-relaxed max-w-3xl">
+              Navegue pelas trocas de mensagens do Kerberos (KDC, TGT, TGS, AP) e entenda onde ocorrem os ataques mais críticos em ambientes Active Directory.
+            </p>
+          </div>
         </div>
-        <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <Key className="w-5 h-5 text-purple-400" />
-          Fluxo de Autenticação Kerberos & Vetores de Ataque
-        </h2>
-        <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
-          Navegue pelas trocas de mensagens do Kerberos (KDC, TGT, TGS, AP) e entenda onde ocorrem os ataques mais críticos em ambientes Active Directory.
-        </p>
 
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+          <div className="cockpit-subcard p-3 rounded-lg border-emerald-500/30 bg-emerald-950/20">
             <p className="text-xs text-emerald-300 flex items-start gap-2">
               <Eye className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
@@ -216,7 +222,7 @@ export default function KerberosFlowLab({
         )}
 
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+          <div className="cockpit-subcard p-3 rounded-lg border-cyan-500/30 bg-cyan-950/20 animate-in fade-in">
             <p className="text-xs text-cyan-300 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
@@ -225,8 +231,19 @@ export default function KerberosFlowLab({
         )}
       </section>
 
-      {/* Stepper Visual */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6">
+      {/* -------------------------------------------------------------------- */}
+      {/* STEPPER VISUAL + DETALHE DO PASSO KERBEROS                           */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="cockpit-card rounded-xl p-6 space-y-6">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <span className="hud-bracket py-0.5 text-xs font-mono text-zinc-300 uppercase tracking-widest font-bold">
+            Sequência de Troca de Bilhetes Kerberos
+          </span>
+          <span className="telemetry-chip text-[10px] text-cyan-400 border-cyan-500/30">
+            PASSO {activeStep.stepNumber} DE {KERBEROS_STEPS.length}
+          </span>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
           {KERBEROS_STEPS.map((s, idx) => (
             <button
@@ -235,51 +252,51 @@ export default function KerberosFlowLab({
               onClick={() => setCurrentStepIdx(idx)}
               className={`p-2.5 rounded-lg border text-left font-mono transition-all ${
                 currentStepIdx === idx 
-                  ? 'bg-purple-950/80 border-purple-500 text-purple-200' 
-                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                  ? 'cockpit-subcard border-cyan-500/60 bg-cyan-950/30 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.15)]' 
+                  : 'cockpit-subcard border-white/10 text-zinc-400 hover:border-white/20'
               }`}
             >
-              <span className="text-[10px] block text-zinc-500">Passo {s.stepNumber}</span>
-              <span className="text-xs font-bold truncate block">{s.name.split(' ')[0]}</span>
+              <span className="text-[10px] block text-zinc-500 font-mono">Passo {s.stepNumber}</span>
+              <span className="text-xs font-bold truncate block mt-0.5">{s.name.split(' ')[0]}</span>
             </button>
           ))}
         </div>
 
         {/* Detalhe do Passo */}
-        <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+        <div className="cockpit-subcard p-6 rounded-xl space-y-4 border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
             <div>
-              <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest block font-bold">
+              <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block font-bold">
                 Passo {activeStep.stepNumber} de {KERBEROS_STEPS.length}
               </span>
-              <h3 className="text-base font-bold text-white font-mono">
+              <h3 className="text-base font-bold text-white font-mono mt-0.5">
                 {activeStep.name}
               </h3>
             </div>
             <div className="flex items-center gap-2 font-mono text-xs text-zinc-400">
-              <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-200">{activeStep.sender}</span>
-              <span>→</span>
-              <span className="px-2 py-0.5 rounded bg-zinc-800 text-purple-300 font-bold">{activeStep.receiver}</span>
+              <span className="telemetry-chip bg-white/[0.03] text-zinc-200 border-white/10">{activeStep.sender}</span>
+              <span className="text-cyan-400">→</span>
+              <span className="telemetry-chip bg-cyan-950/40 text-cyan-300 border-cyan-500/30 font-bold">{activeStep.receiver}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-            <div className="p-3.5 bg-zinc-950 rounded-lg border border-zinc-800 space-y-1">
+            <div className="p-3.5 bg-black/40 rounded-lg border border-white/[0.08] space-y-1">
               <span className="text-zinc-500 uppercase text-[10px] block">Carga Útil / Mensagem</span>
               <p className="text-zinc-200 font-sans leading-relaxed">{activeStep.payloadDescription}</p>
             </div>
-            <div className="p-3.5 bg-zinc-950 rounded-lg border border-zinc-800 space-y-1">
+            <div className="p-3.5 bg-black/40 rounded-lg border border-white/[0.08] space-y-1">
               <span className="text-zinc-500 uppercase text-[10px] block">Chave de Encriptação Empregada</span>
-              <p className="text-purple-300 font-bold">{activeStep.encryptionKeyUsed}</p>
+              <p className="text-cyan-300 font-bold">{activeStep.encryptionKeyUsed}</p>
             </div>
           </div>
 
           {activeStep.securityAttackContext && (mode === 'guided' || currentStepIdx < 2) && (
-            <div className="p-3.5 rounded-lg bg-red-950/20 border border-red-800/40 text-red-200 text-xs font-sans space-y-1">
+            <div className="p-3.5 rounded-lg bg-red-950/20 border border-red-500/30 text-red-200 text-xs font-sans space-y-1">
               <strong className="font-mono text-[11px] text-red-400 uppercase tracking-wider flex items-center gap-1.5">
                 <ShieldAlert className="w-3.5 h-3.5" /> Vetor de Ataque no Active Directory:
               </strong>
-              <p className="leading-relaxed">{activeStep.securityAttackContext}</p>
+              <p className="leading-relaxed text-zinc-300">{activeStep.securityAttackContext}</p>
             </div>
           )}
 
@@ -288,7 +305,7 @@ export default function KerberosFlowLab({
               type="button"
               disabled={currentStepIdx === 0}
               onClick={handlePrevStep}
-              className="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono text-xs disabled:opacity-30"
+              className="avionics-button text-xs font-mono disabled:opacity-30"
             >
               Anterior
             </button>
@@ -296,7 +313,7 @@ export default function KerberosFlowLab({
               type="button"
               disabled={currentStepIdx === KERBEROS_STEPS.length - 1}
               onClick={handleNextStep}
-              className="px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs font-mono disabled:opacity-30 flex items-center gap-1"
+              className="avionics-primary text-xs font-mono disabled:opacity-30 flex items-center gap-1"
             >
               Próximo <ChevronRight className="w-3.5 h-3.5" />
             </button>
@@ -304,9 +321,9 @@ export default function KerberosFlowLab({
         </div>
 
         {/* Teste de Fixação de Vetores de Ataque */}
-        <form onSubmit={handleValidateAttackTest} className="border-t border-zinc-800 pt-6 space-y-4">
+        <form onSubmit={handleValidateAttackTest} className="border-t border-white/[0.08] pt-6 space-y-4">
           <div className="space-y-1">
-            <span className="text-xs font-mono text-purple-400 uppercase tracking-widest font-bold">
+            <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-bold">
               {mode === 'exam' ? 'Avaliação Autônoma' : 'Desafio de Retenção de Conceito'}
             </span>
             <h4 className="text-sm font-bold text-white font-mono">
@@ -325,8 +342,8 @@ export default function KerberosFlowLab({
                 key={opt.id}
                 className={`p-3 rounded-lg border cursor-pointer flex items-center gap-2.5 transition-all ${
                   selectedAttackTest === opt.id 
-                    ? 'bg-purple-950/70 border-purple-500 text-purple-200' 
-                    : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'
+                    ? 'cockpit-subcard border-cyan-500/60 bg-cyan-950/30 text-cyan-200' 
+                    : 'cockpit-subcard border-white/10 text-zinc-300 hover:border-white/20'
                 }`}
               >
                 <input
@@ -336,7 +353,7 @@ export default function KerberosFlowLab({
                   disabled={isFinalized}
                   checked={selectedAttackTest === opt.id}
                   onChange={(e) => setSelectedAttackTest(e.target.value)}
-                  className="accent-purple-500"
+                  className="accent-cyan-500"
                 />
                 <span>{opt.label}</span>
               </label>
@@ -346,12 +363,12 @@ export default function KerberosFlowLab({
           {!isFinalized && (
             <div className="flex flex-wrap items-center justify-between gap-4 pt-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-zinc-500">Confiança:</span>
+                <span className="text-xs font-mono text-zinc-400">Confiança:</span>
                 <button
                   type="button"
                   onClick={() => setConfidence('CONFIDENT')}
-                  className={`px-3 py-1 rounded text-xs font-mono ${
-                    confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+                  className={`avionics-button text-xs font-mono py-1 px-3 ${
+                    confidence === 'CONFIDENT' ? 'border-cyan-500/60 bg-cyan-950/40 text-cyan-300' : 'text-zinc-400'
                   }`}
                 >
                   Certeza
@@ -359,8 +376,8 @@ export default function KerberosFlowLab({
                 <button
                   type="button"
                   onClick={() => setConfidence('HESITANT')}
-                  className={`px-3 py-1 rounded text-xs font-mono ${
-                    confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+                  className={`avionics-button text-xs font-mono py-1 px-3 ${
+                    confidence === 'HESITANT' ? 'border-amber-500/60 bg-amber-950/40 text-amber-300' : 'text-zinc-400'
                   }`}
                 >
                   Dúvida
@@ -372,7 +389,7 @@ export default function KerberosFlowLab({
                   <button
                     type="button"
                     onClick={() => setShowHintRevealed(true)}
-                    className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                    className="avionics-button text-amber-400 border-amber-500/30 bg-amber-950/20 hover:bg-amber-950/40 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
                   >
                     <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
                   </button>
@@ -381,14 +398,14 @@ export default function KerberosFlowLab({
                 <button
                   type="button"
                   onClick={handleDontKnow}
-                  className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-lg text-xs font-mono uppercase flex items-center gap-1.5"
+                  className="avionics-button text-xs font-mono uppercase flex items-center gap-1.5"
                 >
                   <HelpCircle className="w-3.5 h-3.5" /> Não sei
                 </button>
                 <button
                   type="submit"
                   disabled={!selectedAttackTest}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                  className="avionics-primary text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
                 >
                   Validar Resposta <ArrowRight className="w-4 h-4" />
                 </button>
@@ -398,12 +415,14 @@ export default function KerberosFlowLab({
         </form>
       </section>
 
-      {/* Feedback */}
+      {/* -------------------------------------------------------------------- */}
+      {/* FEEDBACK & DEBRIEF                                                   */}
+      {/* -------------------------------------------------------------------- */}
       {feedback && (
-        <section className={`p-6 rounded-xl border space-y-3 font-mono text-xs ${
+        <section className={`cockpit-card rounded-xl p-6 space-y-4 font-mono text-xs border ${
           feedback.isCorrect 
-            ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200' 
-            : 'bg-red-950/40 border-red-800/80 text-red-200'
+            ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' 
+            : 'border-red-500/40 bg-red-950/20 text-red-200'
         }`}>
           <div className="flex items-center gap-2">
             {feedback.isCorrect ? (
@@ -411,18 +430,18 @@ export default function KerberosFlowLab({
             ) : (
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             )}
-            <h4 className="font-bold text-sm text-white">
+            <h4 className="font-bold text-sm text-white font-heading tracking-wide">
               {feedback.isCorrect ? 'Domínio do Fluxo Kerberos Confirmado' : (mode === 'exam' ? 'Avaliação Registrada' : 'Conceito Requer Atenção')}
             </h4>
           </div>
-          <p className="text-zinc-300 font-sans leading-relaxed">
+          <p className="text-zinc-300 font-sans leading-relaxed text-sm">
             {feedback.message}
           </p>
 
           {mode === 'exam' && isFinalized && (
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1 mt-2">
-              <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
-              <p className="text-zinc-300 font-sans">
+            <div className="cockpit-subcard p-4 rounded-lg border-white/10 text-xs space-y-1 mt-2">
+              <span className="font-mono text-zinc-400 uppercase font-bold block text-[11px]">Debrief do Exame:</span>
+              <p className="text-zinc-300 font-sans leading-relaxed text-sm">
                 O bilhete TGT (Ticket Granting Ticket) gerado no KDC é assinado pela conta secreta KRBTGT. A posse dessa chave permite a forja de Golden Tickets. Já Service Tickets utilizam o hash da respectiva conta de serviço (alvo de Silver Tickets e Kerberoasting).
               </p>
             </div>

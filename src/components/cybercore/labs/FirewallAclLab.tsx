@@ -236,26 +236,32 @@ export default function FirewallAclLab({
 
   return (
     <div className="space-y-8 font-sans text-zinc-200">
-      {/* Header */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-xl space-y-3">
-        <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider font-bold border flex items-center gap-1.5 ${modeBadge.bg} ${modeBadge.color}`}>
-            <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
-          </span>
-          <span className="text-xs font-mono text-zinc-500">
-            {concept.title}
-          </span>
+      {/* -------------------------------------------------------------------- */}
+      {/* MISSION HEADER + PEDAGOGICAL MODE INDICATOR                          */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="cockpit-card rounded-xl p-6 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+          <div>
+            <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest mb-1">
+              <span className={`telemetry-chip font-bold ${modeBadge.color} border-current/30 bg-white/[0.02]`}>
+                <ModeIcon className="w-3.5 h-3.5" /> {modeBadge.label}
+              </span>
+              <span className="telemetry-chip text-zinc-400 border-white/10 bg-white/[0.02]">
+                {concept.title}
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-wide mt-2 font-heading flex items-center gap-2">
+              <Shield className="w-5 h-5 text-cyan-400 shrink-0" />
+              Construção de Políticas de Firewall & ACL
+            </h2>
+            <p className="text-xs md:text-sm text-zinc-400 mt-1 leading-relaxed max-w-3xl">
+              Firewalls operam com a semântica <strong>First Match Wins (Primeiro Match Vence)</strong>. Construa e ordene as regras para permitir tráfego legítimo sem abrir brechas excessivas.
+            </p>
+          </div>
         </div>
-        <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <Shield className="w-5 h-5 text-amber-400" />
-          Construção de Políticas de Firewall & ACL
-        </h2>
-        <p className="text-xs md:text-sm text-zinc-400 leading-relaxed max-w-3xl">
-          Firewalls operam com a semântica <strong>First Match Wins (Primeiro Match Vence)</strong>. Construa e ordene as regras para permitir tráfego legítimo sem abrir brechas excessivas.
-        </p>
 
         {mode === 'guided' && (
-          <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-lg">
+          <div className="cockpit-subcard p-3 rounded-lg border-emerald-500/30 bg-emerald-950/20">
             <p className="text-xs text-emerald-300 flex items-start gap-2">
               <Eye className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Orientação Pedagógica:</strong> {modeBadge.hint}</span>
@@ -264,7 +270,7 @@ export default function FirewallAclLab({
         )}
 
         {mode === 'practice' && showHintRevealed && (
-          <div className="p-3 bg-cyan-950/30 border border-cyan-900/50 rounded-lg animate-in fade-in">
+          <div className="cockpit-subcard p-3 rounded-lg border-cyan-500/30 bg-cyan-950/20 animate-in fade-in">
             <p className="text-xs text-cyan-300 flex items-start gap-2">
               <Lightbulb className="w-4 h-4 mt-0.5 shrink-0" />
               <span><strong>Dica Revelada:</strong> {modeBadge.hint}</span>
@@ -273,16 +279,18 @@ export default function FirewallAclLab({
         )}
       </section>
 
-      {/* Builder de Regras */}
-      <section className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-          <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+      {/* -------------------------------------------------------------------- */}
+      {/* BUILDER DE REGRAS & TABELA DA POLÍTICA                               */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="cockpit-card rounded-xl p-6 space-y-6">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+          <span className="hud-bracket py-0.5 text-xs font-mono text-zinc-300 uppercase tracking-widest font-bold">
             Tabela de Regras (Avaliadas de Cima para Baixo ↓)
-          </h3>
+          </span>
           <button
             type="button"
             onClick={() => { setRules(INITIAL_RULES); setEvaluationResult(null); }}
-            className="text-xs font-mono text-zinc-500 hover:text-white flex items-center gap-1"
+            className="avionics-button text-xs font-mono flex items-center gap-1.5"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Restaurar Padrão
           </button>
@@ -293,16 +301,18 @@ export default function FirewallAclLab({
           {rules.map((rule, idx) => (
             <div 
               key={rule.id}
-              className={`p-3 rounded-lg border font-mono text-xs flex items-center justify-between gap-3 ${
+              className={`p-3 rounded-lg border font-mono text-xs flex items-center justify-between gap-3 transition-colors ${
                 rule.action === 'ALLOW' 
-                  ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-200' 
-                  : 'bg-red-950/20 border-red-800/40 text-red-200'
+                  ? 'cockpit-subcard border-emerald-500/30 bg-emerald-950/10 text-emerald-200' 
+                  : 'cockpit-subcard border-red-500/30 bg-red-950/10 text-red-200'
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className="w-6 text-zinc-500 font-bold">#{idx + 1}</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                  rule.action === 'ALLOW' ? 'bg-emerald-900/80 text-emerald-300' : 'bg-red-900/80 text-red-300'
+                <span className="w-6 text-zinc-500 font-bold font-mono">#{idx + 1}</span>
+                <span className={`telemetry-chip px-2 py-0.5 rounded text-[10px] font-bold ${
+                  rule.action === 'ALLOW' 
+                    ? 'border-emerald-500/40 bg-emerald-950/40 text-emerald-300' 
+                    : 'border-red-500/40 bg-red-950/40 text-red-300'
                 }`}>
                   {rule.action}
                 </span>
@@ -317,7 +327,7 @@ export default function FirewallAclLab({
                   type="button"
                   disabled={idx === 0}
                   onClick={() => handleMoveRule(idx, 'UP')}
-                  className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
+                  className="avionics-button p-1 text-zinc-400 hover:text-white disabled:opacity-30"
                   title="Subir regra"
                 >
                   <ArrowUp className="w-4 h-4" />
@@ -326,7 +336,7 @@ export default function FirewallAclLab({
                   type="button"
                   disabled={idx === rules.length - 1}
                   onClick={() => handleMoveRule(idx, 'DOWN')}
-                  className="p-1 text-zinc-400 hover:text-white disabled:opacity-30"
+                  className="avionics-button p-1 text-zinc-400 hover:text-white disabled:opacity-30"
                   title="Descer regra"
                 >
                   <ArrowDown className="w-4 h-4" />
@@ -334,7 +344,7 @@ export default function FirewallAclLab({
                 <button
                   type="button"
                   onClick={() => handleRemoveRule(idx)}
-                  className="p-1 text-zinc-500 hover:text-red-400"
+                  className="avionics-button p-1 text-zinc-500 hover:text-red-400"
                   title="Remover regra"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -345,28 +355,28 @@ export default function FirewallAclLab({
         </div>
 
         {/* Formulário para Adicionar Regra */}
-        <div className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 space-y-4">
-          <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest block font-bold">
+        <div className="cockpit-subcard rounded-xl p-4 space-y-4 border-white/10">
+          <span className="text-xs font-mono text-cyan-400 uppercase tracking-widest block font-bold">
             Adicionar Nova Regra
           </span>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-xs font-mono">
             <div>
-              <label className="text-zinc-500 block mb-1">Ação</label>
+              <label className="text-zinc-400 block mb-1">Ação</label>
               <select 
                 value={newAction} 
                 onChange={(e) => setNewAction(e.target.value as 'ALLOW' | 'DENY')}
-                className="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1.5 text-white"
+                className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-cyan-500/50"
               >
                 <option value="ALLOW">ALLOW</option>
                 <option value="DENY">DENY</option>
               </select>
             </div>
             <div>
-              <label className="text-zinc-500 block mb-1">Protocolo</label>
+              <label className="text-zinc-400 block mb-1">Protocolo</label>
               <select 
                 value={newProto} 
                 onChange={(e) => setNewProto(e.target.value as 'TCP' | 'UDP' | 'ANY')}
-                className="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1.5 text-white"
+                className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-cyan-500/50"
               >
                 <option value="TCP">TCP</option>
                 <option value="UDP">UDP</option>
@@ -374,11 +384,11 @@ export default function FirewallAclLab({
               </select>
             </div>
             <div>
-              <label className="text-zinc-500 block mb-1">Origem</label>
+              <label className="text-zinc-400 block mb-1">Origem</label>
               <select 
                 value={newSource} 
                 onChange={(e) => setNewSource(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1.5 text-white"
+                className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-cyan-500/50"
               >
                 <option value="ANY">ANY</option>
                 <option value="MGMT_NET (192.168.100.0/24)">MGMT_NET (192.168.100.0/24)</option>
@@ -386,11 +396,11 @@ export default function FirewallAclLab({
               </select>
             </div>
             <div>
-              <label className="text-zinc-500 block mb-1">Destino</label>
+              <label className="text-zinc-400 block mb-1">Destino</label>
               <select 
                 value={newDest} 
                 onChange={(e) => setNewDest(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1.5 text-white"
+                className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-cyan-500/50"
               >
                 <option value="WEB_SRV (10.0.1.10)">WEB_SRV (10.0.1.10)</option>
                 <option value="DB_SRV (10.0.2.50)">DB_SRV (10.0.2.50)</option>
@@ -398,11 +408,11 @@ export default function FirewallAclLab({
               </select>
             </div>
             <div>
-              <label className="text-zinc-500 block mb-1">Porta</label>
+              <label className="text-zinc-400 block mb-1">Porta</label>
               <select 
                 value={newPort} 
                 onChange={(e) => setNewPort(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1.5 text-white"
+                className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-cyan-500/50"
               >
                 <option value="80">80 (HTTP)</option>
                 <option value="443">443 (HTTPS)</option>
@@ -415,7 +425,7 @@ export default function FirewallAclLab({
               <button
                 type="button"
                 onClick={handleAddRule}
-                className="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-white rounded font-bold flex items-center justify-center gap-1"
+                className="avionics-button w-full py-1.5 text-cyan-300 border-cyan-500/40 bg-cyan-950/20 hover:bg-cyan-950/40 font-bold flex items-center justify-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Inserir
               </button>
@@ -424,14 +434,14 @@ export default function FirewallAclLab({
         </div>
 
         {/* Rodapé de Ações */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-zinc-500">Grau de certeza:</span>
+            <span className="text-xs font-mono text-zinc-400">Grau de certeza:</span>
             <button
               type="button"
               onClick={() => setConfidence('CONFIDENT')}
-              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
-                confidence === 'CONFIDENT' ? 'bg-cyan-950 text-cyan-300 border border-cyan-500' : 'text-zinc-500'
+              className={`avionics-button text-xs font-mono py-1 px-3 ${
+                confidence === 'CONFIDENT' ? 'border-cyan-500/60 bg-cyan-950/40 text-cyan-300' : 'text-zinc-400'
               }`}
             >
               Certeza
@@ -439,8 +449,8 @@ export default function FirewallAclLab({
             <button
               type="button"
               onClick={() => setConfidence('HESITANT')}
-              className={`px-3 py-1 rounded text-xs font-mono transition-all ${
-                confidence === 'HESITANT' ? 'bg-amber-950 text-amber-300 border border-amber-500' : 'text-zinc-500'
+              className={`avionics-button text-xs font-mono py-1 px-3 ${
+                confidence === 'HESITANT' ? 'border-amber-500/60 bg-amber-950/40 text-amber-300' : 'text-zinc-400'
               }`}
             >
               Dúvida
@@ -452,7 +462,7 @@ export default function FirewallAclLab({
               <button
                 type="button"
                 onClick={() => setShowHintRevealed(true)}
-                className="px-3 py-2 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 text-amber-300 rounded-lg text-xs font-mono uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                className="avionics-button text-amber-400 border-amber-500/30 bg-amber-950/20 hover:bg-amber-950/40 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
               >
                 <Lightbulb className="w-3.5 h-3.5" /> Revelar Dica
               </button>
@@ -461,14 +471,14 @@ export default function FirewallAclLab({
             <button
               type="button"
               onClick={handleDontKnow}
-              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-lg text-xs font-mono uppercase flex items-center gap-1.5"
+              className="avionics-button text-xs font-mono uppercase flex items-center gap-1.5"
             >
               <HelpCircle className="w-3.5 h-3.5" /> Não sei
             </button>
             <button
               type="button"
               onClick={handleEvaluateAcl}
-              className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+              className="avionics-primary text-xs font-mono uppercase tracking-wider flex items-center gap-1.5"
             >
               Simular Tráfego & Validar <ArrowRight className="w-4 h-4" />
             </button>
@@ -476,12 +486,14 @@ export default function FirewallAclLab({
         </div>
       </section>
 
-      {/* Resultados da Simulação */}
+      {/* -------------------------------------------------------------------- */}
+      {/* RESULTADOS DA SIMULAÇÃO                                              */}
+      {/* -------------------------------------------------------------------- */}
       {evaluationResult && (
-        <section className={`p-6 rounded-xl border space-y-4 font-mono text-xs ${
+        <section className={`cockpit-card rounded-xl p-6 space-y-4 font-mono text-xs border ${
           evaluationResult.allPassed 
-            ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200' 
-            : 'bg-red-950/40 border-red-800/80 text-red-200'
+            ? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200' 
+            : 'border-red-500/40 bg-red-950/20 text-red-200'
         }`}>
           <div className="flex items-center gap-2">
             {evaluationResult.allPassed ? (
@@ -489,37 +501,37 @@ export default function FirewallAclLab({
             ) : (
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
             )}
-            <h4 className="font-bold text-sm text-white">
+            <h4 className="font-bold text-sm text-white font-heading tracking-wide">
               {evaluationResult.allPassed ? 'Validação de Política Aprovada' : 'Resultado da Avaliação'}
             </h4>
           </div>
 
-          <p className="text-zinc-300 leading-relaxed font-sans">
+          <p className="text-zinc-300 leading-relaxed font-sans text-sm">
             {evaluationResult.summary}
           </p>
 
           {mode === 'exam' && isFinalized && (
-            <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg text-xs space-y-1">
-              <span className="font-mono text-zinc-400 uppercase font-bold block">Debrief do Exame:</span>
-              <p className="text-zinc-300 font-sans">
+            <div className="cockpit-subcard p-4 rounded-lg border-white/10 text-xs space-y-1">
+              <span className="font-mono text-zinc-400 uppercase font-bold block text-[11px]">Debrief do Exame:</span>
+              <p className="text-zinc-300 font-sans leading-relaxed text-sm">
                 Em firewalls com filtragem baseada em regras com estado, as regras são avaliadas sequencialmente de cima para baixo. Regras específicas devem preceder regras genéricas, e a política deve terminar com uma negação padrão (Default Deny).
               </p>
             </div>
           )}
 
           {evaluationResult.scenarioResults.length > 0 && (
-            <div className="space-y-2 pt-2 border-t border-zinc-800/60">
+            <div className="space-y-2 pt-2 border-t border-white/[0.08]">
               <span className="text-[11px] uppercase tracking-wider text-zinc-400 font-bold block">
                 Cenários de Teste Avaliados:
               </span>
               {evaluationResult.scenarioResults.map((sr, idx) => (
-                <div key={sr.id} className="p-2.5 rounded bg-zinc-900/60 border border-zinc-800 flex items-center justify-between gap-3">
+                <div key={sr.id} className="cockpit-subcard p-3 rounded-lg border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
-                    <span className="text-white font-bold">Cenário {idx + 1}:</span>
-                    <span className="text-zinc-400 ml-2">{TEST_SCENARIOS[idx]?.description}</span>
+                    <span className="text-white font-bold font-mono">Cenário {idx + 1}:</span>
+                    <span className="text-zinc-400 ml-2 font-sans">{TEST_SCENARIOS[idx]?.description}</span>
                   </div>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    sr.passed ? 'bg-emerald-900 text-emerald-300' : 'bg-red-900 text-red-300'
+                  <span className={`telemetry-chip px-2 py-0.5 rounded text-[10px] font-bold self-start sm:self-auto ${
+                    sr.passed ? 'border-emerald-500/40 bg-emerald-950/40 text-emerald-300' : 'border-red-500/40 bg-red-950/40 text-red-300'
                   }`}>
                     {sr.passed ? 'PASSED' : 'FAILED'} (Regra #{sr.matchedRuleIndex} → {sr.action})
                   </span>
