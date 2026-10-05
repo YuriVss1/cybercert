@@ -532,24 +532,38 @@ export default function RootSecApp() {
                 const colorClass = themeMap[cert.color_theme] || themeMap.cyan;
 
                 const isAvailable = cert.is_available ?? (cert.code === 'SY0-701');
-                const canAccess = isAvailable || isSuperAdmin || isAdmin;
+
+                if (!isAvailable) {
+                  return (
+                    <div
+                      key={cert.id}
+                      className="p-8 rounded-2xl border border-zinc-800/80 bg-zinc-950/40 text-zinc-500 opacity-60 cursor-not-allowed select-none relative overflow-hidden transition-all shadow-none"
+                    >
+                      <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-700/80 text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
+                        <Lock className="w-3 h-3 text-zinc-400" />
+                        <span>Em Preparação</span>
+                      </div>
+                      <p className="text-xs uppercase tracking-widest font-bold mb-4 text-zinc-600">
+                        {cert.vendors?.name}
+                      </p>
+                      <h3 className="text-3xl font-black text-zinc-400 tracking-tight mb-2">
+                        {cert.code}
+                      </h3>
+                      <p className="text-sm font-sans text-zinc-500 mb-8">{cert.name}</p>
+                      <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-zinc-500">
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>Indisponível (Em Preparação)</span>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <div
                     key={cert.id}
-                    onClick={() => canAccess && setSelectedCert(cert)}
-                    className={`p-8 rounded-2xl border transition-all group bg-zinc-950/80 backdrop-blur relative overflow-hidden ${
-                      canAccess
-                        ? `cursor-pointer ${colorClass}`
-                        : 'border-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed'
-                    }`}
+                    onClick={() => setSelectedCert(cert)}
+                    className={`p-8 rounded-2xl border transition-all cursor-pointer group bg-zinc-950/80 backdrop-blur relative overflow-hidden ${colorClass}`}
                   >
-                    {!isAvailable && (
-                      <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-[10px] font-mono font-bold uppercase tracking-wider text-amber-300">
-                        <Lock className="w-3 h-3 text-amber-400" />
-                        <span>Em Preparação</span>
-                      </div>
-                    )}
                     <p className="text-xs uppercase tracking-widest font-bold mb-4 opacity-70 group-hover:opacity-100 transition-opacity">
                       {cert.vendors?.name}
                     </p>
@@ -558,16 +572,8 @@ export default function RootSecApp() {
                     </h3>
                     <p className="text-sm font-sans text-zinc-400 mb-8">{cert.name}</p>
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">
-                      {canAccess ? (
-                        <>
-                          <span>Acessar Laboratório</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </>
-                      ) : (
-                        <span className="text-amber-400/80 flex items-center gap-1.5">
-                          <Lock className="w-3.5 h-3.5" /> Indisponível (Em Preparação)
-                        </span>
-                      )}
+                      <span>Acessar Laboratório</span>
+                      <ChevronRight className="w-4 h-4" />
                     </div>
                   </div>
                 );
@@ -586,6 +592,7 @@ export default function RootSecApp() {
   // ==========================================
   // DASHBOARD DA CERTIFICAÇÃO SELECIONADA
   // ==========================================
+  const isCertAvailable = selectedCert.is_available ?? (selectedCert.code === 'SY0-701');
   const currentHistory = history.filter(h => h.cert_id === selectedCert.id);
   const displayedPbqs = selectedCert.code === 'SY0-701'
     ? [...pbqsList, ...securityPlusPbqs.filter(scenario => !pbqsList.some(pbq => pbq.id === scenario.id))]
@@ -2593,7 +2600,23 @@ export default function RootSecApp() {
         {activeTab === 'treinamento' && (
           <div className="max-w-4xl">
             <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">ESTUDO <span className="text-cyan-500">TÁTICO</span></h1>
-            <p className="text-zinc-500 mb-10 text-sm tracking-widest">Treinamento para {selectedCert.code} com telemetria e gabarito.</p>
+            <p className="text-zinc-500 mb-8 text-sm tracking-widest">Treinamento para {selectedCert.code} com telemetria e gabarito.</p>
+
+            {!isCertAvailable && (
+              <div className="mb-8 p-6 rounded-2xl border border-amber-500/40 bg-amber-950/20 text-amber-200 space-y-3 shadow-lg">
+                <div className="flex items-center gap-2.5 font-mono text-sm font-bold uppercase tracking-wider text-amber-400">
+                  <AlertTriangle className="w-5 h-5 shrink-0" />
+                  Certificação em Desenvolvimento
+                </div>
+                <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+                  O banco de questões de estudo tático e as baterias de treino para a certificação <strong className="text-white font-mono">{selectedCert.code} ({selectedCert.name})</strong> estão atualmente em fase de desenvolvimento e homologação técnica.
+                </p>
+                <div className="flex items-center gap-2 text-[11px] font-mono text-amber-400/90 pt-1">
+                  <Lock className="w-3.5 h-3.5 shrink-0" />
+                  <span>Por diretriz de conformidade e isolamento, questões de outras certificações nunca são utilizadas como substitutas. As baterias estarão disponíveis quando a homologação for concluída.</span>
+                </div>
+              </div>
+            )}
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                <div className="relative overflow-hidden rounded-2xl border border-orange-500/30 bg-gradient-to-br from-orange-950/40 to-zinc-950 p-5">
@@ -2616,7 +2639,25 @@ export default function RootSecApp() {
                    </div>
                    <Target className="h-7 w-7 text-amber-300" />
                  </div>
-                 {!desafioHojeConcluido && <button onClick={() => generateTreinamento(domainsList, 5)} disabled={isLoading} className="mt-4 w-full rounded-xl border border-amber-600/50 bg-amber-950/40 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-200 transition-all hover:bg-amber-900/60 disabled:opacity-40"><Rocket className="mr-2 inline h-4 w-4" /> Iniciar desafio</button>}
+                 {!desafioHojeConcluido && (
+                   <button
+                     onClick={() => generateTreinamento(domainsList, 5)}
+                     disabled={isLoading || !isCertAvailable}
+                     className="mt-4 w-full rounded-xl border border-amber-600/50 bg-amber-950/40 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-200 transition-all hover:bg-amber-900/60 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                   >
+                     {!isCertAvailable ? (
+                       <>
+                         <Lock className="h-3.5 w-3.5 text-amber-400" />
+                         <span>Em Preparação</span>
+                       </>
+                     ) : (
+                       <>
+                         <Rocket className="h-4 w-4" />
+                         <span>Iniciar desafio</span>
+                       </>
+                     )}
+                   </button>
+                 )}
                </div>
              </div>
 
@@ -2644,10 +2685,18 @@ export default function RootSecApp() {
                       setSelectedDomains([studyRecommendation.targetDomain]);
                       generateTreinamento([studyRecommendation.targetDomain], 15);
                     }}
-                    disabled={isLoading}
-                    className="w-full md:w-auto px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shrink-0 shadow-[0_0_15px_rgba(8,145,178,0.25)]"
+                    disabled={isLoading || !isCertAvailable}
+                    className="w-full md:w-auto px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-black rounded-xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shrink-0 shadow-[0_0_15px_rgba(8,145,178,0.25)] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Rocket className="w-4 h-4" /> Estudar Alvo (15 Q.)
+                    {!isCertAvailable ? (
+                      <>
+                        <Lock className="w-4 h-4" /> Em Preparação (15 Q.)
+                      </>
+                    ) : (
+                      <>
+                        <Rocket className="w-4 h-4" /> Estudar Alvo (15 Q.)
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -2661,8 +2710,22 @@ export default function RootSecApp() {
                   </button>
                 ))}
               </div>
-              <button onClick={() => generateTreinamento(selectedDomains, 30)} disabled={isLoading || selectedDomains.length === 0} className="w-full py-5 bg-cyan-950/40 hover:bg-cyan-800/60 border border-cyan-700/50 text-cyan-400 font-bold rounded-xl flex items-center justify-center transition-all disabled:opacity-50 text-sm tracking-widest uppercase">
-                {isLoading ? <Activity className="w-5 h-5 animate-spin" /> : <span className="flex items-center gap-3"><BookOpen className="w-5 h-5" /> INICIAR BATERIA MISTA</span>}
+              <button
+                onClick={() => generateTreinamento(selectedDomains, 30)}
+                disabled={isLoading || selectedDomains.length === 0 || !isCertAvailable}
+                className="w-full py-5 bg-cyan-950/40 hover:bg-cyan-800/60 border border-cyan-700/50 text-cyan-400 font-bold rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm tracking-widest uppercase"
+              >
+                {isLoading ? (
+                  <Activity className="w-5 h-5 animate-spin" />
+                ) : !isCertAvailable ? (
+                  <span className="flex items-center gap-2.5 text-amber-400">
+                    <Lock className="w-4 h-4" /> BATERIA INDISPONÍVEL (EM DESENVOLVIMENTO)
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-3">
+                    <BookOpen className="w-5 h-5" /> INICIAR BATERIA MISTA
+                  </span>
+                )}
               </button>
             </div>
 
@@ -2675,9 +2738,24 @@ export default function RootSecApp() {
                <p className="text-zinc-400 text-sm mb-6 leading-relaxed font-sans">
                  Enfrente novamente seus pontos cegos. Você tem <strong className="text-red-400">{totalErrosHistorico} questões únicas</strong> erradas nesta certificação.
                </p>
-               <button onClick={() => generateRetaliacao(30)} disabled={isLoading || totalErrosHistorico === 0} className="w-full py-4 bg-red-950/40 hover:bg-red-900/60 border border-red-700/50 text-red-400 font-bold uppercase text-xs rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                 {isLoading ? <Activity className="w-4 h-4 animate-spin" /> : <Crosshair className="w-4 h-4" />}
-                 Iniciar Retaliação
+               <button
+                 onClick={() => generateRetaliacao(30)}
+                 disabled={isLoading || totalErrosHistorico === 0 || !isCertAvailable}
+                 className="w-full py-4 bg-red-950/40 hover:bg-red-900/60 border border-red-700/50 text-red-400 font-bold uppercase text-xs rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+               >
+                 {isLoading ? (
+                   <Activity className="w-4 h-4 animate-spin" />
+                 ) : !isCertAvailable ? (
+                   <>
+                     <Lock className="w-4 h-4 text-amber-400" />
+                     <span className="text-amber-300">Retaliação Indisponível (Em Desenvolvimento)</span>
+                   </>
+                 ) : (
+                   <>
+                     <Crosshair className="w-4 h-4" />
+                     <span>Iniciar Retaliação</span>
+                   </>
+                 )}
                </button>
             </div>
           </div>

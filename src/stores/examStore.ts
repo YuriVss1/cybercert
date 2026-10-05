@@ -547,7 +547,11 @@ export const useExamStore = create<ExamState>()(
     if (domains.length > 0) query = query.in('domain', domains);
     
     const { data, error } = await query;
-    if (error || !data) { set({ isLoading: false }); return; }
+    if (error || !data || data.length === 0) {
+      console.warn(`[CyberCert] Nenhuma questão disponível para ${selectedCert.code}. Treinamento não iniciado.`);
+      set({ isLoading: false });
+      return;
+    }
     const formattedQuestions: QuestionExamItem[] = data.map(q => ({
       ...q,
       type: 'question' as const,
