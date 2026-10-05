@@ -947,3 +947,77 @@ export async function setQuestionSkillsAction(
   };
 }
 
+export interface ToggleCertificationInput {
+  certId: string;
+  isAvailable: boolean;
+}
+
+/**
+ * Server Action para habilitar ou desabilitar a disponibilidade de uma certificação.
+ * Protegido com requireAdmin() e validação formal de autorização na tabela admin_users.
+ */
+export async function toggleCertificationAvailabilityAction(
+  input: ToggleCertificationInput,
+  customClient?: SupabaseClient
+): Promise<ActionResponse<{ certId: string; isAvailable: boolean }>> {
+  let adminCtx;
+  try {
+    adminCtx = await requireAdmin(customClient);
+  } catch (err) {
+    if (err instanceof AdminAuthError) {
+      return { success: false, error: err.message, code: err.code };
+    }
+    return {
+      success: false,
+      error: 'Falha na verificação de autorização administrativa.',
+      code: 'AUTH_VERIFICATION_FAILED',
+    };
+  }
+
+  const supabase = customClient ?? (await createClient());
+
+  // Validar se o usuário possui papel superadmin ou admin
+  const { data: adminRecord, error: roleError } = await supabase
+    .from('admin_users')
+    .select('role')
+    .eq('user_id', adminCtx.user.id)
+    .maybeSingle();
+
+  if (roleError || !adminRecord || !['superadmin', 'admin'].includes(adminRecord.role)) {
+    return {
+      success: false,
+      error: 'Acesso negado: apenas administradores com privilégio superadmin ou admin podem alterar a disponibilidade de certificações.',
+      code: 'FORBIDDEN',
+    };
+  }
+
+  if (!input.certId || !UUID_REGEX.test(input.certId)) {
+    return {
+      success: false,
+      error: 'Identificador de certificação inválido.',
+      code: 'INVALID_CERT_ID',
+    };
+  }
+
+  // Executa atualização do status de disponibilidade
+  const { error: updateError } = await supabase
+    .from('certifications')
+    .update({ is_available: Boolean(input.isAvailable) })
+    .eq('id', input.certId);
+
+  if (updateError) {
+    return {
+      success: false,
+      error: `Erro ao atualizar disponibilidade da certificação: ${updateError.message}`,
+      code: 'DATABASE_UPDATE_ERROR',
+    };
+  }
+
+  return {
+    success: true,
+    certId: input.certId,
+    isAvailable: Boolean(input.isAvailable),
+  };
+}
+
+

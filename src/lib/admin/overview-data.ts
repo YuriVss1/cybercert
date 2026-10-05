@@ -66,6 +66,7 @@ export interface CertificationItem {
   id: string;
   code: string;
   name: string;
+  is_available?: boolean;
 }
 
 export interface AdminOverviewPayload {
@@ -94,7 +95,7 @@ export async function getAdminOverviewData(
   try {
     const { data: certsData, error: certsError } = await supabase
       .from('certifications')
-      .select('id, code, name')
+      .select('*')
       .order('code');
 
     if (certsError) {
@@ -103,7 +104,13 @@ export async function getAdminOverviewData(
       certsResult = { status: 'empty', data: [] };
     } else {
       certsData.forEach(c => certsMap.set(c.id, c.code));
-      certsResult = { status: 'success', data: certsData };
+      const formattedCerts: CertificationItem[] = certsData.map(c => ({
+        id: c.id,
+        code: c.code,
+        name: c.name,
+        is_available: c.is_available ?? (c.code === 'SY0-701'),
+      }));
+      certsResult = { status: 'success', data: formattedCerts };
     }
   } catch (err: unknown) {
     certsResult = {

@@ -22,6 +22,7 @@ import {
 import { requireAdmin, AdminAuthError } from '@/lib/admin/require-admin';
 import { createClient } from '@/lib/supabase-server';
 import { getAdminOverviewData } from '@/lib/admin/overview-data';
+import { CertificationAvailabilityManager } from '@/components/admin/CertificationAvailabilityManager';
 
 export const dynamic = 'force-dynamic';
 
@@ -467,7 +468,7 @@ export default async function AdminPage() {
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-cyan-400" />
                   <h3 className="text-xs font-bold tracking-tight text-zinc-100 uppercase font-mono">
-                    Certificações Ativas
+                    Disponibilidade das Certificações
                   </h3>
                 </div>
                 <span className="text-[10px] font-mono text-zinc-400">
@@ -475,23 +476,7 @@ export default async function AdminPage() {
                 </span>
               </div>
 
-              {overview.certifications.status === 'success' && overview.certifications.data ? (
-                <div className="space-y-2">
-                  {overview.certifications.data.map(cert => (
-                    <div
-                      key={cert.id}
-                      className="p-2.5 rounded-lg bg-zinc-950/60 border border-zinc-800/80 flex items-center justify-between text-xs font-mono"
-                    >
-                      <span className="text-zinc-200 font-medium">{cert.name}</span>
-                      <span className="px-2 py-0.5 rounded bg-zinc-800 text-cyan-400 border border-zinc-700 text-[10px]">
-                        {cert.code}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-xs text-zinc-400 font-mono">Nenhuma certificação catalogada</div>
-              )}
+              <CertificationAvailabilityManager initialCertifications={overview.certifications.data} />
             </div>
           </div>
         </div>

@@ -24,6 +24,7 @@ async function runTests() {
     code: '200-301',
     name: 'CCNA',
     color_theme: 'emerald',
+    is_available: true,
     created_at: new Date().toISOString()
   };
 

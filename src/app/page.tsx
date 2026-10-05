@@ -531,13 +531,43 @@ export default function RootSecApp() {
                 };
                 const colorClass = themeMap[cert.color_theme] || themeMap.cyan;
 
+                const isAvailable = cert.is_available ?? (cert.code === 'SY0-701');
+                const canAccess = isAvailable || isSuperAdmin || isAdmin;
+
                 return (
-                  <div key={cert.id} onClick={() => setSelectedCert(cert)} className={`p-8 rounded-2xl border transition-all cursor-pointer group bg-zinc-950/80 backdrop-blur ${colorClass}`}>
-                    <p className="text-xs uppercase tracking-widest font-bold mb-4 opacity-70 group-hover:opacity-100 transition-opacity">{cert.vendors?.name}</p>
-                    <h3 className="text-3xl font-black text-white tracking-tight mb-2">{cert.code}</h3>
+                  <div
+                    key={cert.id}
+                    onClick={() => canAccess && setSelectedCert(cert)}
+                    className={`p-8 rounded-2xl border transition-all group bg-zinc-950/80 backdrop-blur relative overflow-hidden ${
+                      canAccess
+                        ? `cursor-pointer ${colorClass}`
+                        : 'border-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed'
+                    }`}
+                  >
+                    {!isAvailable && (
+                      <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-[10px] font-mono font-bold uppercase tracking-wider text-amber-300">
+                        <Lock className="w-3 h-3 text-amber-400" />
+                        <span>Em Preparação</span>
+                      </div>
+                    )}
+                    <p className="text-xs uppercase tracking-widest font-bold mb-4 opacity-70 group-hover:opacity-100 transition-opacity">
+                      {cert.vendors?.name}
+                    </p>
+                    <h3 className="text-3xl font-black text-white tracking-tight mb-2">
+                      {cert.code}
+                    </h3>
                     <p className="text-sm font-sans text-zinc-400 mb-8">{cert.name}</p>
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity">
-                      Acessar Laboratório <ChevronRight className="w-4 h-4" />
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">
+                      {canAccess ? (
+                        <>
+                          <span>Acessar Laboratório</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </>
+                      ) : (
+                        <span className="text-amber-400/80 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5" /> Indisponível (Em Preparação)
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

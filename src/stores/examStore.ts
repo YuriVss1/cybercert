@@ -57,6 +57,7 @@ export type Certification = {
   code: string;
   name: string;
   color_theme: string;
+  is_available?: boolean;
   vendors?: { name: string };
 };
 
@@ -235,6 +236,13 @@ export const useExamStore = create<ExamState>()(
   pbqsList: [],
 
   setSelectedCert: (cert) => {
+    const { isAdmin } = get();
+    const isAvailable = cert ? (cert.is_available ?? (cert.code === 'SY0-701')) : false;
+    if (cert && !isAvailable && !isAdmin) {
+      console.warn(`[CyberCert] Certificação ${cert.code} está indisponível (em preparação).`);
+      return;
+    }
+
     set({
       selectedCert: cert,
       activeTab: 'intelligence',
@@ -482,9 +490,10 @@ export const useExamStore = create<ExamState>()(
   },
 
   generateSimulado: async (limit = 90) => {
-    const { selectedCert } = get();
+    const { selectedCert, isAdmin } = get();
+    const isAvailable = selectedCert ? (selectedCert.is_available ?? (selectedCert.code === 'SY0-701')) : false;
     // F-ISO-01: Isolamento estrito de Simulado Oficial. Apenas CompTIA Security+ (SY0-701) possui homologação oficial e PBQs completos
-    if (!selectedCert || selectedCert.code !== 'SY0-701') {
+    if (!selectedCert || (!isAvailable && !isAdmin) || selectedCert.code !== 'SY0-701') {
       console.warn(`[CyberCert] Simulado Oficial bloqueado para ${selectedCert?.code || 'certificação não selecionada'}. Conteúdo em preparação.`);
       set({ isLoading: false });
       return;
@@ -528,8 +537,9 @@ export const useExamStore = create<ExamState>()(
 
   generateTreinamento: async (domains: string[], limit = 30) => {
     set({ isLoading: true, examType: 'training' });
-    const { selectedCert } = get();
-    if (!selectedCert) {
+    const { selectedCert, isAdmin } = get();
+    const isAvailable = selectedCert ? (selectedCert.is_available ?? (selectedCert.code === 'SY0-701')) : false;
+    if (!selectedCert || (!isAvailable && !isAdmin)) {
       set({ isLoading: false });
       return;
     }
@@ -563,8 +573,9 @@ export const useExamStore = create<ExamState>()(
 
   generateRetaliacao: async (limit = 30) => {
     set({ isLoading: true, examType: 'training' });
-    const { history, selectedCert } = get();
-    if (!selectedCert) {
+    const { history, selectedCert, isAdmin } = get();
+    const isAvailable = selectedCert ? (selectedCert.is_available ?? (selectedCert.code === 'SY0-701')) : false;
+    if (!selectedCert || (!isAvailable && !isAdmin)) {
       set({ isLoading: false });
       return;
     }
@@ -601,8 +612,9 @@ export const useExamStore = create<ExamState>()(
 
   generateSpacedRepetitionSession: async (targetQuestionIds: string[], limit = 20) => {
     set({ isLoading: true, examType: 'training' });
-    const { selectedCert } = get();
-    if (!selectedCert) {
+    const { selectedCert, isAdmin } = get();
+    const isAvailable = selectedCert ? (selectedCert.is_available ?? (selectedCert.code === 'SY0-701')) : false;
+    if (!selectedCert || (!isAvailable && !isAdmin)) {
       set({ isLoading: false });
       return;
     }
