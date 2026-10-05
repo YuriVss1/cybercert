@@ -6,6 +6,12 @@ import { EXAM_PBQS } from '@/data/examPbqsData';
 import type { PbqExamItem } from '@/data/examPbqsData';
 export type { PbqExamItem };
 import type { PbqAssessmentResult } from '@/components/pbq/PbqAssessmentAdapter';
+import {
+  calculateSkillPerformance,
+  type SkillPerformanceItem,
+  type QuestionSkillMappingInput,
+  type CanonicalSkillInput
+} from '@/lib/learningEngine';
 
 function shuffleArray<T>(array: T[]): T[] {
   const result = [...array];
@@ -98,6 +104,7 @@ type ExamType = 'official' | 'training';
 
 type ExamState = {
   user: User | null;
+  isAdmin: boolean;
   setUser: (user: User | null) => void;
   checkUser: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -164,6 +171,8 @@ type ExamState = {
   generateRetaliacao: (limit?: number) => Promise<void>;
   generateSpacedRepetitionSession: (targetQuestionIds: string[], limit?: number) => Promise<void>;
   fetchHistory: () => Promise<void>;
+  skillPerformance: SkillPerformanceItem[];
+  fetchSkillPerformance: () => Promise<void>;
   answerQuestion: (id: string, answer: string) => void;
   toggleMarkForReview: (id: string) => void;
   revealExplanation: (id: string) => void;
@@ -180,17 +189,39 @@ export const useExamStore = create<ExamState>()(
   persist(
     (set, get) => ({
   user: null,
+  isAdmin: false,
   setUser: (user) => set({ user }),
   checkUser: async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    set({ user: session?.user ?? null });
-    supabase.auth.onAuthStateChange((_event, session) => {
-      set({ user: session?.user ?? null });
+    const currentUser = session?.user ?? null;
+    let isAdmin = false;
+    if (currentUser) {
+      try {
+        const { data } = await supabase.rpc('is_admin');
+        isAdmin = !!data;
+      } catch {
+        isAdmin = false;
+      }
+    }
+    set({ user: currentUser, isAdmin });
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      const changedUser = session?.user ?? null;
+      let changedIsAdmin = false;
+      if (changedUser) {
+        try {
+          const { data } = await supabase.rpc('is_admin');
+          changedIsAdmin = !!data;
+        } catch {
+          changedIsAdmin = false;
+        }
+      }
+      set({ user: changedUser, isAdmin: changedIsAdmin });
     });
   },
   signOut: async () => {
     await supabase.auth.signOut();
-    set({ user: null, selectedCert: null });
+    set({ user: null, isAdmin: false, selectedCert: null });
   },
 
   activeTab: 'intelligence',
@@ -207,6 +238,7 @@ export const useExamStore = create<ExamState>()(
     set({ selectedCert: cert, activeTab: 'intelligence' });
     if (cert) {
       get().fetchPbqs();
+      get().fetchSkillPerformance();
     }
   },
   
@@ -574,6 +606,79 @@ export const useExamStore = create<ExamState>()(
     const { data, error } = await supabase.from('exam_history').select('*').order('created_at', { ascending: true });
     if (!error && data) set({ history: data });
   },
+
+  skillPerformance: [],
+  fetchSkillPerformance: async () => {
+    const { selectedCert, user } = get();
+    if (!selectedCert || !user) return;
+
+    try {
+      // 1. Consulta tentativas granulares do operador para a certificação selecionada
+      const { data: attempts, error: attError } = await supabase
+        .from('user_question_attempts')
+        .select('question_id, is_correct, cert_id, user_id')
+        .eq('cert_id', selectedCert.id)
+        .eq('user_id', user.id);
+
+      if (attError) {
+        console.warn('Falha ao consultar user_question_attempts:', attError.message);
+        return;
+      }
+
+      // 2. Consulta tabela associativa autoritativa (question_skills) com join de skills
+      const { data: qSkills, error: qsError } = await supabase
+        .from('question_skills')
+        .select('question_id, skill_id, skills!inner(id, name, slug, cert_id)')
+        .eq('skills.cert_id', selectedCert.id);
+
+      if (qsError) {
+        console.warn('Falha ao consultar question_skills:', qsError.message);
+        return;
+      }
+
+      // 3. Consulta biblioteca canônica de skills da certificação
+      const { data: skills, error: sError } = await supabase
+        .from('skills')
+        .select('id, name, slug, cert_id')
+        .eq('cert_id', selectedCert.id)
+        .order('name');
+
+      if (sError) {
+        console.warn('Falha ao consultar skills:', sError.message);
+        return;
+      }
+
+      const mappings: QuestionSkillMappingInput[] = (qSkills || []).map((qs: any) => ({
+        question_id: qs.question_id,
+        skill_id: qs.skill_id,
+        skill_slug: qs.skills.slug,
+        skill_name: qs.skills.name,
+      }));
+
+      const canonicalList: CanonicalSkillInput[] = (skills || []).map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        slug: s.slug,
+        cert_id: s.cert_id,
+      }));
+
+      const perfList = calculateSkillPerformance(
+        (attempts || []).map((a: any) => ({
+          question_id: a.question_id,
+          is_correct: a.is_correct,
+          user_id: a.user_id,
+          cert_id: a.cert_id,
+        })),
+        mappings,
+        canonicalList,
+        { certId: selectedCert.id, userId: user.id }
+      );
+
+      set({ skillPerformance: perfList });
+    } catch (err) {
+      console.error('Erro ao calcular telemetria de skills:', err);
+    }
+  },
   
   answerQuestion: (id, answer) => set((state) => ({ answers: { ...state.answers, [id]: answer } })),
   toggleMarkForReview: (id) => set((state) => ({ markedForReview: state.markedForReview.includes(id) ? state.markedForReview.filter(qId => qId !== id) : [...state.markedForReview, id] })),
@@ -687,6 +792,8 @@ export const useExamStore = create<ExamState>()(
             const { error } = await supabase.from('user_question_attempts').insert(attempts);
             if (error) {
               console.info('user_question_attempts ainda não migrado no banco ou indisponível:', error.message);
+            } else {
+              get().fetchSkillPerformance();
             }
           } catch (err: unknown) {
             console.warn('Tentativa granular falhou de forma não-bloqueante:', err);
@@ -697,6 +804,7 @@ export const useExamStore = create<ExamState>()(
       // 3. Atualiza estado local garantindo que a tela de resultado seja exibida
       set({ isFinished: true, isSubmittingExam: false, domainResults: domainStats });
       get().fetchHistory();
+      get().fetchSkillPerformance();
     } catch (criticalErr) {
       console.error('Erro ao finalizar prova:', criticalErr);
       set({ isFinished: true, isSubmittingExam: false });
@@ -739,7 +847,7 @@ export const useExamStore = create<ExamState>()(
         revealedExplanations: state.revealedExplanations,
         userFeedback: state.userFeedback,
         timeLeft: state.timeLeft,
-        isStarted: state.isStarted,
+        isStarted: (state.questions && state.questions.length > 0) ? state.isStarted : false,
         isFinished: state.isFinished,
         isReviewing: state.isReviewing,
         domainResults: state.domainResults,

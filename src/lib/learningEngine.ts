@@ -575,6 +575,32 @@ export function classifyQuestionForSpacedRepetition(
 // ============================================================================
 // 7. DESEMPENHO E COBERTURA DE SKILLS (CONCEITOS CANÔNICOS)
 // ============================================================================
+export interface UserQuestionAttemptInput {
+  question_id: string;
+  is_correct: boolean;
+  user_id?: string;
+  cert_id?: string;
+}
+
+export interface QuestionSkillMappingInput {
+  question_id: string;
+  skill_id?: string;
+  skill_slug: string;
+  skill_name: string;
+}
+
+export interface CanonicalSkillInput {
+  id?: string;
+  name: string;
+  slug: string;
+  cert_id?: string;
+}
+
+export interface SkillCalculationOptions {
+  userId?: string;
+  certId?: string;
+}
+
 export interface SkillPerformanceItem {
   skill: string;
   slug: string;
@@ -585,21 +611,112 @@ export interface SkillPerformanceItem {
 }
 
 export function calculateSkillPerformance(
-  questions: Question[],
-  history: ExamHistoryItem[]
+  attemptsOrQuestions: UserQuestionAttemptInput[] | Question[],
+  mappingsOrHistory: QuestionSkillMappingInput[] | ExamHistoryItem[],
+  canonicalSkills?: CanonicalSkillInput[],
+  options?: SkillCalculationOptions
 ): SkillPerformanceItem[] {
-  if (!questions || questions.length === 0 || !history || history.length === 0) {
+  // Caso de entrada vazia
+  if (!attemptsOrQuestions || !mappingsOrHistory) {
+    return [];
+  }
+
+  // Detecta se a chamada está utilizando o novo pipeline granular de tentativas
+  const isGranularPipeline =
+    attemptsOrQuestions.length === 0
+      ? canonicalSkills !== undefined || (mappingsOrHistory.length > 0 && 'skill_slug' in mappingsOrHistory[0])
+      : 'is_correct' in attemptsOrQuestions[0];
+
+  if (isGranularPipeline) {
+    const attempts = attemptsOrQuestions as UserQuestionAttemptInput[];
+    const mappings = (mappingsOrHistory as QuestionSkillMappingInput[]) || [];
+
+    // Mapeia question_id -> lista de skills associadas (suporta 1 para single-skill, 2 para multi-skill)
+    const qMap = new Map<string, Array<{ name: string; slug: string }>>();
+    mappings.forEach(m => {
+      const list = qMap.get(m.question_id) || [];
+      list.push({ name: m.skill_name, slug: m.skill_slug });
+      qMap.set(m.question_id, list);
+    });
+
+    // Inicializa acumulador com as skills canônicas fornecidas para garantir visibilidade
+    const statsMap: Record<string, { name: string; slug: string; total: number; correct: number; incorrect: number }> = {};
+    if (canonicalSkills && canonicalSkills.length > 0) {
+      canonicalSkills.forEach(s => {
+        statsMap[s.slug] = {
+          name: s.name,
+          slug: s.slug,
+          total: 0,
+          correct: 0,
+          incorrect: 0
+        };
+      });
+    }
+
+    // Processa cada tentativa granular do usuário
+    attempts.forEach(att => {
+      // Isolamento por usuário (se especificado)
+      if (options?.userId && att.user_id && att.user_id !== options.userId) {
+        return;
+      }
+      // Isolamento por certificação (se especificado)
+      if (options?.certId && att.cert_id && att.cert_id !== options.certId) {
+        return;
+      }
+
+      const associated = qMap.get(att.question_id);
+      // Questões sem skill (NO_MAPPING) não aparecem em nenhuma skill
+      if (!associated || associated.length === 0) {
+        return;
+      }
+
+      // Para questões Multi-Skill, a tentativa é projetada em cada Skill associada
+      associated.forEach(s => {
+        if (!statsMap[s.slug]) {
+          statsMap[s.slug] = {
+            name: s.name,
+            slug: s.slug,
+            total: 0,
+            correct: 0,
+            incorrect: 0
+          };
+        }
+        statsMap[s.slug].total += 1;
+        if (att.is_correct) {
+          statsMap[s.slug].correct += 1;
+        } else {
+          statsMap[s.slug].incorrect += 1;
+        }
+      });
+    });
+
+    return Object.values(statsMap).map(st => {
+      const pct = st.total > 0 ? Math.round((st.correct / st.total) * 100) : 0;
+      return {
+        skill: st.name,
+        slug: st.slug,
+        totalAttempts: st.total,
+        correctCount: st.correct,
+        percentage: pct,
+        hasEnoughData: st.total >= LEARNING_THRESHOLDS.MIN_QUESTIONS_WEAK_AREA
+      };
+    }).sort((a, b) => b.totalAttempts - a.totalAttempts || a.percentage - b.percentage);
+  }
+
+  // --- COMPATIBILIDADE LEGADA (quando invocado com questions[] e ExamHistoryItem[]) ---
+  const questions = attemptsOrQuestions as Question[];
+  const history = mappingsOrHistory as ExamHistoryItem[];
+
+  if (questions.length === 0 || history.length === 0) {
     return [];
   }
 
   const questionMap = new Map<string, Question>();
   questions.forEach(q => questionMap.set(q.id, q));
 
-  // Acumula total de exposições e erros por ID de questão no histórico
   const questionAttemptsCount: Record<string, { total: number; errors: number }> = {};
 
   history.forEach(exam => {
-    // Se a sessão registrou questões erradas
     if (exam.incorrect_questions && Array.isArray(exam.incorrect_questions)) {
       exam.incorrect_questions.forEach(qId => {
         if (!questionAttemptsCount[qId]) questionAttemptsCount[qId] = { total: 0, errors: 0 };
@@ -609,7 +726,6 @@ export function calculateSkillPerformance(
     }
   });
 
-  // Agrega por slug canônico de skill para evitar duplicidade (IAM vs iam vs I.A.M.)
   const skillAggregates: Record<string, { displayName: string; slug: string; total: number; errors: number }> = {};
 
   Object.entries(questionAttemptsCount).forEach(([qId, stats]) => {
@@ -646,4 +762,5 @@ export function calculateSkillPerformance(
     };
   }).sort((a, b) => a.percentage - b.percentage);
 }
+
 

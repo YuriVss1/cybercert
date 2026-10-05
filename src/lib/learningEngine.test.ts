@@ -289,6 +289,140 @@ function createMockExam(params: {
   console.log('✓ Recomendações automáticas e limiares validados com sucesso.');
 }
 
+// ============================================================================
+// PHASE 2.6: TESTES OBRIGATÓRIOS DE SKILL PERFORMANCE GRANULAR
+// ============================================================================
+
+console.log('\n--- EXECUTANDO TESTES OBRIGATÓRIOS DA PHASE 2.6 (SKILL TELEMETRY) ---');
+
+// TESTE 1 — ACERTOS (10 tentativas: 8 corretas, 2 incorretas -> 80%)
+{
+  const mappings = [
+    { question_id: 'q1', skill_slug: 'iam-privileged-access', skill_name: 'IAM & Acesso Privilegiado' }
+  ];
+  const attempts = [
+    ...Array(8).fill(null).map(() => ({ question_id: 'q1', is_correct: true })),
+    ...Array(2).fill(null).map(() => ({ question_id: 'q1', is_correct: false })),
+  ];
+  const result = calculateSkillPerformance(attempts, mappings);
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].totalAttempts, 10);
+  assert.strictEqual(result[0].correctCount, 8);
+  assert.strictEqual(result[0].percentage, 80, 'TESTE 1 falhou: 8/10 deve produzir 80%');
+  assert.strictEqual(result[0].hasEnoughData, true, 'TESTE 1 falhou: >= 5 tentativas deve ter hasEnoughData = true');
+  console.log('✓ TESTE 1 (Acertos): 10 tentativas, 8 corretas = 80% verificado.');
+}
+
+// TESTE 2 — TODOS CORRETOS (10/10 -> 100%)
+{
+  const mappings = [
+    { question_id: 'q1', skill_slug: 'cryptography-tls', skill_name: 'Criptografia & TLS' }
+  ];
+  const attempts = Array(10).fill(null).map(() => ({ question_id: 'q1', is_correct: true }));
+  const result = calculateSkillPerformance(attempts, mappings);
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].totalAttempts, 10);
+  assert.strictEqual(result[0].correctCount, 10);
+  assert.strictEqual(result[0].percentage, 100, 'TESTE 2 falhou: 10/10 deve produzir 100%');
+  console.log('✓ TESTE 2 (Todos Corretos): 10/10 corretas = 100% verificado.');
+}
+
+// TESTE 3 — TODOS INCORRETOS (10/10 incorretas -> 0%)
+{
+  const mappings = [
+    { question_id: 'q1', skill_slug: 'threats-vulnerabilities', skill_name: 'Ameaças & Vulnerabilidades' }
+  ];
+  const attempts = Array(10).fill(null).map(() => ({ question_id: 'q1', is_correct: false }));
+  const result = calculateSkillPerformance(attempts, mappings);
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].totalAttempts, 10);
+  assert.strictEqual(result[0].correctCount, 0);
+  assert.strictEqual(result[0].percentage, 0, 'TESTE 3 falhou: 0/10 deve produzir 0%');
+  console.log('✓ TESTE 3 (Todos Incorretos): 10/10 incorretas = 0% verificado.');
+}
+
+// TESTE 4 — DADOS INSUFICIENTES (0 tentativas)
+{
+  const canonicalSkills = [
+    { name: 'Firewall & ACLs', slug: 'firewall-acls' }
+  ];
+  const result = calculateSkillPerformance([], [], canonicalSkills);
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].totalAttempts, 0);
+  assert.strictEqual(result[0].correctCount, 0);
+  assert.strictEqual(result[0].percentage, 0);
+  assert.strictEqual(result[0].hasEnoughData, false, 'TESTE 4 falhou: 0 tentativas deve ter hasEnoughData = false');
+  console.log('✓ TESTE 4 (Dados Insuficientes): 0 tentativas tratado como hasEnoughData = false.');
+}
+
+// TESTE 5 — DUAS SKILLS (Multi-Skill: 1 tentativa incorreta de questão com IAM + Firewall)
+{
+  const multiMappings = [
+    { question_id: 'q-multi', skill_slug: 'iam-privileged-access', skill_name: 'IAM & Acesso Privilegiado' },
+    { question_id: 'q-multi', skill_slug: 'firewall-acls', skill_name: 'Firewall & ACLs' }
+  ];
+  const singleAttempt = [
+    { question_id: 'q-multi', is_correct: false }
+  ];
+  const result = calculateSkillPerformance(singleAttempt, multiMappings);
+  assert.strictEqual(result.length, 2, 'TESTE 5 falhou: deve projetar em ambas as 2 skills');
+  
+  const iam = result.find(r => r.slug === 'iam-privileged-access');
+  const firewall = result.find(r => r.slug === 'firewall-acls');
+  
+  assert(iam && firewall, 'TESTE 5 falhou: ambas as skills devem estar presentes');
+  assert.strictEqual(iam.totalAttempts, 1, 'IAM deve registrar 1 tentativa');
+  assert.strictEqual(iam.correctCount, 0, 'IAM deve registrar 0 acertos');
+  assert.strictEqual(firewall.totalAttempts, 1, 'Firewall deve registrar 1 tentativa');
+  assert.strictEqual(firewall.correctCount, 0, 'Firewall deve registrar 0 acertos');
+  console.log('✓ TESTE 5 (Multi-Skill): 1 tentativa incorreta projetada em IAM e Firewall (1 tentativa cada, sem duplicação de origem).');
+}
+
+// TESTE 6 — QUESTÃO SEM SKILL (NO_MAPPING)
+{
+  const mappings = [
+    { question_id: 'q-mapped', skill_slug: 'incident-response', skill_name: 'Resposta a Incidentes' }
+  ];
+  // Tentativa em questão unmapped (não está em mappings)
+  const attempts = [
+    { question_id: 'q-unmapped-nomapping', is_correct: true }
+  ];
+  const result = calculateSkillPerformance(attempts, mappings);
+  assert.strictEqual(result.length, 0, 'TESTE 6 falhou: questão sem skill não deve pontuar em nenhuma skill');
+  console.log('✓ TESTE 6 (Questão Sem Skill): Questão NO_MAPPING não aparece em nenhuma skill.');
+}
+
+// TESTE 7 — ISOLAMENTO (tentativas de outro user_id ou cert_id)
+{
+  const mappings = [
+    { question_id: 'q1', skill_slug: 'governance-risk-compliance', skill_name: 'Governança, Risco & Conformidade' }
+  ];
+  const attempts = [
+    { question_id: 'q1', is_correct: true, user_id: 'user-A', cert_id: 'cert-SEC' },
+    { question_id: 'q1', is_correct: false, user_id: 'user-B', cert_id: 'cert-SEC' }, // Outro user
+    { question_id: 'q1', is_correct: false, user_id: 'user-A', cert_id: 'cert-CCNA' }, // Outro cert
+  ];
+  const result = calculateSkillPerformance(attempts, mappings, undefined, { userId: 'user-A', certId: 'cert-SEC' });
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].totalAttempts, 1, 'TESTE 7 falhou: deve considerar apenas user-A e cert-SEC');
+  assert.strictEqual(result[0].correctCount, 1, 'TESTE 7 falhou: a única tentativa válida foi acerto');
+  assert.strictEqual(result[0].percentage, 100);
+  console.log('✓ TESTE 7 (Isolamento): Tentativas de outro user_id ou cert_id estritamente isoladas.');
+}
+
+// TESTE 8 — ZERO DIVISÃO (sem NaN, sem Infinity)
+{
+  const canonicalSkills = [
+    { name: 'Resiliência, Continuidade & Recuperação', slug: 'resilience-business-continuity' }
+  ];
+  const result = calculateSkillPerformance([], [], canonicalSkills);
+  assert(!isNaN(result[0].percentage), 'TESTE 8 falhou: percentage não pode ser NaN');
+  assert(isFinite(result[0].percentage), 'TESTE 8 falhou: percentage não pode ser Infinity');
+  assert.strictEqual(result[0].percentage, 0, 'TESTE 8 falhou: 0/0 deve produzir 0% de forma segura');
+  console.log('✓ TESTE 8 (Zero Divisão): Sem NaN, sem Infinity, resiliência matemática comprovada.');
+}
+
 console.log('\n======================================================');
 console.log('TODOS OS TESTES DO LEARNING ENGINE PASSARAM COM SUCESSO!');
 console.log('======================================================\n');
+

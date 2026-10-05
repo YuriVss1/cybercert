@@ -132,7 +132,7 @@ function CustomLineTooltip({ active, payload, label }: CustomLineTooltipProps) {
 
 export default function RootSecApp() {
   const {
-    user, checkUser, signOut,
+    user, isAdmin, checkUser, signOut,
     activeTab, setActiveTab, examType, timeRange, setTimeRange,
     certifications, selectedCert, setSelectedCert, fetchCertifications, seedDatabase,
     pbqsList,
@@ -143,11 +143,13 @@ export default function RootSecApp() {
     pbqAclRules, setPbqAclRules, pbqSubmitted, pbqPassed, submitPbqAcl, resetPbqAcl,
     cliHistory, pbq2Answer, setPbq2Answer, pbq2Submitted, pbq2Passed, processCliCommand, submitPbq2,
     generateSimulado, generateTreinamento, generateRetaliacao, generateSpacedRepetitionSession, fetchHistory, answerQuestion, 
+    skillPerformance, fetchSkillPerformance,
     toggleMarkForReview, revealExplanation, tickTimer, addQuestion,
     finishExam, startReview, stopReview, resetExam, nextQuestion, prevQuestion
   } = useExamStore();
 
   const isSuperAdmin = Boolean(
+    isAdmin ||
     user?.app_metadata?.role === 'admin' ||
     user?.app_metadata?.is_admin ||
     user?.user_metadata?.role === 'admin' ||
@@ -172,6 +174,12 @@ export default function RootSecApp() {
   useEffect(() => {
     checkUser();
   }, [checkUser]);
+
+  useEffect(() => {
+    if (isStarted && (!questions || questions.length === 0)) {
+      resetExam();
+    }
+  }, [isStarted, questions, resetExam]);
 
   // Roteador dinâmico de domínios
   const getDomainsForCert = (code?: string) => {
@@ -275,7 +283,8 @@ export default function RootSecApp() {
   useEffect(() => { 
     fetchCertifications();
     fetchHistory(); 
-  }, [fetchCertifications, fetchHistory]);
+    fetchSkillPerformance();
+  }, [fetchCertifications, fetchHistory, fetchSkillPerformance]);
 
   // Os comentários acompanham a questão atual durante o treino e a revisão.
   useEffect(() => {
@@ -462,8 +471,17 @@ export default function RootSecApp() {
       <div className="min-h-screen bg-[#050505] font-mono text-zinc-300 relative overflow-hidden flex flex-col items-center pt-20 px-4">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,rgba(8,145,178,0.05),transparent_50%)] pointer-events-none"></div>
         
-        <div className="absolute top-6 right-6 flex items-center gap-4">
+        <div className="absolute top-6 right-6 flex items-center gap-3">
           <span className="text-xs text-zinc-400 font-bold">{user.email}</span>
+          {isSuperAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-mono font-bold transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+            >
+              <Terminal className="w-3.5 h-3.5" />
+              Flight Deck Admin
+            </Link>
+          )}
           <button onClick={signOut} className="p-2 bg-zinc-900 hover:bg-red-950/40 border border-zinc-800 hover:border-red-500/50 text-zinc-400 hover:text-red-400 rounded-lg transition-all" title="Encerrar Sessão">
             <LogOut className="w-4 h-4" />
           </button>
@@ -532,7 +550,9 @@ export default function RootSecApp() {
   const weakAreasList = identifyWeakAreas(domainAnalyses);
   const recurringErrorsAnalysis = analyzeRecurringErrors(currentHistory, mcqQuestions);
   const studyRecommendation = generateStudyRecommendations(domainAnalyses, weakAreasList, recurringErrorsAnalysis);
-  const skillPerformanceList = calculateSkillPerformance(mcqQuestions, currentHistory);
+  const skillPerformanceList = skillPerformance && skillPerformance.length > 0
+    ? skillPerformance
+    : calculateSkillPerformance(mcqQuestions, currentHistory);
 
   // REPETIÇÃO ESPAÇADA & RETENÇÃO ATIVA
   const attemptedQuestionIds = Array.from(new Set(
@@ -649,7 +669,19 @@ export default function RootSecApp() {
   // ==========================================
   if (isStarted && (!isFinished || isReviewing)) {
     const currentQ = questions[currentIndex];
-    if (!currentQ) return <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center font-mono">Carregando questão...</div>;
+    if (!currentQ) {
+      return (
+        <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center font-mono gap-4 p-4 text-center">
+          <p className="text-zinc-400 text-sm">Sessão de prova anterior vazia ou expirada.</p>
+          <button
+            onClick={() => resetExam()}
+            className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg shadow-cyan-950/50 cursor-pointer"
+          >
+            Voltar ao Início
+          </button>
+        </div>
+      );
+    }
 
     const totalQuestions = questions.length;
     const answeredPbqCount = Object.values(pbqAnswers).filter(a => a.completed).length;
@@ -1480,12 +1512,17 @@ export default function RootSecApp() {
           </button>
           
           {isSuperAdmin && (
-            <button onClick={() => setActiveTab('admin')} className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-widest uppercase mt-6 border-t border-white/[0.08] pt-4 ${activeTab === 'admin' ? 'bg-white/[0.08] text-white border border-white/[0.15]' : 'text-zinc-600 hover:text-zinc-300'}`}>
-              <span className="flex items-center gap-2.5">
-                <Database className="w-4 h-4" /> Admin Console
-              </span>
-              <span className="text-[9px] text-zinc-600">[ADM]</span>
-            </button>
+            <div className="space-y-1 mt-6 border-t border-zinc-800/80 pt-4">
+              <Link
+                href="/admin"
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs transition-all font-mono tracking-widest uppercase bg-cyan-950/20 hover:bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.1)]"
+              >
+                <span className="flex items-center gap-2.5">
+                  <Terminal className="w-4 h-4 text-cyan-400" /> Flight Deck Admin
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 text-cyan-400" />
+              </Link>
+            </div>
           )}
         </nav>
       </aside>
