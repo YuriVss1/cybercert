@@ -235,7 +235,24 @@ export const useExamStore = create<ExamState>()(
   pbqsList: [],
 
   setSelectedCert: (cert) => {
-    set({ selectedCert: cert, activeTab: 'intelligence' });
+    set({
+      selectedCert: cert,
+      activeTab: 'intelligence',
+      questions: [],
+      currentIndex: 0,
+      answers: {},
+      pbqAnswers: {},
+      markedForReview: [],
+      revealedExplanations: {},
+      userFeedback: {},
+      isStarted: false,
+      isFinished: false,
+      isReviewing: false,
+      isSubmittingExam: false,
+      domainResults: {},
+      pbqsList: [],
+      skillPerformance: []
+    });
     if (cert) {
       get().fetchPbqs();
       get().fetchSkillPerformance();
@@ -512,8 +529,11 @@ export const useExamStore = create<ExamState>()(
   generateTreinamento: async (domains: string[], limit = 30) => {
     set({ isLoading: true, examType: 'training' });
     const { selectedCert } = get();
-    let query = supabase.from('questions').select('*');
-    if (selectedCert) query = query.eq('cert_id', selectedCert.id);
+    if (!selectedCert) {
+      set({ isLoading: false });
+      return;
+    }
+    let query = supabase.from('questions').select('*').eq('cert_id', selectedCert.id);
     if (domains.length > 0) query = query.in('domain', domains);
     
     const { data, error } = await query;
@@ -544,13 +564,17 @@ export const useExamStore = create<ExamState>()(
   generateRetaliacao: async (limit = 30) => {
     set({ isLoading: true, examType: 'training' });
     const { history, selectedCert } = get();
+    if (!selectedCert) {
+      set({ isLoading: false });
+      return;
+    }
     const allIncorrect = new Set<string>();
-    const currentHist = selectedCert ? history.filter(h => h.cert_id === selectedCert.id) : history;
+    const currentHist = history.filter(h => h.cert_id === selectedCert.id);
     currentHist.forEach(h => { if (h.incorrect_questions && Array.isArray(h.incorrect_questions)) h.incorrect_questions.forEach(id => allIncorrect.add(id)); });
     
     const incorrectArray = Array.from(allIncorrect);
     if (incorrectArray.length === 0) { set({ isLoading: false }); alert("Nenhum erro registrado nesta certificação!"); return; }
-    const { data, error } = await supabase.from('questions').select('*').in('id', incorrectArray);
+    const { data, error } = await supabase.from('questions').select('*').eq('cert_id', selectedCert.id).in('id', incorrectArray);
     if (error || !data || data.length === 0) { set({ isLoading: false }); return; }
     const formattedQuestions: QuestionExamItem[] = data.map(q => ({
       ...q,
@@ -577,12 +601,17 @@ export const useExamStore = create<ExamState>()(
 
   generateSpacedRepetitionSession: async (targetQuestionIds: string[], limit = 20) => {
     set({ isLoading: true, examType: 'training' });
+    const { selectedCert } = get();
+    if (!selectedCert) {
+      set({ isLoading: false });
+      return;
+    }
     if (targetQuestionIds.length === 0) {
       set({ isLoading: false });
       alert("Nenhuma questão selecionada para a sessão de repetição espaçada!");
       return;
     }
-    const { data, error } = await supabase.from('questions').select('*').in('id', targetQuestionIds.slice(0, limit));
+    const { data, error } = await supabase.from('questions').select('*').eq('cert_id', selectedCert.id).in('id', targetQuestionIds.slice(0, limit));
     if (error || !data || data.length === 0) {
       set({ isLoading: false });
       return;
@@ -697,8 +726,8 @@ export const useExamStore = create<ExamState>()(
   
   finishExam: async () => {
     const state = get();
-    // Prevenção de duplicação: se já estiver finalizando ou finalizado, encerra imediatamente
-    if (state.isSubmittingExam || state.isFinished) return;
+    // Prevenção de inconsistência ou duplicação: requer certificação ativa e sessão em andamento
+    if (!state.selectedCert || state.isSubmittingExam || state.isFinished) return;
     const totalQuestions = state.questions.length;
     if (totalQuestions === 0) return;
     

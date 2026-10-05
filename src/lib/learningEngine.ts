@@ -110,7 +110,7 @@ export function calculateReadiness(
   certCode?: string
 ): ReadinessScoreResult {
   const filteredHistory = certCode 
-    ? history.filter(h => !h.cert_id || h.cert_id === certCode || (h as unknown as { code?: string }).code === certCode) 
+    ? history.filter(h => h.cert_id === certCode || (h as unknown as { code?: string }).code === certCode) 
     : history;
 
   const totalQuestions = filteredHistory.reduce((acc, h) => acc + (h.total_questions || 0), 0);
@@ -656,11 +656,11 @@ export function calculateSkillPerformance(
     // Processa cada tentativa granular do usuário
     attempts.forEach(att => {
       // Isolamento por usuário (se especificado)
-      if (options?.userId && att.user_id && att.user_id !== options.userId) {
+      if (options?.userId && (!att.user_id || att.user_id !== options.userId)) {
         return;
       }
       // Isolamento por certificação (se especificado)
-      if (options?.certId && att.cert_id && att.cert_id !== options.certId) {
+      if (options?.certId && (!att.cert_id || att.cert_id !== options.certId)) {
         return;
       }
 

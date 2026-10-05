@@ -171,8 +171,67 @@ async function runTests() {
   }
   console.log('✓ TESTE 5: Security+ (SY0-701) inicia com 3 PBQs + 87 MCQs = 90 itens estritamente isolados.');
 
+  // TESTE 6: Troca de certificação via setSelectedCert reseta exame ativo
+  console.log('Testando isolamento de estado de exame ao trocar de certificação...');
+  useExamStore.setState({
+    selectedCert: secPlusCert,
+    questions: [{ id: 'mock-q-sec', type: 'question' as const, domain: 'Operações de segurança', difficulty: 'Medium' as const, question_text: 'Sec?', options: ['A'], correct_answer: 'A', explanation: 'E' }],
+    isStarted: true,
+    answers: { 'mock-q-sec': 'A' }
+  });
+
+  // Troca para CCNA
+  useExamStore.getState().setSelectedCert(ccnaCert);
+  const switchedState = useExamStore.getState();
+  assert.strictEqual(switchedState.selectedCert?.code, '200-301');
+  assert.strictEqual(switchedState.isStarted, false, 'Troca de certificação deve desarmar isStarted');
+  assert.strictEqual(switchedState.questions.length, 0, 'Troca de certificação deve limpar questões da prova anterior');
+  assert.deepStrictEqual(switchedState.answers, {}, 'Troca de certificação deve limpar respostas anteriores');
+  console.log('✓ TESTE 6: Troca de certificação via setSelectedCert purga estado de exame ativo.');
+
+  // TESTE 7: calculateReadiness não vaza históricos sem cert_id ou de outra certificação
+  console.log('Testando isolamento estrito de histórico em calculateReadiness...');
+  const { calculateReadiness } = await import('./learningEngine.ts');
+  const mixedHistory: any[] = [
+    { id: 'h1', cert_id: 'SY0-701', total_questions: 90, correct_count: 80, score: 820, passed: true },
+    { id: 'h2', cert_id: null, total_questions: 50, correct_count: 45, score: 850, passed: true }, // Sem cert_id
+    { id: 'h3', cert_id: '200-301', total_questions: 10, correct_count: 5, score: 500, passed: false }, // CCNA
+  ];
+
+  const ccnaReadiness = calculateReadiness(mixedHistory, '200-301');
+  // CCNA possui apenas h3 (10 questões avaliadas)
+  assert.strictEqual(ccnaReadiness.totalEvaluatedQuestions, 10, 'CCNA deve avaliar somente o histórico estritamente pertencente a 200-301');
+  
+  const nse4Readiness = calculateReadiness(mixedHistory, 'NSE4');
+  // NSE4 não possui nenhum histórico (0 questões)
+  assert.strictEqual(nse4Readiness.totalEvaluatedQuestions, 0, 'NSE4 não deve herdar nenhum histórico sem cert_id ou de outra cert');
+  console.log('✓ TESTE 7: calculateReadiness ignora estritamente históricos sem cert_id ou de terceiros.');
+
+  // TESTE 8: calculateSkillPerformance descarta tentativas sem cert_id ou de outras certs
+  console.log('Testando isolamento granular de telemetria em calculateSkillPerformance...');
+  const { calculateSkillPerformance } = await import('./learningEngine.ts');
+  const mixedAttempts = [
+    { question_id: 'q1', is_correct: true, user_id: 'u1', cert_id: 'SY0-701' },
+    { question_id: 'q1', is_correct: true, user_id: 'u1', cert_id: null as unknown as string }, // Nulo
+    { question_id: 'q1', is_correct: false, user_id: 'u1', cert_id: '200-301' }, // CCNA
+  ];
+  const mockMappings = [
+    { question_id: 'q1', skill_id: 'sk1', skill_slug: 'ip-routing', skill_name: 'IP Routing' }
+  ];
+
+  const ccnaSkillPerf = calculateSkillPerformance(
+    mixedAttempts,
+    mockMappings,
+    undefined,
+    { userId: 'u1', certId: '200-301' }
+  );
+  assert.strictEqual(ccnaSkillPerf.length, 1);
+  assert.strictEqual(ccnaSkillPerf[0].totalAttempts, 1, 'Apenas a tentativa de CCNA deve ser computada');
+  assert.strictEqual(ccnaSkillPerf[0].correctCount, 0, 'A tentativa de CCNA foi errada');
+  console.log('✓ TESTE 8: calculateSkillPerformance isola estritamente tentativas por cert_id.');
+
   console.log('\n======================================================');
-  console.log('TODOS OS TESTES DE ISOLAMENTO PASSARAM COM SUCESSO (PASS)!');
+  console.log('TODOS OS 8 TESTES DE ISOLAMENTO PASSARAM COM SUCESSO (PASS)!');
   console.log('======================================================');
 }
 

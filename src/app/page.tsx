@@ -538,7 +538,7 @@ export default function RootSecApp() {
   // ==========================================
   // DASHBOARD DA CERTIFICAÇÃO SELECIONADA
   // ==========================================
-  const currentHistory = history.filter(h => !h.cert_id || h.cert_id === selectedCert.id);
+  const currentHistory = history.filter(h => h.cert_id === selectedCert.id);
   const displayedPbqs = selectedCert.code === 'SY0-701'
     ? [...pbqsList, ...securityPlusPbqs.filter(scenario => !pbqsList.some(pbq => pbq.id === scenario.id))]
     : pbqsList;
@@ -2645,7 +2645,22 @@ export default function RootSecApp() {
         {/* ABA: PBQs (CENTRO TÁTICO DE OPERAÇÕES) */}
         {activeTab === 'pbqs' && (
           <div className="max-w-6xl">
-            <PbqOperationsBoard />
+            {selectedCert.code === 'SY0-701' ? (
+              <PbqOperationsBoard />
+            ) : (
+              <div className="p-8 rounded-2xl border border-amber-500/30 bg-amber-950/20 text-amber-200 space-y-4">
+                <div className="flex items-center gap-3 font-mono text-sm font-bold uppercase tracking-wider text-amber-400">
+                  <AlertTriangle className="w-5 h-5 shrink-0" />
+                  Simuladores Práticos (PBQ) em Preparação
+                </div>
+                <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+                  Os laboratórios de simulação de desempenho prático (PBQs) para a certificação <strong className="text-white font-mono">{selectedCert.code} ({selectedCert.name})</strong> estão atualmente em fase de desenvolvimento e validação técnica.
+                </p>
+                <p className="text-xs font-mono text-amber-400/90">
+                  Por diretriz estrita de conformidade e isolamento, laboratórios de outras certificações não são apresentados.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
