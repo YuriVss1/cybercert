@@ -13,7 +13,7 @@ import {
   Server, Lightbulb, Play, RotateCcw, Database, Crosshair, GraduationCap,
   ChevronLeftCircle, Flame, LogOut, MessageSquare, Send, Award, Trophy, Medal, Crown, Sparkles, Zap,
   Brain, Heart, Flag, Reply, Compass, TrendingUp, TrendingDown, HelpCircle, Printer,
-  Gauge, Layers
+  Gauge, Layers, Lock
 } from "lucide-react";
 import { 
   calculateReadiness, 
@@ -2112,8 +2112,8 @@ export default function RootSecApp() {
                       </span>
                       <span className="text-zinc-600">·</span>
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium border border-zinc-800 bg-zinc-900 text-zinc-300">
-                        <span className={`w-1.5 h-1.5 rounded-full ${missionReady ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-400'}`} />
-                        {missionReady ? 'PRONTO PARA INICIAR' : 'SIMULAÇÃO OFICIAL'}
+                        <span className={`w-1.5 h-1.5 rounded-full ${selectedCert.code === 'SY0-701' ? (missionReady ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-400') : 'bg-amber-400'}`} />
+                        {selectedCert.code === 'SY0-701' ? (missionReady ? 'PRONTO PARA INICIAR' : 'SIMULAÇÃO OFICIAL') : 'EM PREPARAÇÃO'}
                       </span>
                     </div>
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
@@ -2269,79 +2269,105 @@ export default function RootSecApp() {
                       </ul>
                     </div>
 
-                    {/* VERIFICAÇÃO DE INÍCIO */}
-                    <div className="p-4 rounded-lg border border-zinc-800/80 bg-zinc-900/40 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
-                          Verificação de Início
-                        </p>
-                        {missionReady && (
-                          <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Pronto para iniciar
-                          </span>
-                        )}
-                      </div>
+                    {/* VERIFICAÇÃO DE INÍCIO / BLOQUEIO EM PREPARAÇÃO */}
+                    {selectedCert.code === 'SY0-701' ? (
+                      <>
+                        <div className="p-4 rounded-lg border border-zinc-800/80 bg-zinc-900/40 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">
+                              Verificação de Início
+                            </p>
+                            {missionReady && (
+                              <span className="text-[10px] font-mono uppercase text-emerald-400 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> Pronto para iniciar
+                              </span>
+                            )}
+                          </div>
 
-                      <div className="space-y-1.5 text-xs font-mono text-zinc-400">
-                        <div className="flex items-center gap-2 text-zinc-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <span>Certificação selecionada ({selectedCert.code})</span>
+                          <div className="space-y-1.5 text-xs font-mono text-zinc-400">
+                            <div className="flex items-center gap-2 text-zinc-300">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span>Certificação selecionada ({selectedCert.code})</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-zinc-300">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span>Configuração carregada</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-zinc-300">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span>Sistema pronto</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {missionReady ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              ) : (
+                                <span className="w-3.5 h-3.5 rounded-full border border-zinc-600 inline-block shrink-0" />
+                              )}
+                              <span className={missionReady ? 'text-zinc-200' : 'text-zinc-500'}>
+                                Confirmação do candidato
+                              </span>
+                            </div>
+                          </div>
+
+                          <label className="flex items-center gap-3 pt-2 cursor-pointer border-t border-zinc-800/70">
+                            <input
+                              type="checkbox"
+                              checked={missionReady}
+                              onChange={e => setMissionReady(e.target.checked)}
+                              className="h-4 w-4 rounded border-zinc-700 bg-zinc-950 accent-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                            />
+                            <span className="text-xs text-zinc-300 font-sans">
+                              Confirmo que estou pronto para iniciar a simulação.
+                            </span>
+                          </label>
                         </div>
-                        <div className="flex items-center gap-2 text-zinc-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <span>Configuração carregada</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-zinc-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <span>Sistema pronto</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {missionReady ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+
+                        {/* CTA PRINCIPAL */}
+                        <button
+                          onClick={() => generateSimulado(90)}
+                          disabled={isLoading || !missionReady}
+                          className={`w-full py-4 rounded-xl font-bold text-sm tracking-wider uppercase transition-all duration-150 flex items-center justify-center gap-2.5 ${
+                            isLoading || !missionReady
+                              ? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed opacity-50'
+                              : 'bg-cyan-600 hover:bg-cyan-500 text-white border border-cyan-400/30 shadow-lg shadow-cyan-950/40 active:scale-[0.99]'
+                          }`}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Activity className="w-4 h-4 animate-spin" />
+                              <span>Conectando ao banco de questões...</span>
+                            </>
                           ) : (
-                            <span className="w-3.5 h-3.5 rounded-full border border-zinc-600 inline-block shrink-0" />
+                            <>
+                              <Play className="w-4 h-4 fill-current" />
+                              <span>Iniciar Simulação</span>
+                            </>
                           )}
-                          <span className={missionReady ? 'text-zinc-200' : 'text-zinc-500'}>
-                            Confirmação do candidato
-                          </span>
+                        </button>
+                      </>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="p-5 rounded-xl border border-amber-500/30 bg-amber-950/20 text-amber-200 space-y-2">
+                          <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-amber-400">
+                            <AlertTriangle className="w-4 h-4 shrink-0" />
+                            Simulado Oficial em Preparação
+                          </div>
+                          <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+                            O banco de questões oficiais e os laboratórios práticos (PBQs) para a certificação <strong className="text-white font-mono">{selectedCert.code} ({selectedCert.name})</strong> estão em fase de homologação técnica. O exame simulado oficial estará disponível assim que o catálogo atingir a cobertura completa de questões e PBQs requerida.
+                          </p>
+                          <p className="text-[11px] font-mono text-amber-400/80">
+                            Por diretriz de conformidade, questões e PBQs de outras certificações nunca são utilizados como substitutos.
+                          </p>
                         </div>
+                        <button
+                          disabled
+                          className="w-full py-4 rounded-xl font-bold text-xs font-mono tracking-wider uppercase bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed opacity-60 flex items-center justify-center gap-2"
+                        >
+                          <Lock className="w-4 h-4" />
+                          Simulado Oficial Indisponível (Em Preparação)
+                        </button>
                       </div>
-
-                      <label className="flex items-center gap-3 pt-2 cursor-pointer border-t border-zinc-800/70">
-                        <input
-                          type="checkbox"
-                          checked={missionReady}
-                          onChange={e => setMissionReady(e.target.checked)}
-                          className="h-4 w-4 rounded border-zinc-700 bg-zinc-950 accent-cyan-500 focus:ring-cyan-500 cursor-pointer"
-                        />
-                        <span className="text-xs text-zinc-300 font-sans">
-                          Confirmo que estou pronto para iniciar a simulação.
-                        </span>
-                      </label>
-                    </div>
-
-                    {/* CTA PRINCIPAL */}
-                    <button
-                      onClick={() => generateSimulado(90)}
-                      disabled={isLoading || !missionReady}
-                      className={`w-full py-4 rounded-xl font-bold text-sm tracking-wider uppercase transition-all duration-150 flex items-center justify-center gap-2.5 ${
-                        isLoading || !missionReady
-                          ? 'bg-zinc-900 text-zinc-600 border border-zinc-800 cursor-not-allowed opacity-50'
-                          : 'bg-cyan-600 hover:bg-cyan-500 text-white border border-cyan-400/30 shadow-lg shadow-cyan-950/40 active:scale-[0.99]'
-                      }`}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Activity className="w-4 h-4 animate-spin" />
-                          <span>Conectando ao banco de questões...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-4 h-4 fill-current" />
-                          <span>Iniciar Simulação</span>
-                        </>
-                      )}
-                    </button>
+                    )}
                   </div>
                 </div>
 

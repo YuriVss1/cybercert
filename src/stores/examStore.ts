@@ -465,12 +465,20 @@ export const useExamStore = create<ExamState>()(
   },
 
   generateSimulado: async (limit = 90) => {
-    set({ isLoading: true, examType: 'official' });
     const { selectedCert } = get();
-    let query = supabase.from('questions').select('*');
-    if (selectedCert) query = query.eq('cert_id', selectedCert.id);
+    // F-ISO-01: Isolamento estrito de Simulado Oficial. Apenas CompTIA Security+ (SY0-701) possui homologação oficial e PBQs completos
+    if (!selectedCert || selectedCert.code !== 'SY0-701') {
+      console.warn(`[CyberCert] Simulado Oficial bloqueado para ${selectedCert?.code || 'certificação não selecionada'}. Conteúdo em preparação.`);
+      set({ isLoading: false });
+      return;
+    }
+
+    set({ isLoading: true, examType: 'official' });
+    const { data, error } = await supabase
+      .from('questions')
+      .select('*')
+      .eq('cert_id', selectedCert.id);
     
-    const { data, error } = await query;
     if (error || !data) { set({ isLoading: false }); return; }
     const formattedQuestions: QuestionExamItem[] = data.map(q => ({
       ...q,
