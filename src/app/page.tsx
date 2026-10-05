@@ -8,7 +8,7 @@ import PbqAssessmentAdapter from "@/components/pbq/PbqAssessmentAdapter";
 import { supabase } from "@/lib/supabase";
 import { 
   ShieldAlert, Terminal, Clock, CheckCircle2, XCircle, ChevronRight, 
-  ChevronLeft, Bookmark, Activity, History, BookOpen, Eye, 
+  ChevronLeft, Bookmark, Activity, History, BookOpen, Eye, EyeOff, 
   LayoutDashboard, Target, Search, BarChart3, Rocket, Skull, Calendar, AlertTriangle,
   Server, Lightbulb, Play, RotateCcw, Database, Crosshair, GraduationCap,
   ChevronLeftCircle, Flame, LogOut, MessageSquare, Send, Award, Trophy, Medal, Crown, Sparkles, Zap,
@@ -164,6 +164,7 @@ export default function RootSecApp() {
   const [authName, setAuthName] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
 
   // Estado local para o Fórum
   const [commentInput, setCommentInput] = useState('');
@@ -445,7 +446,24 @@ export default function RootSecApp() {
             </div>
             <div>
               <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Senha de Acesso</label>
-              <input required type="password" value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-200 outline-none focus:border-cyan-500" placeholder="••••••••" />
+              <div className="relative">
+                <input
+                  required
+                  type={showAuthPassword ? "text" : "password"}
+                  value={authPassword}
+                  onChange={e => setAuthPassword(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 pr-11 text-sm text-zinc-200 outline-none focus:border-cyan-500 font-sans"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAuthPassword(!showAuthPassword)}
+                  aria-label={showAuthPassword ? "Ocultar senha" : "Mostrar senha"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
+                >
+                  {showAuthPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button type="submit" disabled={authLoading} className="w-full py-4 bg-cyan-900/40 hover:bg-cyan-800/60 border border-cyan-700/50 text-cyan-100 font-bold rounded-xl uppercase tracking-widest text-xs transition-all flex justify-center mt-2">
