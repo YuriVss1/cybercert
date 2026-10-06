@@ -186,7 +186,13 @@ export default function RootSecApp() {
   const getDomainsForCert = (code?: string) => {
     switch (code) {
       case 'SY0-701':
-        return ['Conceitos gerais de segurança', 'Ameaças, vulnerabilidades e mitigações', 'Arquitetura de segurança', 'Operações de segurança', 'Gerenciamento e supervisão do programa de segurança'];
+        return [
+          'Conceitos Gerais de Segurança',
+          'Ameaças, Vulnerabilidades e Mitigações',
+          'Arquitetura de Segurança',
+          'Operações de Segurança',
+          'Gerenciamento e Supervisão do Programa de Segurança'
+        ];
       case '200-301':
         return ['Network Fundamentals', 'Network Access', 'IP Connectivity', 'IP Services', 'Security Fundamentals', 'Automation and Programmability'];
       case 'NSE4':
