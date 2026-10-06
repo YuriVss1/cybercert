@@ -1073,34 +1073,44 @@ export async function adminCreateUserAction(
     };
   }
 
-  // 3. Cliente Supabase isolado para criação de usuário (sem sobrescrever sessão/cookies do admin)
+  // 3. Cliente administrativo server-side com service_role para provisionamento imediato
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qtimoxxxkwgrueoerdnv.supabase.co';
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_2HoPZQAly240HQePmqB42g_oqIYElse';
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  const isolatedClient = createSupabaseClient(supabaseUrl, anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  const { data: signUpData, error: signUpError } = await isolatedClient.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName || email.split('@')[0],
-        display_name: fullName || email.split('@')[0],
-      },
-    },
-  });
-
-  if (signUpError || !signUpData.user) {
+  if (!serviceRoleKey) {
     return {
       success: false,
-      error: signUpError?.message || 'Falha ao registrar novo operador no serviço de autenticação.',
-      code: 'SIGNUP_ERROR',
+      error: 'Configuração ausente: SUPABASE_SERVICE_ROLE_KEY não foi configurada no ambiente do servidor.',
+      code: 'MISSING_SERVICE_ROLE_KEY',
     };
   }
 
-  const newUserId = signUpData.user.id;
+  const adminClient = createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  const { data: createData, error: createError } = await adminClient.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      full_name: fullName || email.split('@')[0],
+      display_name: fullName || email.split('@')[0],
+    },
+  });
+
+  if (createError || !createData.user) {
+    return {
+      success: false,
+      error: createError?.message || 'Falha ao registrar novo operador no serviço de autenticação.',
+      code: 'CREATE_USER_ERROR',
+    };
+  }
+
+  const newUserId = createData.user.id;
   let finalRole = 'user';
 
   // 4. Se solicitado papel administrativo, tenta registrar na tabela canonical admin_users
