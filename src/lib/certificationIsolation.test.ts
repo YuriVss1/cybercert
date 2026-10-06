@@ -40,11 +40,11 @@ async function runTests() {
   console.log('Verificando taxonomia de EXAM_PBQS...');
   assert.strictEqual(EXAM_PBQS.length, 3, 'EXAM_PBQS deve conter exatamente 3 PBQs');
   const validSecPlusDomains = [
-    'Operações de segurança',
-    'Ameaças, vulnerabilidades e mitigações',
-    'Arquitetura de segurança',
-    'Conceitos gerais de segurança',
-    'Gerenciamento e supervisão do programa de segurança'
+    'Conceitos Gerais de Segurança',
+    'Ameaças, Vulnerabilidades e Mitigações',
+    'Arquitetura de Segurança',
+    'Operações de Segurança',
+    'Gerenciamento e Supervisão do Programa de Segurança'
   ];
   for (const pbq of EXAM_PBQS) {
     assert.ok(
