@@ -100,6 +100,18 @@ export type CommentItem = {
   profiles?: { full_name: string; avatar_url: string };
 };
 
+export type TacticalAttemptItem = {
+  id: string;
+  question_id: string;
+  is_correct: boolean;
+  selected_answer: string;
+  domain: string;
+  created_at: string;
+  cert_id?: string;
+  question_text?: string;
+  correct_answer?: string;
+};
+
 type AppMode = 'dashboard' | 'simulado' | 'treinamento' | 'historico' | 'metrics' | 'pbqs' | 'intelligence' | 'admin' | 'cyber-core';
 type ExamType = 'official' | 'training';
 
@@ -174,6 +186,8 @@ type ExamState = {
   fetchHistory: () => Promise<void>;
   skillPerformance: SkillPerformanceItem[];
   fetchSkillPerformance: () => Promise<void>;
+  tacticalAttempts: TacticalAttemptItem[];
+  fetchTacticalAttempts: () => Promise<void>;
   answerQuestion: (id: string, answer: string) => void;
   toggleMarkForReview: (id: string) => void;
   revealExplanation: (id: string) => void;
@@ -264,6 +278,7 @@ export const useExamStore = create<ExamState>()(
     if (cert) {
       get().fetchPbqs();
       get().fetchSkillPerformance();
+      get().fetchTacticalAttempts();
     }
   },
   
@@ -732,6 +747,55 @@ export const useExamStore = create<ExamState>()(
       console.error('Erro ao calcular telemetria de skills:', err);
     }
   },
+
+  tacticalAttempts: [],
+  fetchTacticalAttempts: async () => {
+    const { selectedCert, user } = get();
+    if (!selectedCert || !user) return;
+    try {
+      const { data, error } = await supabase
+        .from('user_question_attempts')
+        .select(`
+          id,
+          question_id,
+          is_correct,
+          selected_answer,
+          domain,
+          created_at,
+          cert_id,
+          questions (
+            id,
+            question_text,
+            correct_answer,
+            domain
+          )
+        `)
+        .eq('cert_id', selectedCert.id)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        const formatted: TacticalAttemptItem[] = data.map((item: any) => ({
+          id: item.id,
+          question_id: item.question_id,
+          is_correct: item.is_correct,
+          selected_answer: item.selected_answer,
+          domain: item.domain || item.questions?.domain || 'Geral',
+          created_at: item.created_at,
+          cert_id: item.cert_id,
+          question_text: item.questions?.question_text || 'Enunciado não disponível',
+          correct_answer: item.questions?.correct_answer || ''
+        }));
+        set((state) => {
+          const fetchedIds = new Set(formatted.map(f => f.id));
+          const localOnly = state.tacticalAttempts.filter(t => t.id.startsWith('local-') && !fetchedIds.has(t.id));
+          return { tacticalAttempts: [...localOnly, ...formatted] };
+        });
+      }
+    } catch (err) {
+      console.warn('Erro ao consultar tentativas táticas:', err);
+    }
+  },
   
   answerQuestion: (id, answer) => set((state) => ({ answers: { ...state.answers, [id]: answer } })),
   toggleMarkForReview: (id) => set((state) => ({ markedForReview: state.markedForReview.includes(id) ? state.markedForReview.filter(qId => qId !== id) : [...state.markedForReview, id] })),
@@ -840,6 +904,23 @@ export const useExamStore = create<ExamState>()(
           created_at: new Date().toISOString()
         }));
 
+        if (state.examType === 'training') {
+          const sessionTactical: TacticalAttemptItem[] = mcqItems.map((q) => ({
+            id: `local-${q.id}-${Date.now()}`,
+            question_id: q.id,
+            cert_id: state.selectedCert?.id,
+            domain: q.domain || 'Geral',
+            selected_answer: state.answers[q.id] || '',
+            is_correct: state.answers[q.id] === q.correct_answer,
+            created_at: new Date().toISOString(),
+            question_text: q.question_text,
+            correct_answer: q.correct_answer
+          }));
+          set((s) => ({
+            tacticalAttempts: [...sessionTactical, ...s.tacticalAttempts]
+          }));
+        }
+
         void (async () => {
           try {
             const { error } = await supabase.from('user_question_attempts').insert(attempts);
@@ -847,6 +928,7 @@ export const useExamStore = create<ExamState>()(
               console.info('user_question_attempts ainda não migrado no banco ou indisponível:', error.message);
             } else {
               get().fetchSkillPerformance();
+              get().fetchTacticalAttempts();
             }
           } catch (err: unknown) {
             console.warn('Tentativa granular falhou de forma não-bloqueante:', err);
@@ -904,6 +986,7 @@ export const useExamStore = create<ExamState>()(
         isFinished: state.isFinished,
         isReviewing: state.isReviewing,
         domainResults: state.domainResults,
+        tacticalAttempts: state.tacticalAttempts,
       }),
     }
   )

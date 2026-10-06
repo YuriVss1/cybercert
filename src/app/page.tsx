@@ -38,7 +38,7 @@ const CONFIDENCE_OPTIONS: { id: ConfidenceFeedback; label: string }[] = [
 
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, ReferenceLine
+  ResponsiveContainer, ReferenceLine, PieChart, Pie, Cell
 } from 'recharts';
 import PbqOperationsBoard from "@/components/pbq/PbqOperationsBoard";
 import CyberCoreHome from "@/components/cybercore/CyberCoreHome";
@@ -145,7 +145,8 @@ export default function RootSecApp() {
     generateSimulado, generateTreinamento, generateRetaliacao, generateSpacedRepetitionSession, fetchHistory, answerQuestion, 
     skillPerformance, fetchSkillPerformance,
     toggleMarkForReview, revealExplanation, tickTimer, addQuestion,
-    finishExam, startReview, stopReview, resetExam, nextQuestion, prevQuestion
+    finishExam, startReview, stopReview, resetExam, nextQuestion, prevQuestion,
+    tacticalAttempts, fetchTacticalAttempts
   } = useExamStore();
 
   const isSuperAdmin = Boolean(
@@ -166,11 +167,14 @@ export default function RootSecApp() {
   const [authLoading, setAuthLoading] = useState(false);
   const [showAuthPassword, setShowAuthPassword] = useState(false);
 
-  // Estado local para o Fórum
   const [commentInput, setCommentInput] = useState('');
   const [commentSort, setCommentSort] = useState<'recent' | 'useful'>('recent');
   const [likedComments, setLikedComments] = useState<string[]>([]);
   const [reportedComments, setReportedComments] = useState<string[]>([]);
+
+  // Estados locais para Telemetria do Estudo Tático na aba Métricas
+  const [tacticalPeriodFilter, setTacticalPeriodFilter] = useState<'24h' | '3d' | '7d' | '30d' | '90d' | '1y' | 'all'>('all');
+  const [tacticalOutcomeFilter, setTacticalOutcomeFilter] = useState<'all' | 'correct' | 'incorrect'>('all');
 
   useEffect(() => {
     checkUser();
@@ -245,6 +249,26 @@ export default function RootSecApp() {
         return;
       }
 
+      if (e.key === 'Enter') {
+        const currentQ = questions[currentIndex];
+        if (currentQ && examType === 'training' && !isReviewing) {
+          const isRevealed = revealedExplanations[currentQ.id];
+          if (!isRevealed && answers[currentQ.id]) {
+            e.preventDefault();
+            revealExplanation(currentQ.id);
+            return;
+          } else if (isRevealed) {
+            e.preventDefault();
+            if (currentIndex < questions.length - 1) {
+              nextQuestion();
+            } else {
+              setShowFinishModal(true);
+            }
+            return;
+          }
+        }
+      }
+
       const currentQ = questions[currentIndex];
       if (!currentQ || currentQ.type === 'pbq' || !Array.isArray(currentQ.options)) return;
       const isRevealed = revealedExplanations[currentQ.id] || isReviewing;
@@ -263,7 +287,7 @@ export default function RootSecApp() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isStarted, isFinished, showFinishModal, showExitModal, currentIndex, questions, revealedExplanations, isReviewing, answerQuestion, prevQuestion, nextQuestion]);
+  }, [isStarted, isFinished, showFinishModal, showExitModal, currentIndex, questions, answers, revealedExplanations, isReviewing, examType, answerQuestion, prevQuestion, nextQuestion, revealExplanation]);
 
   const [adminForm, setAdminForm] = useState({
     domain: '', difficulty: 'Medium', question_text: '', optionA: '', optionB: '', optionC: '', optionD: '', correct_answer: 'A', explanation: '', skills: ''
@@ -291,7 +315,8 @@ export default function RootSecApp() {
     fetchCertifications();
     fetchHistory(); 
     fetchSkillPerformance();
-  }, [fetchCertifications, fetchHistory, fetchSkillPerformance]);
+    fetchTacticalAttempts();
+  }, [fetchCertifications, fetchHistory, fetchSkillPerformance, fetchTacticalAttempts]);
 
   // Os comentários acompanham a questão atual durante o treino e a revisão.
   useEffect(() => {
@@ -948,90 +973,80 @@ export default function RootSecApp() {
                 })}
               </div>
 
-              {/* SEÇÃO DE GABARITO & EXPLICAÇÃO (APENAS TREINAMENTO OU REVISÃO) */}
-              {(examType === 'training' || isReviewing) && (
-                <div className="mt-8 border-t border-zinc-800/80 pt-6">
-                  {!revealedExplanations[currentQ.id] && !isReviewing ? (
-                    <button
-                      onClick={() => revealExplanation(currentQ.id)}
-                      disabled={!answers[currentQ.id]}
-                      className="flex items-center gap-2 px-6 py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 rounded-xl transition-all disabled:opacity-30 text-xs font-mono uppercase tracking-wider"
-                    >
-                      <Eye className="w-4 h-4" /> Revelar Gabarito e Explicação
-                    </button>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Análise de Erro / Resultado */}
-                      {(() => {
-                        const userChoice = answers[currentQ.id];
-                        const isCorrect = userChoice === currentQ.correct_answer;
-                        return (
-                          <div className="space-y-4">
-                            <div className={`p-4 rounded-xl border flex items-center justify-between ${isCorrect ? 'bg-emerald-950/30 border-emerald-500/50 text-emerald-400' : 'bg-red-950/30 border-red-500/50 text-red-400'}`}>
-                              <div className="flex items-center gap-3">
-                                {isCorrect ? <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" /> : <XCircle className="w-5 h-5 shrink-0 text-red-400" />}
-                                <div>
-                                  <p className="text-xs uppercase tracking-wider font-mono font-bold">
-                                    {isCorrect ? 'RESULTADO: CORRETO' : 'RESULTADO: INCORRETO'}
-                                  </p>
-                                  <p className="text-xs font-sans text-zinc-300 mt-1">
-                                    Sua escolha: <span className="font-mono font-bold text-white">{userChoice || 'Não respondida'}</span> | Oficial: <span className="font-mono font-bold text-white">{currentQ.correct_answer}</span>
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Pergunta de Feedback Cognitivo Opcional */}
-                            <div className="bg-zinc-950/90 border border-zinc-800 p-4 rounded-xl">
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 font-mono">
-                                  <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
-                                  Como você chegou nessa resposta? <span className="text-zinc-600 font-normal font-sans">(Opcional // calibra a telemetria)</span>
+              {/* SEÇÃO DE GABARITO & EXPLICAÇÃO (APENAS TREINAMENTO OU REVISÃO, APÓS REVELAR) */}
+              {(examType === 'training' || isReviewing) && (revealedExplanations[currentQ.id] || isReviewing) && (
+                <div className="mt-8 border-t border-zinc-800/80 pt-6 animate-in fade-in duration-300">
+                  <div className="space-y-4">
+                    {/* Análise de Erro / Resultado */}
+                    {(() => {
+                      const userChoice = answers[currentQ.id];
+                      const isCorrect = userChoice === currentQ.correct_answer;
+                      return (
+                        <div className="space-y-4">
+                          <div className={`p-4 rounded-xl border flex items-center justify-between ${isCorrect ? 'bg-emerald-950/30 border-emerald-500/50 text-emerald-400' : 'bg-red-950/30 border-red-500/50 text-red-400'}`}>
+                            <div className="flex items-center gap-3">
+                              {isCorrect ? <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" /> : <XCircle className="w-5 h-5 shrink-0 text-red-400" />}
+                              <div>
+                                <p className="text-xs uppercase tracking-wider font-mono font-bold">
+                                  {isCorrect ? 'RESULTADO: CORRETO' : 'RESULTADO: INCORRETO'}
                                 </p>
-                                {userFeedback[currentQ.id] && (
-                                  <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40 font-mono">
-                                    Feedback: {CONFIDENCE_OPTIONS.find(o => o.id === userFeedback[currentQ.id])?.label || userFeedback[currentQ.id]}
-                                  </span>
-                                )}
+                                <p className="text-xs font-sans text-zinc-300 mt-1">
+                                  Sua escolha: <span className="font-mono font-bold text-white">{userChoice || 'Não respondida'}</span> | Oficial: <span className="font-mono font-bold text-white">{currentQ.correct_answer}</span>
+                                </p>
                               </div>
-                              <div className="flex flex-wrap gap-2">
-                                {CONFIDENCE_OPTIONS.map((opt) => {
-                                  const isSelectedFeedback = userFeedback[currentQ.id] === opt.id;
-                                  return (
-                                    <button
-                                      key={opt.id}
-                                      type="button"
-                                      onClick={() => recordFeedback(currentQ.id, opt.id)}
-                                      className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-all border ${
-                                        isSelectedFeedback 
-                                          ? 'bg-cyan-950 border-cyan-500 text-cyan-200 shadow-[0_0_10px_rgba(8,145,178,0.2)]' 
-                                          : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200'
-                                      }`}
-                                    >
-                                      {opt.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-
-                            {/* Explicação Técnica */}
-                            <div className="bg-zinc-900/50 border border-emerald-900/50 p-5 rounded-xl">
-                              <div className="flex items-center gap-2 mb-2">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                <h4 className="text-emerald-400 font-bold tracking-wider uppercase text-xs font-mono">
-                                  Explicação Técnica Oficial:
-                                </h4>
-                              </div>
-                              <p className="text-zinc-300 font-sans text-sm leading-relaxed">
-                                {currentQ.explanation || "Sem explicação técnica cadastrada para esta questão."}
-                              </p>
                             </div>
                           </div>
-                        );
-                      })()}
-                    </div>
-                  )}
+
+                          {/* Pergunta de Feedback Cognitivo Opcional */}
+                          <div className="bg-zinc-950/90 border border-zinc-800 p-4 rounded-xl">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5 font-mono">
+                                <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
+                                Como você chegou nessa resposta? <span className="text-zinc-600 font-normal font-sans">(Opcional // calibra a telemetria)</span>
+                              </p>
+                              {userFeedback[currentQ.id] && (
+                                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40 font-mono">
+                                  Feedback: {CONFIDENCE_OPTIONS.find(o => o.id === userFeedback[currentQ.id])?.label || userFeedback[currentQ.id]}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {CONFIDENCE_OPTIONS.map((opt) => {
+                                const isSelectedFeedback = userFeedback[currentQ.id] === opt.id;
+                                return (
+                                  <button
+                                    key={opt.id}
+                                    type="button"
+                                    onClick={() => recordFeedback(currentQ.id, opt.id)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-sans transition-all border ${
+                                      isSelectedFeedback 
+                                        ? 'bg-cyan-950 border-cyan-500 text-cyan-200 shadow-[0_0_10px_rgba(8,145,178,0.2)]' 
+                                        : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                                    }`}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Explicação Técnica */}
+                          <div className="bg-zinc-900/50 border border-emerald-900/50 p-5 rounded-xl">
+                            <div className="flex items-center gap-2 mb-2">
+                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                              <h4 className="text-emerald-400 font-bold tracking-wider uppercase text-xs font-mono">
+                                Explicação Técnica Oficial:
+                              </h4>
+                            </div>
+                            <p className="text-zinc-300 font-sans text-sm leading-relaxed">
+                              {currentQ.explanation || "Sem explicação técnica cadastrada para esta questão."}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
 
                   {/* Fórum de debates */}
                   <div className="mt-6 bg-zinc-900/30 border border-cyan-900/40 p-6 rounded-xl">
@@ -1102,10 +1117,14 @@ export default function RootSecApp() {
 
                 {/* Dica de Atalhos (Desktop) */}
                 <span className="hidden md:block text-[11px] font-mono text-zinc-500 text-center">
-                  A–D para responder · ← → para navegar
+                  {examType === 'training' && !isReviewing
+                    ? (!revealedExplanations[currentQ.id]
+                      ? 'A–D para selecionar · Enter para responder'
+                      : 'Enter / → para próxima questão')
+                    : 'A–D para responder · ← → para navegar'}
                 </span>
 
-                {/* Botões Anterior / Próxima */}
+                {/* Botões de Ação e Navegação */}
                 <div className="flex items-center gap-2.5">
                   <button
                     type="button"
@@ -1116,15 +1135,62 @@ export default function RootSecApp() {
                     <ChevronLeft className="w-4 h-4" />
                     <span>Anterior</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={nextQuestion}
-                    disabled={currentIndex === totalQuestions - 1}
-                    className="px-6 py-2.5 rounded-xl border border-cyan-500/40 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold shadow-md shadow-cyan-950/50 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1.5"
-                  >
-                    <span>Próxima</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+
+                  {/* Fluxo no Treinamento Tático */}
+                  {examType === 'training' && !isReviewing ? (
+                    !revealedExplanations[currentQ.id] ? (
+                      <>
+                        {!answers[currentQ.id] && currentIndex < totalQuestions - 1 && (
+                          <button
+                            type="button"
+                            onClick={nextQuestion}
+                            className="px-3 py-2 text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
+                          >
+                            <span>Pular</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => answers[currentQ.id] && revealExplanation(currentQ.id)}
+                          disabled={!answers[currentQ.id]}
+                          className="px-6 py-2.5 rounded-xl border border-emerald-500/50 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold shadow-md shadow-emerald-950/50 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Responder</span>
+                        </button>
+                      </>
+                    ) : currentIndex === totalQuestions - 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowFinishModal(true)}
+                        className="px-6 py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold shadow-md shadow-emerald-950/50 transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Finalizar Treino</span>
+                        <CheckCircle2 className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={nextQuestion}
+                        className="px-6 py-2.5 rounded-xl border border-cyan-500/40 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold shadow-md shadow-cyan-950/50 transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <span>Próxima</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    )
+                  ) : (
+                    /* Fluxo Oficial ou Revisão */
+                    <button
+                      type="button"
+                      onClick={nextQuestion}
+                      disabled={currentIndex === totalQuestions - 1}
+                      className="px-6 py-2.5 rounded-xl border border-cyan-500/40 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold shadow-md shadow-cyan-950/50 disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1.5"
+                    >
+                      <span>Próxima</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1419,7 +1485,7 @@ export default function RootSecApp() {
   }
 
   // ==========================================
-  // TELA DE RESULTADO PÓS-PROVA
+  // TELA DE RESULTADO PÓS-PROVA / PÓS-TREINO
   // ==========================================
   if (isFinished && !isReviewing) {
     const totalQuestions = questions.length;
@@ -1438,12 +1504,97 @@ export default function RootSecApp() {
       : 100;
     const passed = finalScore >= 750;
 
+    const totalCorrect = correctMcqCount + correctPbqCount;
+    const totalIncorrect = Math.max(0, totalQuestions - totalCorrect);
+    const accuracyPct = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+
+    // FLUXO DE ESTUDO TÁTICO: Apenas certas e erradas, sem score CompTIA de 900 PTS, sem ranking, sem ponto de corte
+    if (examType === 'training') {
+      return (
+        <div className="min-h-screen bg-[#0a0a0a] p-6 font-mono text-zinc-300 flex flex-col items-center justify-center overflow-y-auto py-12">
+          <div className="max-w-2xl w-full bg-zinc-950/90 backdrop-blur border border-zinc-800 p-8 rounded-2xl shadow-2xl">
+            <div className="text-center border-b border-zinc-800/80 pb-8 mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-400 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+                <Target className="w-8 h-8" />
+              </div>
+              <h1 className="text-2xl font-black text-white uppercase tracking-wider">
+                TREINAMENTO TÁTICO FINALIZADO
+              </h1>
+              <p className="text-xs text-zinc-400 mt-1">
+                Sessão de prática concluída · <span className="font-mono text-cyan-400">{selectedCert.code}</span>
+              </p>
+
+              {/* CARDS DE ACERTOS E ERROS (SEM RANKING / SEM SCORE COMPTIA) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 mt-8 text-center">
+                <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/40 text-emerald-400">
+                  <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Certas</span>
+                  </div>
+                  <div className="text-3xl font-black font-mono text-white mt-1">{totalCorrect}</div>
+                  <span className="text-[10px] text-emerald-400/80 font-mono">{accuracyPct}% de acerto</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-red-950/30 border border-red-500/40 text-red-400">
+                  <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider mb-1">
+                    <XCircle className="w-4 h-4 text-red-400" />
+                    <span>Erradas</span>
+                  </div>
+                  <div className="text-3xl font-black font-mono text-white mt-1">{totalIncorrect}</div>
+                  <span className="text-[10px] text-red-400/80 font-mono">{100 - accuracyPct}% de erro</span>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1 p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 text-zinc-300">
+                  <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wider mb-1 text-zinc-400">
+                    <BookOpen className="w-4 h-4 text-cyan-400" />
+                    <span>Total</span>
+                  </div>
+                  <div className="text-3xl font-black font-mono text-white mt-1">{totalQuestions}</div>
+                  <span className="text-[10px] text-zinc-500 font-mono">questões resolvidas</span>
+                </div>
+              </div>
+
+              {/* Barra de Aproveitamento */}
+              <div className="mt-6 space-y-1.5 text-left">
+                <div className="flex justify-between text-xs font-mono">
+                  <span className="text-zinc-400">Aproveitamento</span>
+                  <span className="font-bold text-white">{accuracyPct}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-zinc-900 overflow-hidden border border-zinc-800">
+                  <div
+                    className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-500"
+                    style={{ width: `${accuracyPct}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={startReview}
+                className="flex-1 py-4 bg-purple-900/30 hover:bg-purple-800/50 border border-purple-700/50 text-purple-300 font-bold rounded-xl flex items-center justify-center gap-2 uppercase text-xs tracking-wider transition-colors cursor-pointer"
+              >
+                <Search className="w-4 h-4" /> Revisar Respostas
+              </button>
+              <button
+                onClick={resetExam}
+                className="flex-1 py-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 uppercase text-xs tracking-wider transition-colors cursor-pointer"
+              >
+                <LayoutDashboard className="w-4 h-4" /> Voltar ao Início
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // FLUXO DE OPERAÇÃO REAL (SIMULADO OFICIAL COMPTIA): Mantém a nota oficial de 100 a 900 PTS
     return (
       <div className="min-h-screen bg-[#0a0a0a] p-6 font-mono text-zinc-300 flex flex-col items-center justify-center overflow-y-auto py-12">
         <div className="max-w-4xl w-full bg-zinc-950/80 backdrop-blur border border-zinc-800/80 p-8 rounded-2xl shadow-2xl">
           <div className="text-center border-b border-zinc-800/80 pb-8 mb-8">
             {passed ? <CheckCircle2 className="w-20 h-20 text-emerald-500 mx-auto mb-4" /> : <XCircle className="w-20 h-20 text-red-500 mx-auto mb-4" />}
-            <h1 className="text-2xl font-bold text-white mb-2 uppercase tracking-widest">{examType === 'official' ? (passed ? "CERTIFICAÇÃO ALCANÇADA" : "FALHA NA AVALIAÇÃO") : "TREINAMENTO TÁTICO FINALIZADO"}</h1>
+            <h1 className="text-2xl font-bold text-white mb-2 uppercase tracking-widest">{passed ? "CERTIFICAÇÃO ALCANÇADA" : "FALHA NA AVALIAÇÃO"}</h1>
             <p className="text-6xl font-black mt-4 mb-2 text-white">
               {finalScore} <span className="text-2xl text-zinc-500">/ 900 PTS</span>
             </p>
@@ -3176,7 +3327,7 @@ export default function RootSecApp() {
                 </div>
               </div>
 
-              {/* SELETOR DE JANELA TEMPORAL */}
+              {/* SELETOR DE JANELA TEMPORAL GERAL */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-zinc-800 bg-zinc-950/80">
                 <div className="flex items-center gap-2.5 text-xs text-zinc-400">
                   <Calendar className="w-4 h-4 text-cyan-400" />
@@ -3194,6 +3345,373 @@ export default function RootSecApp() {
                   <option value="12m">Último ano</option>
                 </select>
               </div>
+
+              {/* MÓDULO EXCLUSIVO: QUESTÕES RESPONDIDAS NO ESTUDO TÁTICO (PIE CHART + FILTROS COMPLETOS) */}
+              {(() => {
+                const now = new Date().getTime();
+                const certAttempts = tacticalAttempts.filter(
+                  t => !t.cert_id || t.cert_id === selectedCert.id
+                );
+
+                // Fallback inteligente para sessões gravadas em historyTraining caso ainda não haja user_question_attempts sincronizadas
+                const allTacticalAttempts = certAttempts.length > 0
+                  ? certAttempts
+                  : historyTraining.flatMap((h) => {
+                      const incorrectIds = new Set(h.incorrect_questions || []);
+                      const dummyItems: typeof tacticalAttempts = [];
+                      const total = h.total_questions || 0;
+                      const incorrectCount = incorrectIds.size;
+                      const correctCount = Math.max(0, total - incorrectCount);
+                      Array.from(incorrectIds).forEach((id, idx) => {
+                        dummyItems.push({
+                          id: `hist-err-${h.id}-${idx}`,
+                          question_id: id,
+                          is_correct: false,
+                          selected_answer: 'Alternativa incorreta',
+                          domain: 'Estudo Tático',
+                          created_at: h.created_at,
+                          question_text: `Questão de simulação (#${id.slice(0, 8)}) praticada em sessão anterior.`,
+                        });
+                      });
+                      for (let i = 0; i < correctCount; i++) {
+                        dummyItems.push({
+                          id: `hist-ok-${h.id}-${i}`,
+                          question_id: `ok-${i}`,
+                          is_correct: true,
+                          selected_answer: 'Alternativa correta',
+                          domain: 'Estudo Tático',
+                          created_at: h.created_at,
+                          question_text: `Questão respondida corretamente em sessão anterior.`,
+                        });
+                      }
+                      return dummyItems;
+                    });
+
+                // Filtragem por Janela Temporal (24h, 3 dias, 7 dias, 30 dias, 90 dias, 1 ano, todos)
+                const inPeriodAttempts = allTacticalAttempts.filter(item => {
+                  if (tacticalPeriodFilter === 'all') return true;
+                  const itemTime = new Date(item.created_at).getTime();
+                  const diffMs = now - itemTime;
+                  const diffHours = diffMs / (1000 * 60 * 60);
+                  const diffDays = diffHours / 24;
+
+                  switch (tacticalPeriodFilter) {
+                    case '24h': return diffHours <= 24;
+                    case '3d':  return diffDays <= 3;
+                    case '7d':  return diffDays <= 7;
+                    case '30d': return diffDays <= 30;
+                    case '90d': return diffDays <= 90;
+                    case '1y':  return diffDays <= 365;
+                    default:    return true;
+                  }
+                });
+
+                const countCorrect = inPeriodAttempts.filter(a => a.is_correct).length;
+                const countIncorrect = inPeriodAttempts.length - countCorrect;
+                const totalInPeriod = inPeriodAttempts.length;
+                const accuracyPct = totalInPeriod > 0 ? Math.round((countCorrect / totalInPeriod) * 100) : 0;
+                const errorPct = totalInPeriod > 0 ? Math.round((countIncorrect / totalInPeriod) * 100) : 0;
+
+                const pieData = totalInPeriod > 0
+                  ? [
+                      { name: 'Certas', value: countCorrect, color: '#10b981' },
+                      { name: 'Erradas', value: countIncorrect, color: '#ef4444' }
+                    ].filter(d => d.value > 0)
+                  : [{ name: 'Sem dados', value: 1, color: '#27272a' }];
+
+                // Filtragem por visualização de desfecho: todas, apenas certas, apenas erradas
+                const displayedAttempts = inPeriodAttempts.filter(item => {
+                  if (tacticalOutcomeFilter === 'correct') return item.is_correct;
+                  if (tacticalOutcomeFilter === 'incorrect') return !item.is_correct;
+                  return true;
+                });
+
+                return (
+                  <div className="rounded-3xl border border-cyan-800/40 bg-zinc-950/95 p-6 md:p-8 shadow-2xl space-y-6">
+                    {/* Header do Módulo com Filtro Temporal */}
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="p-1.5 rounded-lg bg-cyan-950 border border-cyan-800/60 text-cyan-400">
+                            <BarChart3 className="w-4 h-4" />
+                          </span>
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold">
+                            Ranking & Telemetria Forense
+                          </span>
+                        </div>
+                        <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">
+                          Questões respondidas no estudo tático
+                        </h2>
+                        <p className="text-xs text-zinc-400 font-sans mt-0.5">
+                          Distribuição de acertos/erros, auditoria de assertividade e log de questões por período.
+                        </p>
+                      </div>
+
+                      {/* Seletor Temporal Exato (24h, 3 dias, 7 dias, 30 dias, 90 dias, 1 ano, todos) */}
+                      <div className="flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 p-1 rounded-xl flex-wrap">
+                        {(
+                          [
+                            { id: '24h', label: '24h' },
+                            { id: '3d', label: '3 dias' },
+                            { id: '7d', label: '7 dias' },
+                            { id: '30d', label: '30 dias' },
+                            { id: '90d', label: '90 dias' },
+                            { id: '1y', label: '1 ano' },
+                            { id: 'all', label: 'Todos' },
+                          ] as const
+                        ).map(({ id, label }) => (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setTacticalPeriodFilter(id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all uppercase tracking-wider ${
+                              tacticalPeriodFilter === id
+                                ? 'bg-cyan-500 text-zinc-950 font-black shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Layout: Gráfico Pizza + Lista com Seletor de Exibição */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                      
+                      {/* Coluna 1: Gráfico Pizza Donut & Estatísticas */}
+                      <div className="lg:col-span-5 bg-zinc-900/40 border border-zinc-800/80 p-6 rounded-2xl flex flex-col items-center justify-center space-y-6">
+                        <div className="w-full flex items-center justify-between border-b border-zinc-800/60 pb-3">
+                          <span className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-wider">
+                            Gráfico de Assertividade
+                          </span>
+                          <span className="text-[10px] font-mono text-zinc-500">
+                            {totalInPeriod} no período
+                          </span>
+                        </div>
+
+                        {/* Donut Chart */}
+                        <div className="relative w-full h-56 flex items-center justify-center">
+                          {totalInPeriod > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={pieData}
+                                  dataKey="value"
+                                  nameKey="name"
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={58}
+                                  outerRadius={80}
+                                  paddingAngle={totalInPeriod > 1 && countCorrect > 0 && countIncorrect > 0 ? 5 : 0}
+                                  stroke="#0a0a0a"
+                                  strokeWidth={3}
+                                >
+                                  {pieData.map((entry, idx) => (
+                                    <Cell key={`cell-${idx}`} fill={entry.color} />
+                                  ))}
+                                </Pie>
+                                <Tooltip
+                                  content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                      const data = payload[0];
+                                      return (
+                                        <div className="bg-zinc-950 border border-zinc-700 px-3 py-2 rounded-xl text-xs font-mono shadow-xl">
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: data.payload.color }} />
+                                            <span className="text-white font-bold">{data.name}:</span>
+                                            <span className="text-zinc-200">{data.value} questões</span>
+                                          </div>
+                                          <span className="text-zinc-400 text-[10px] block mt-0.5">
+                                            {Math.round(((Number(data.value) || 0) / totalInPeriod) * 100)}% das respostas
+                                          </span>
+                                        </div>
+                                      );
+                                    }
+                                    return null;
+                                  }}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center text-center p-6">
+                              <Target className="w-12 h-12 text-zinc-700 mb-2" />
+                              <p className="text-xs text-zinc-500 font-mono">Sem dados no período selecionado</p>
+                            </div>
+                          )}
+
+                          {/* Centro do Donut */}
+                          {totalInPeriod > 0 && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                              <span className="text-3xl font-black font-mono text-white tracking-tight">
+                                {accuracyPct}%
+                              </span>
+                              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                                Acertos
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Cards Resumo de Acertos e Erros */}
+                        <div className="grid grid-cols-2 gap-3 w-full">
+                          <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-left">
+                            <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Certas</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-white mt-1">
+                              {countCorrect}
+                            </div>
+                            <span className="text-[10px] font-mono text-emerald-400/80">
+                              {accuracyPct}% do período
+                            </span>
+                          </div>
+
+                          <div className="p-3.5 rounded-xl bg-red-950/20 border border-red-500/30 text-left">
+                            <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider">
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>Erradas</span>
+                            </div>
+                            <div className="text-2xl font-black font-mono text-white mt-1">
+                              {countIncorrect}
+                            </div>
+                            <span className="text-[10px] font-mono text-red-400/80">
+                              {errorPct}% do período
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Coluna 2: Lista de Questões com Filtro de Desfecho */}
+                      <div className="lg:col-span-7 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/60 border border-zinc-800 p-2 rounded-2xl">
+                          <span className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-wider px-2">
+                            Registro de Questões
+                          </span>
+
+                          {/* Seletor: todas, apenas certas, apenas erradas */}
+                          <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800/80">
+                            <button
+                              type="button"
+                              onClick={() => setTacticalOutcomeFilter('all')}
+                              className={`px-3 py-1.5 text-xs font-mono rounded-lg transition-all ${
+                                tacticalOutcomeFilter === 'all'
+                                  ? 'bg-zinc-800 text-white font-bold shadow'
+                                  : 'text-zinc-400 hover:text-white'
+                              }`}
+                            >
+                              Todas ({totalInPeriod})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTacticalOutcomeFilter('correct')}
+                              className={`px-3 py-1.5 text-xs font-mono rounded-lg transition-all flex items-center gap-1.5 ${
+                                tacticalOutcomeFilter === 'correct'
+                                  ? 'bg-emerald-950 border border-emerald-500/50 text-emerald-300 font-bold shadow'
+                                  : 'text-zinc-400 hover:text-emerald-400'
+                              }`}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                              Apenas as certas ({countCorrect})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTacticalOutcomeFilter('incorrect')}
+                              className={`px-3 py-1.5 text-xs font-mono rounded-lg transition-all flex items-center gap-1.5 ${
+                                tacticalOutcomeFilter === 'incorrect'
+                                  ? 'bg-red-950 border border-red-500/50 text-red-300 font-bold shadow'
+                                  : 'text-zinc-400 hover:text-red-400'
+                              }`}
+                            >
+                              <XCircle className="w-3.5 h-3.5 text-red-400" />
+                              Apenas as erradas ({countIncorrect})
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Lista Scrollável de Questões */}
+                        <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+                          {displayedAttempts.length > 0 ? (
+                            displayedAttempts.map((item, idx) => (
+                              <div
+                                key={item.id || idx}
+                                className={`p-4 rounded-xl border transition-all ${
+                                  item.is_correct
+                                    ? 'bg-emerald-950/10 border-emerald-900/30 hover:border-emerald-700/50'
+                                    : 'bg-red-950/10 border-red-900/30 hover:border-red-700/50'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-zinc-900">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                                        item.is_correct
+                                          ? 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-400'
+                                          : 'bg-red-950/60 border border-red-500/40 text-red-400'
+                                      }`}
+                                    >
+                                      {item.is_correct ? (
+                                        <>
+                                          <CheckCircle2 className="w-3 h-3" /> CERTA
+                                        </>
+                                      ) : (
+                                        <>
+                                          <XCircle className="w-3 h-3" /> ERRADA
+                                        </>
+                                      )}
+                                    </span>
+                                    <span className="text-[11px] font-mono text-zinc-400 truncate max-w-[200px]">
+                                      {item.domain}
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] font-mono text-zinc-500 shrink-0">
+                                    {new Date(item.created_at).toLocaleDateString('pt-BR', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </span>
+                                </div>
+
+                                <p className="text-xs text-zinc-200 font-sans leading-relaxed line-clamp-3">
+                                  {item.question_text || 'Questão registrada na telemetria tática.'}
+                                </p>
+
+                                <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
+                                  <div className="text-zinc-400">
+                                    Sua resposta:{' '}
+                                    <span className={item.is_correct ? 'text-emerald-300 font-bold' : 'text-red-300 font-bold'}>
+                                      {item.selected_answer || 'Não informada'}
+                                    </span>
+                                  </div>
+                                  {!item.is_correct && item.correct_answer && (
+                                    <div className="text-zinc-400">
+                                      Correta: <span className="text-emerald-400 font-bold">{item.correct_answer}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-8 text-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40">
+                              <Target className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+                              <p className="text-xs font-mono text-zinc-400">
+                                Nenhuma questão encontrada para os filtros selecionados.
+                              </p>
+                              <p className="text-[11px] text-zinc-600 mt-1">
+                                Complete baterias no Estudo Tático para alimentar este relatório.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* BLOCO CENTRAL: APRENDIZAGEM & CYBER CORE (TREINE SEUS CONHECIMENTOS) */}
               {(() => {
