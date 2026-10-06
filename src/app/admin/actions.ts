@@ -1,6 +1,6 @@
 'use server';
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase-server';
 import { requireAdmin, AdminAuthError } from '@/lib/admin/require-admin';
 
@@ -1017,6 +1017,120 @@ export async function toggleCertificationAvailabilityAction(
     success: true,
     certId: input.certId,
     isAvailable: Boolean(input.isAvailable),
+  };
+}
+
+export interface AdminCreateUserInput {
+  email: string;
+  password: string;
+  fullName?: string;
+  role?: 'user' | 'admin';
+}
+
+/**
+ * Server Action para provisionamento administrativo de novos operadores/usuários.
+ * Permite que um administrador crie credenciais operacionais com ativação imediata.
+ */
+export async function adminCreateUserAction(
+  input: AdminCreateUserInput,
+  customClient?: SupabaseClient
+): Promise<ActionResponse<{ userId: string; email: string; assignedRole: string }>> {
+  // 1. Autorização administrativa server-side
+  let adminCtx;
+  try {
+    adminCtx = await requireAdmin(customClient);
+  } catch (err) {
+    if (err instanceof AdminAuthError) {
+      return { success: false, error: err.message, code: err.code };
+    }
+    return {
+      success: false,
+      error: 'Falha na verificação de autorização administrativa.',
+      code: 'AUTH_VERIFICATION_FAILED',
+    };
+  }
+
+  // 2. Validação dos campos
+  const email = (input.email || '').trim().toLowerCase();
+  const password = input.password || '';
+  const fullName = (input.fullName || '').trim();
+  const targetRole = input.role === 'admin' ? 'admin' : 'user';
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return {
+      success: false,
+      error: 'E-mail operacional inválido.',
+      code: 'INVALID_EMAIL',
+    };
+  }
+
+  if (password.length < 6) {
+    return {
+      success: false,
+      error: 'A senha de acesso deve possuir no mínimo 6 caracteres.',
+      code: 'WEAK_PASSWORD',
+    };
+  }
+
+  // 3. Cliente Supabase isolado para criação de usuário (sem sobrescrever sessão/cookies do admin)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qtimoxxxkwgrueoerdnv.supabase.co';
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_2HoPZQAly240HQePmqB42g_oqIYElse';
+
+  const isolatedClient = createSupabaseClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { data: signUpData, error: signUpError } = await isolatedClient.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName || email.split('@')[0],
+        display_name: fullName || email.split('@')[0],
+      },
+    },
+  });
+
+  if (signUpError || !signUpData.user) {
+    return {
+      success: false,
+      error: signUpError?.message || 'Falha ao registrar novo operador no serviço de autenticação.',
+      code: 'SIGNUP_ERROR',
+    };
+  }
+
+  const newUserId = signUpData.user.id;
+  let finalRole = 'user';
+
+  // 4. Se solicitado papel administrativo, tenta registrar na tabela canonical admin_users
+  if (targetRole === 'admin') {
+    const supabase = customClient ?? (await createClient());
+    const { error: adminInsertError } = await supabase
+      .from('admin_users')
+      .insert({
+        user_id: newUserId,
+        role: 'admin',
+        created_by: adminCtx.user.id,
+      });
+
+    if (adminInsertError) {
+      return {
+        success: true,
+        userId: newUserId,
+        email,
+        assignedRole: 'user (privilégio admin requer superadmin)',
+      };
+    } else {
+      finalRole = 'admin';
+    }
+  }
+
+  return {
+    success: true,
+    userId: newUserId,
+    email,
+    assignedRole: finalRole,
   };
 }
 

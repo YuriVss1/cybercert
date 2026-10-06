@@ -23,6 +23,7 @@ import { requireAdmin, AdminAuthError } from '@/lib/admin/require-admin';
 import { createClient } from '@/lib/supabase-server';
 import { getAdminOverviewData } from '@/lib/admin/overview-data';
 import { CertificationAvailabilityManager } from '@/components/admin/CertificationAvailabilityManager';
+import { CreateUserModal } from '@/components/admin/CreateUserModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -427,9 +428,12 @@ export default async function AdminPage() {
                     Corpo de Operadores
                   </h3>
                 </div>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  {overview.operators.data?.total || 0} ativo(s)
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {overview.operators.data?.total || 0} ativo(s)
+                  </span>
+                  <CreateUserModal />
+                </div>
               </div>
 
               {overview.operators.status === 'success' && overview.operators.data ? (

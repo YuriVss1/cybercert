@@ -271,7 +271,7 @@ export default function CyberCoreHome() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
           {CATEGORIES.filter(c => c.id !== 'ALL').map(cat => {
             const catId = cat.id as ConceptCategory;
             const categoryConcepts = CYBER_CONCEPTS_CATALOG.filter(c => c.category === catId);
@@ -290,35 +290,47 @@ export default function CyberCoreHome() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(isSelected ? 'ALL' : cat.id)}
-                className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between space-y-2 group ${
+                className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between group relative overflow-hidden ${
                   isSelected 
-                    ? 'bg-cyan-950/40 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.25)]' 
-                    : 'bg-zinc-950 border-zinc-800/90 hover:border-zinc-700'
+                    ? 'bg-cyan-950/40 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.25)] ring-1 ring-cyan-500/50' 
+                    : 'bg-zinc-950/90 border-zinc-800/80 hover:border-zinc-700/80 hover:bg-zinc-900/40'
                 }`}
               >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-cyan-400">
+                {/* Header: Categoria e Badge de Quantidade */}
+                <div className="space-y-1.5 w-full">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 group-hover:text-cyan-300 transition-colors truncate">
                       {cat.label}
                     </span>
-                    <span className="text-xs font-mono text-zinc-500 font-bold">
-                      {total} {total === 1 ? 'conceito' : 'conceitos'}
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-zinc-900 border border-zinc-800 text-zinc-400 shrink-0">
+                      {total} {total === 1 ? 'conc.' : 'conc.'}
                     </span>
+                  </div>
+
+                  {/* Micro barra de progresso visual */}
+                  <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden flex">
+                    <div style={{ width: `${total > 0 ? (mastered / total) * 100 : 0}%` }} className="bg-emerald-400 h-full transition-all" />
+                    <div style={{ width: `${total > 0 ? (developing / total) * 100 : 0}%` }} className="bg-cyan-400 h-full transition-all" />
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-zinc-800/80 grid grid-cols-2 gap-y-1 text-[10px] font-mono">
-                  <div className="text-zinc-400">
-                    Dominados: <strong className="text-emerald-400">{mastered}</strong>
+                {/* Grid 2x2 de métricas em caixas limpas */}
+                <div className="mt-3 pt-2.5 border-t border-zinc-800/80 grid grid-cols-2 gap-1.5 w-full">
+                  <div className="p-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/60 flex flex-col">
+                    <span className="text-[9px] font-mono uppercase text-zinc-500 leading-none">Dominados</span>
+                    <span className="text-xs font-mono font-bold text-emerald-400 mt-1">{mastered}</span>
                   </div>
-                  <div className="text-zinc-400">
-                    Em curso: <strong className="text-cyan-400">{developing}</strong>
+                  <div className="p-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/60 flex flex-col">
+                    <span className="text-[9px] font-mono uppercase text-zinc-500 leading-none">Em curso</span>
+                    <span className="text-xs font-mono font-bold text-cyan-400 mt-1">{developing}</span>
                   </div>
-                  <div className="text-zinc-400">
-                    Revisar: <strong className={toReview > 0 ? "text-amber-400 font-bold" : "text-zinc-500"}>{toReview}</strong>
+                  <div className="p-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/60 flex flex-col">
+                    <span className="text-[9px] font-mono uppercase text-zinc-500 leading-none">Revisar</span>
+                    <span className={`text-xs font-mono font-bold mt-1 ${toReview > 0 ? 'text-amber-400' : 'text-zinc-600'}`}>{toReview}</span>
                   </div>
-                  <div className="text-zinc-400">
-                    Não inic.: <strong className="text-zinc-500">{notStarted}</strong>
+                  <div className="p-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/60 flex flex-col">
+                    <span className="text-[9px] font-mono uppercase text-zinc-500 leading-none">Não inic.</span>
+                    <span className="text-xs font-mono font-bold text-zinc-500 mt-1">{notStarted}</span>
                   </div>
                 </div>
               </button>
